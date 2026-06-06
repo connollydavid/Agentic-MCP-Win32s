@@ -66,7 +66,7 @@ Minimal deps: `rmcp` (`server,macros,transport-io`) + `tokio` (current-thread) +
 
 ## Work items (each through the Allium lifecycle)
 
-- **5.0** — bridge core: rmcp, stdio, tools-only, lifecycle/negotiation; mock-device harness.
+- **5.0** — bridge core: rmcp, stdio, tools-only, lifecycle/negotiation; mock-device harness. **tend ✅** (`specs/mcp-bridge.allium`, mcp-win32s `531e9de`, allium check/analyse clean) · **propagate ✅** (`bridge/OBLIGATIONS-5.0.md`, 54 obligations → proptest/integration/Inspector, `a5b154a`) · **implement** next (fresh-session boundary).
 - **5.1** — API-first file-ops + **device expansion** (Copy/Move/MakeDir/RemoveDir in the C server).
 - **5.2** — compositional build steps + cl/link diagnostic parsing.
 - **5.3** — **memory** peek/poke (device, tiered/user-mode; tools; the gating/safety model).
