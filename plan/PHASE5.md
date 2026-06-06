@@ -48,12 +48,13 @@ Implications: on pre-NT, `peek`/`poke` operate on the broad reachable space the 
 
 ## Encoding / UTF-8 (tiered, opt-in; the bridge always emits UTF-8 on the wire)
 
-MCP's wire is UTF-8; the device speaks ANSI/OEM/DBCS tagged by `codepage`. **Default** stays the proven OEM/base64+codepage path (lossless as bytes; the bridge transcodes codepage→UTF-8 for content within the active codepage). **Opt-in UTF-8 mode** (operator flag, capability-gated) makes the device UTF-8-native where the OS allows, for lossless Unicode (filenames/content outside the legacy codepage):
-- **Win10 1903+** (`encoding: utf8_native`) — a process **UTF-8 manifest** (`activeCodePage=UTF-8`) makes the existing `-A` path UTF-8 + `SetConsoleOutputCP(65001)`. Same code, no W-APIs, **consistent with the ANSI-only constraint**. **This tier ships in Phase 5** (item 5.4).
-- **pre-NT** (`encoding: codepage`) — A/OEM/DBCS + bridge transcode; W-APIs are stubs there.
-- **NT..Win8.1** — proper Unicode needs the **W-API (UTF-16) uplift**, committed to **full fidelity** but its own **later phase** (cross-cutting; UTF-16 is the "unhappy middle ground," converted to UTF-8 at the MCP boundary so the agent only ever sees UTF-8).
+MCP's wire is UTF-8; the device speaks ANSI/OEM/DBCS tagged by `codepage`. The encoding model splits cleanly along a line the research surfaced — **the device's own surfaces** (paths, filenames, the device's own ANSI data) versus **child exec output** — because they upgrade differently:
 
-*Residual research (run before locking 5.4): CP_UTF8/manifest behaviour + earliest reliable build, and the Rust codepage-transcoding crate coverage (cp437/cp932/cp1252/…).*
+- **Device-own surfaces (paths/files):** **Default** stays OEM/base64+codepage (the bridge transcodes to UTF-8). **Opt-in UTF-8 mode on Win10 1903+** (`encoding: utf8_native`): an embedded **`activeCodePage=UTF-8` manifest** makes the device's `-A` file/path/argv APIs UTF-8 — *same code, no W-APIs, consistent with the ANSI-only constraint* — and the **same binary stays loadable on Win32s** (the manifest is inert/never-parsed pre-SxS, ignored pre-1903; confirmed by MS docs). Reliable from build 18362 for paths/argv. **This tier ships in Phase 5 (5.4).** Build gotcha to handle: MinGW links a default `RT_MANIFEST` at ID 1 — we must ship exactly one manifest (drop/merge the default) or the resource corrupts.
+- **Child exec output — does NOT follow the manifest.** A piped child emits *its own* process code page (OEM by default); the parent's manifest/console-CP cannot change that. So `exec`/`ptyExec` output **stays codepage-tagged and is transcoded in the bridge** regardless of UTF-8 mode. (Console A-path UTF-8 via `SetConsoleOutputCP(65001)` is historically unreliable — use `WriteConsoleW` for the device's own console writes, manifest for paths only.)
+- **NT..Win8.1 Unicode** needs the **W-API (UTF-16) uplift** — committed, full fidelity, **its own later phase**. `-W` is stubbed on Win32s/9x → runtime-load it (like the other uplifts) so the import table stays Win32s-loadable; convert UTF-16→UTF-8 at the MCP boundary so the agent only ever sees UTF-8.
+
+**Bridge transcoding (verified crate set):** `encoding_rs` (WHATWG/ANSI/CJK: cp1252, 932, 936, 949, 950, **866**, 65001 — with correct DBCS lead/trail handling) **+** `oem_cp` 2.x (the DOS-OEM gap `encoding_rs` lacks: **cp437, cp850**, + other IBM SBCS) **+** optional `codepage` (number→`encoding_rs` Encoding for the web-set; returns `None` for 437/850, so we own a two-branch dispatcher by CP number). Policy: **strict encode** (surface unrepresentable outbound chars as an error, not silent corruption) / **lossy decode** (U+FFFD). Avoid `codepage-strings` (single-byte only, stale). Note: cp866 is *in* `encoding_rs`, not the OEM gap; cp949 is UHC (encoding_rs covers the EUC-KR core — verify if full UHC is in scope).
 
 ## Upstream — reuse vs build
 
@@ -102,7 +103,7 @@ Minimal deps: `rmcp` (`server,macros,transport-io`) + `tokio` (current-thread) +
 
 ## Open questions
 
-None — settled in the planning-pause Q&A round (2026-06-06). Residual: the encoding research for 5.4 (above), to run before that item locks.
+None — settled in the planning-pause Q&A round (2026-06-06). The encoding research is **done** (folded into the Encoding section: Win10 `activeCodePage` manifest for device paths, exec output stays codepage-tagged/bridge-transcoded, `encoding_rs`+`oem_cp` crate set, the MinGW default-manifest gotcha).
 
 ## Sources (June 2026 research)
 
