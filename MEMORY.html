@@ -199,6 +199,11 @@
 <li>Blocked anonymous-pipe <code>ReadFile</code> reader threads cannot be cancelled portably (closing the read end does not unblock them). Children that may be left running (VDM orphans) must be captured with the non-blocking PeekNamedPipe polling loop even on threaded hosts.</li>
 <li>Under WSL interop, a ConPTY child's stdout routes to the inherited real console, not the pseudoconsole pipe — PTY echo content assertions must skip-with-reason locally; they assert fully on native Windows/CI.</li>
 </ul>
+<h2 id="2026-06-06--phase-4-review-gate-caught-a-catalog-gate-bypass-3rd-time-the-gate-paid-off"><a class="header" href="#2026-06-06--phase-4-review-gate-caught-a-catalog-gate-bypass-3rd-time-the-gate-paid-off">2026-06-06 — Phase 4 review gate caught a catalog-gate bypass (3rd time the gate paid off)</a></h2>
+<ul>
+<li>The shell-builtin auto-route in HandleExec applied ArgvCmdEscape (Q15 caret-escape) ONLY to the external route; the builtin route copied the catalog shell string + ArgvJoin(args) verbatim. A no-whitespace cmd metacharacter in a positional (argv:["dir","x&amp;calc"]) is emitted bare by ArgvJoin and the shell treats &amp; as a separator → ran uncatalogued "calc" past the enforced catalog with no unsafe flag. The full Allium lifecycle (check/propagate/weed) and CI all passed it; only the fresh-context adversarial sub-agent found it. Root cause the spec hid it: catalog.allium abstracted the command line into effective_cmd_line(cmd), so the escaping divergence wasn't pinnable. Fix added a ShellTailNeutralised security invariant naming that both shell routes must escape identically.</li>
+<li>Lesson: when a spec uses a black-box function to abstract a security-relevant transformation (escaping, sanitisation), the abstraction can hide a divergence the weed audit cannot see. Pin the security property explicitly (invariant) rather than burying it in an opaque helper.</li>
+</ul>
 
                     </main>
 
