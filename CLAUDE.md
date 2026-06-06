@@ -31,15 +31,30 @@ Behaviour of the software under development is specified in [Allium](https://jux
 
 `/allium:allium` is the language reference for any syntax or semantics question.
 
+### Safety-relevant transformations must be pinned, not abstracted (tend + weed)
+
+When a spec models a **security- or safety-relevant transformation** — escaping, sanitisation, validation, whitelist gating, auth, a quota/length cap — as a black-box helper (e.g. `effective_cmd_line(cmd)`, `args_allowed(entry, argv)`), the spec MUST *also* carry an explicit `invariant` (or `@invariant` in a contract) naming the property the transformation guarantees. A black box tells weed *that* a transformation happens, never *what it must hold* — so a construct-by-construct weed audit cannot detect when the implementation's transformation diverges from the intent. The named invariant is what makes the property auditable.
+
+Established 2026-06-06 on PR #10: the catalog gate's shell-builtin route skipped the cmd-metacharacter escape the external route applied, allowing `argv:["dir","x&calc"]` to run an uncatalogued `calc` against an enforced catalog. `allium check`, propagate, and a clean weed audit all passed it — the spec had abstracted the escaping into `effective_cmd_line`, hiding the divergence. The fix added a `ShellTailNeutralised` invariant pinning that *both* shell routes neutralise the user tail identically. tend writes these invariants when it introduces the helper; weed treats a black-box safety transform with no backing invariant as drift.
+
 ### Merge gate (non-negotiable)
 
 **Never merge a PR in the software submodule until the full Allium lifecycle has been run for the change.** Concretely, before merging any branch:
 
 1. **Specs current (`/allium:tend`)** — every behavioural change is reflected in `specs/*.allium`, `allium check` clean. Code without a spec is backfilled (`/allium:distill`).
 2. **Obligations propagated (`/allium:propagate`)** — the spec's implied unit/property/state-machine tests exist and trace to the implementation.
-3. **Audit clean (`/allium:weed`)** — a weed pass reports **zero spec↔code drift**. This is the gate; a non-zero drift report blocks the merge until resolved (fix code, fix spec, or record an explicit intentional gap).
+3. **Audit clean (`/allium:weed`)** — a weed pass reports **zero spec↔code drift**. This is the gate; a non-zero drift report blocks the merge until resolved (fix code, fix spec, or record an explicit intentional gap). The weed pass includes an **adversarial gate-bypass dimension**: for every security- or safety-relevant boundary the change touches (a whitelist, an escaper, a length/quota cap, an auth check), actively try to construct an input that defeats it, rather than only matching constructs to code. (Added 2026-06-06: PR #10's catalog-gate bypass passed a construct-by-construct weed because the spec abstracted the escaping into a black box — see the safety-transformation rule below.)
 
 This applies to *every* PR, not just phase-completion PRs. CI green is necessary but **not sufficient** — the weed audit must also be clean. Running the lifecycle is part of preparing a PR for merge, the same way tests are.
+
+#### CI parity (local green ≠ merge-ready)
+
+The dev host runs the PEs **natively via WSL interop**; CI runs them under **Wine**. A locally-green suite is evidence, not proof. Before declaring a branch CI-ready:
+
+1. **The committed tree is what gets tested, not the working tree.** Test data and fixtures that match a `.gitignore` glob (e.g. `*.exe` binary fixtures) must be force-tracked (`git add -f`) and their presence asserted — a passing local run with an untracked fixture is a false green. (Added 2026-06-06: PR #10's binfmt fixtures were silently ignored; CI never had them.)
+2. **OS-behavioural tests must be host-tolerant or runner-verified.** Any test whose outcome depends on the host (capability presence, shell line-ending normalisation, job-limit enforcement, ConPTY support) must either skip-with-reason when the host diverges, or be verified under the CI runner before claiming green — never asserted only against native WSL behaviour. (Added 2026-06-06: three Phase 4 tests encoded native-only behaviour and failed twice on Wine.)
+
+CI green here means **the actual CI run on the pushed commit**, observed — not a local proxy.
 
 ### Review gate (independent sub-agent, before every merge)
 
@@ -54,7 +69,11 @@ Rules for the review:
 5. **Findings are addressed within the same PR** — never deferred out of it — and recorded as numbered findings in the open phase file (host repo) in the same pass.
 6. **Read-only reviewer.** The sub-agent must not modify files or comment on the PR; the main session applies fixes and documents them.
 
-These per-phase process rules (planning pause, lifecycle, merge gate, review gate) are accreting toward a fully worked `/goal` skill per phase.
+### Sub-agent deliverables are verified, never trusted
+
+When implementation work is delegated to sub-agents (parallel module builds, etc.), the orchestrating session **independently re-runs the build and tests on the integrated result** before marking the work complete — it does not accept a sub-agent's self-report as evidence. A sub-agent can report "done" without having observed its own test output, or pass in isolation but break against a sibling's changes. (Added 2026-06-06: a Phase 4 module agent reported completion with a content-free final message; the orchestrator's own build+test run surfaced real failures the agent never saw.) This is the implementation-stage counterpart to the review gate: trust the artifact you verified, not the claim about it.
+
+These per-phase process rules (planning pause, lifecycle, safety-transform pinning, merge gate + CI parity, review gate, sub-agent verification) are accreting toward a fully worked `/goal` skill per phase.
 
 ## Guidelines
 
