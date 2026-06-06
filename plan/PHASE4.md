@@ -1,4 +1,6 @@
-# Phase 4: Command Execution — In progress
+# Phase 4: Command Execution — Complete
+
+> **Completed 2026-06-06.** Merged via MCP-Win32s PR #10 (squash `805cdc3`); host submodule pointer bumped (`bc8bfd0`). Full Allium lifecycle run (elicit → tend → propagate → implement → distill → weed, all recorded below); weed audit zero unrecorded drift; adversarial review gate caught and fixed a catalog-gate bypass (BLOCKER) before merge; CI green (13 ctest suites + host-pbt + wire smoke under Wine). Spec coverage is total across `src/`.
 
 > **Phase opened 2026-06-06** under PLAN.md rule 6 (explicit planning pause): weed remediation scoped in as item 4.0, wire-contract smoke harness added, MCP-facing decisions recorded, stale references corrected. Decisions: weed finding #1 = code bug; finding #6 in 4.0 scope; MCP SDK choice deferred to Phase 5; catalog schema aligns 1:1 with MCP tool definitions; no `/STDIO` backend.
 

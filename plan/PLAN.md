@@ -9,7 +9,7 @@ Phase plans for the software under development (`mcp-win32s/` submodule). Each p
 | 1 | [PHASE1.md](PHASE1.md) | Foundation: test framework, JSON parser, serial init, main loop, CI | **Complete** |
 | 2 | [PHASE2.md](PHASE2.md) | File operations + base64 + PBT | **Complete** |
 | 3 | [PHASE3.md](PHASE3.md) | Network & transport: vtable backends, serial refactor, TCP/Winsock | **Complete** |
-| 4 | [PHASE4.md](PHASE4.md) | Command execution + catalog + feature uplift + theft harness + spec backfill + weed remediation (4.0) + wire-contract smoke harness | **In progress** |
+| 4 | [PHASE4.md](PHASE4.md) | Command execution + catalog + feature uplift + theft harness + spec backfill + weed remediation (4.0) + wire-contract smoke harness | **Complete** |
 | 5 | [PHASE5.md](PHASE5.md) | MCP integration | Not started |
 | 6 | [PHASE6.md](PHASE6.md) | Cross-platform testing | Not started |
 | 7 | [PHASE7.md](PHASE7.md) | Documentation & polish | Not started |
