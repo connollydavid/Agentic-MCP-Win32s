@@ -51,10 +51,11 @@ Discovery session against the spec sketches below; these decisions **override** 
 7. **`max_output` sentinel + clamp:** `config output_cap = 65536` per stream; `0`/omitted = cap; larger values clamp silently (truncation flags already report); 2×65536×4/3 + envelope fits `MCP_MAX_RESPONSE` 256 KB.
 8. **Capabilities is a `given` singleton** (ambient context like the transport in mcp-protocol.allium) — probed once at startup, immutable; rules guard on `capabilities.has_*`. Not an entity with creation rules; not a per-Process snapshot.
 
-Open questions to carry into the specs (tend records them as `open question` declarations):
-- Should a later request be able to query/reap a `still_active` child (e.g. a `status` command), or is it invisible until process exit?
-- Does `ptyExec` share the busy semantics with `exec` while a `still_active` child holds the VDM?
-- Is the catalog reloadable at runtime, or fixed for the server session?
+Open questions — **settled 2026-06-06** (no open questions remain for tend):
+
+9. **Implicit reap with informative busy.** The server retains the `still_active` child's handle; every exec/ptyExec request first re-polls `GetExitCodeProcess`: exited → handle closed, request proceeds; still running → `"busy"`, and the busy error response carries detail — the still_active child's `cmd_line` and elapsed ms — so the client can see what is blocking. No new protocol command.
+10. **Shared busy domain.** Any `still_active` child blocks both `exec` and `ptyExec` (one rule; PTY exists only on Win10+ where 16-bit VDM children barely occur, but the spec stays uniform).
+11. **Catalog fixed per session.** Loaded once at startup (`/CATALOG:` path); changing it requires a server restart — matches the probe-once Capabilities model. Runtime reload is a Phase 5+ question if the bridge ever needs it.
 
 ### Required workflow (Allium lifecycle — order is mandatory)
 
