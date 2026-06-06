@@ -9,5 +9,19 @@
   },
   "enabledPlugins": {
     "allium@juxt-plugins": true
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/phase-gate.sh",
+            "timeout": 600
+          }
+        ]
+      }
+    ]
   }
 }
