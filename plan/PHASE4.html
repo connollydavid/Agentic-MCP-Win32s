@@ -207,6 +207,24 @@
 <li><strong>Catalog ↔ MCP tools:</strong> each catalog entry's <code>description</code> + <code>options</code>/<code>positional</code> typing MUST convert mechanically to an MCP tool definition (<code>name</code>, <code>description</code>, <code>inputSchema</code> with typed properties). The mapping is documented in <code>catalog/MCP-MAPPING.md</code> (documentation only — no mapping code in Phase 4). This is an acceptance criterion; it prevents a catalog v2 in Phase 5.</li>
 <li><strong>Deferred to Phase 5:</strong> MCP SDK choice (Python <code>mcp</code> vs TypeScript) and the bridge implementation itself. Accepted risk: the JSON schemas frozen here may need a vNext if the SDK choice pushes back.</li>
 </ul>
+<h3 id="41-elicit-outcomes-2026-06-06--domain-model-decisions-binding-on-tend"><a class="header" href="#41-elicit-outcomes-2026-06-06--domain-model-decisions-binding-on-tend">4.1 Elicit outcomes (2026-06-06) — domain-model decisions binding on tend</a></h3>
+<p>Discovery session against the spec sketches below; these decisions <strong>override</strong> the sketches where they conflict:</p>
+<ol>
+<li><strong><code>busy</code> = live <code>still_active</code> child only.</strong> The server is single-threaded and exec is synchronous, so the sketched general ExecBusyRejected is unreachable; a second request queues in the transport. <code>"busy"</code> is returned only while a deliberately-unkilled child (see 2) still runs. Drop the general rule.</li>
+<li><strong>New terminal state <code>still_active</code></strong> (Win32-recognizable: <code>GetExitCodeProcess</code>'s <code>STILL_ACTIVE</code>, the very sentinel the Q1 poll loop checks): a timed-out 16-bit child is NOT terminated (Q12, shared VDM) and transitions <code>running -&gt; still_active</code> (terminal; <code>killed_by: none</code>). <code>timed_out</code> now strictly means <em>killed on timeout</em>. Rejected names: abandoned (Win32 mutex/debugger collision), detached (DETACHED_PROCESS collision), zombie (opposite meaning), disowned (not Win32 vocabulary).</li>
+<li><strong>Shell built-ins auto-route via catalog.</strong> kind=shell-builtin wraps in the era-correct shell regardless of the request's <code>shell</code> flag; <code>exec_method:"shell"</code> reports it. The <code>shell</code> flag matters only for uncatalogued/external commands.</li>
+<li><strong>stdin capped:</strong> <code>config stdin_max = 4096</code> (one pipe buffer — a full write can never block the single-threaded server); larger → error <code>"stdin too large"</code>. Threaded uplift may raise it later.</li>
+<li><strong>Timeouts are MCP-idiomatic and never unbounded:</strong> <code>config default_timeout_ms = 55000</code> (inside the MCP TS SDK's 60 s <code>DEFAULT_REQUEST_TIMEOUT_MSEC</code>, with margin to deliver the in-band timed_out response), <code>config max_timeout_ms = 600000</code> hard ceiling; <code>timeout_ms: 0</code>/omitted is the documented sentinel for "server default" (supersedes pre-decision "0 = no timeout").</li>
+<li><strong>Unsafe audit is a response field</strong>, <code>"unsafe_used": true</code> — never injected into <code>stderr_b64</code> (supersedes the "logged in stderr buffer" sketch).</li>
+<li><strong><code>max_output</code> sentinel + clamp:</strong> <code>config output_cap = 65536</code> per stream; <code>0</code>/omitted = cap; larger values clamp silently (truncation flags already report); 2×65536×4/3 + envelope fits <code>MCP_MAX_RESPONSE</code> 256 KB.</li>
+<li><strong>Capabilities is a <code>given</code> singleton</strong> (ambient context like the transport in mcp-protocol.allium) — probed once at startup, immutable; rules guard on <code>capabilities.has_*</code>. Not an entity with creation rules; not a per-Process snapshot.</li>
+</ol>
+<p>Open questions to carry into the specs (tend records them as <code>open question</code> declarations):</p>
+<ul>
+<li>Should a later request be able to query/reap a <code>still_active</code> child (e.g. a <code>status</code> command), or is it invisible until process exit?</li>
+<li>Does <code>ptyExec</code> share the busy semantics with <code>exec</code> while a <code>still_active</code> child holds the VDM?</li>
+<li>Is the catalog reloadable at runtime, or fixed for the server session?</li>
+</ul>
 <h3 id="required-workflow-allium-lifecycle--order-is-mandatory"><a class="header" href="#required-workflow-allium-lifecycle--order-is-mandatory">Required workflow (Allium lifecycle — order is mandatory)</a></h3>
 <p>Phase 4 runs spec-first using the Allium plugin skills (see CLAUDE.md "Specification &amp; Test Workflow"):</p>
 <ol>
