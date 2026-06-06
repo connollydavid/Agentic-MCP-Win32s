@@ -7,7 +7,8 @@ Agentic host repository. Agentic software-development assets (skills, plans, pha
 - `mcp-win32s/` — submodule: the software under development (MCP server for Win32s). Its own `CLAUDE.md` carries the project-specific constraints (C89, i386, Win32s API subset) and build instructions.
 - `andrej-karpathy-skills/` — submodule: behavioral guidelines and skills for agentic development.
 - `plan/` — committed, auditable phase plans. `plan/PLAN.md` is the index and defines the strict phase-file rules (sequential `PHASE<N>.md` naming, closed phases immutable).
-- `AGENTS.md` — condensed agent guide for the software under development.
+- `AGENTS.md` — agent guide for this host: where each concern's source of truth lives. The submodule's own docs (`mcp-win32s/CLAUDE.md`, and `mcp-win32s/vendor/theft/CLAUDE.md` for theft's internal idioms) are referenced, never duplicated.
+- `MEMORY.md` — append-only record of decisions, constraints, and lessons learned.
 
 ## Working in this repository
 
