@@ -181,7 +181,7 @@
 <tr><td>1</td><td><a href="PHASE1.html">PHASE1.md</a></td><td>Foundation: test framework, JSON parser, serial init, main loop, CI</td><td><strong>Complete</strong></td></tr>
 <tr><td>2</td><td><a href="PHASE2.html">PHASE2.md</a></td><td>File operations + base64 + PBT</td><td><strong>Complete</strong></td></tr>
 <tr><td>3</td><td><a href="PHASE3.html">PHASE3.md</a></td><td>Network &amp; transport: vtable backends, serial refactor, TCP/Winsock</td><td><strong>Complete</strong></td></tr>
-<tr><td>4</td><td><a href="PHASE4.html">PHASE4.md</a></td><td>Command execution + catalog + feature uplift + theft harness + spec backfill</td><td>Spec'd</td></tr>
+<tr><td>4</td><td><a href="PHASE4.html">PHASE4.md</a></td><td>Command execution + catalog + feature uplift + theft harness + spec backfill + weed remediation (4.0) + wire-contract smoke harness</td><td><strong>In progress</strong></td></tr>
 <tr><td>5</td><td><a href="PHASE5.html">PHASE5.md</a></td><td>MCP integration</td><td>Not started</td></tr>
 <tr><td>6</td><td><a href="PHASE6.html">PHASE6.md</a></td><td>Cross-platform testing</td><td>Not started</td></tr>
 <tr><td>7</td><td><a href="PHASE7.html">PHASE7.md</a></td><td>Documentation &amp; polish</td><td>Not started</td></tr>
@@ -194,6 +194,7 @@
 <li><strong>Corrections go forward.</strong> If a completed phase turns out to be wrong or incomplete, do not reopen it. Record the correction as scope in the next (or a new) phase file, referencing the closed phase.</li>
 <li><strong>One status transition path.</strong> <code>Not started → Spec'd → In progress → Complete</code>. Status changes are recorded in both the phase file heading and the index table, in the same commit.</li>
 <li><strong>Completion gate.</strong> A phase may only be marked Complete after the Allium lifecycle gate passes (specs tended, obligations propagated, weed audit clean) in the <code>mcp-win32s/</code> submodule.</li>
+<li><strong>Opening a phase requires an explicit planning pause.</strong> Before any code or spec work for a phase begins, the phase file is reviewed and amended to current reality — stale references fixed, corrections carried forward from closed phases scoped in, open decisions resolved via Q&amp;A and recorded — its status moves to <strong>In progress</strong> in the same commit, and that commit is pushed. Execution may never start from an unreviewed plan.</li>
 </ol>
 
                     </main>
