@@ -1,2 +1,6 @@
 .claude/settings.local.json
 book/
+
+# phase-gate runtime state (never commit)
+.claude/phase-gate.active
+.claude/.phase-gate.greenhash
