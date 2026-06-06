@@ -61,9 +61,9 @@ Open questions — **settled 2026-06-06** (no open questions remain for tend):
 
 Phase 4 runs spec-first using the Allium plugin skills (see CLAUDE.md "Specification & Test Workflow"):
 
-1. **`/allium:elicit`** — resolve the open question in `specs/mcp-protocol.allium` ("Should the ready message include transport metadata?") — answer: yes, the extended ready message below carries `codepage`, `version`, `features`. Confirm the exec/catalog/capability domain model before specifying.
-2. **`/allium:tend`** — write `specs/process-ops.allium` + `specs/catalog.allium` and update `specs/mcp-protocol.allium`. The spec sketches in this plan are *input*; tend owns the final form. `allium check` must pass on all specs.
-3. **`/allium:propagate`** — generate the test-obligation list from the three specs. The test tables in this plan are a floor; propagated obligations may add tests, never remove them. Each test file documents which obligation it covers.
+1. **`/allium:elicit`** ✅ 2026-06-06 — domain model confirmed; 11 binding decisions recorded in §4.1 (zero open questions). The mcp-protocol open question (ready metadata) answered: the extended ready message carries `codepage`, `version`, `features`.
+2. **`/allium:tend`** ✅ 2026-06-06 — `specs/process-ops.allium`, `specs/catalog.allium`, `specs/wire-contract.allium` written; `specs/mcp-protocol.allium` exec path rewritten (`ptyExec` dispatch, catalog gate, result→Response mapping, deferred marker removed) on `claude/phase4-specs` (mcp-win32s `3e1e31e`). `allium check` 0 errors; all remaining warnings/findings pre-exist on main. Deliberate deviation: `spawn_failed` is not a `Process` state — a Process exists only once spawn succeeds; spawn failure rejects the request.
+3. **`/allium:propagate`** ✅ 2026-06-06 — `allium plan` yields 211 obligations; `tests/OBLIGATIONS-PHASE4.md` (mcp-win32s `faf4448`) maps every ID to its target test, references existing coverage, and adds 11 tests + 2 PBT properties beyond the floor (still_active lifecycle, config sentinels, admission exclusivity, builtin auto-route, `unsafe_used`, gate exclusivity). Floor rises ≥154 → **≥163**.
 4. **Implement** — `src/*.c` + `tests/*.c`, coding to the specs.
 5. **`/allium:distill`** — backfill specs for the pre-existing unspecified modules: `specs/base64.allium`, `specs/json-parser.allium`, `specs/serial.allium`. This is Phases 1–2 spec debt, folded into Phase 4 (no sub-phase).
 6. **`/allium:weed`** — audit all specs against implementation. Zero drift is a hard gate for marking Phase 4 Complete.
