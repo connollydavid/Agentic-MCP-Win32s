@@ -210,6 +210,18 @@
 <li><strong>Audit clean (<code>/allium:weed</code>)</strong> — a weed pass reports <strong>zero spec↔code drift</strong>. This is the gate; a non-zero drift report blocks the merge until resolved (fix code, fix spec, or record an explicit intentional gap).</li>
 </ol>
 <p>This applies to <em>every</em> PR, not just phase-completion PRs. CI green is necessary but <strong>not sufficient</strong> — the weed audit must also be clean. Running the lifecycle is part of preparing a PR for merge, the same way tests are.</p>
+<h3 id="review-gate-independent-sub-agent-before-every-merge"><a class="header" href="#review-gate-independent-sub-agent-before-every-merge">Review gate (independent sub-agent, before every merge)</a></h3>
+<p>After the Allium lifecycle is clean and CI passes, every PR in the software submodule gets an <strong>independent adversarial review by a fresh sub-agent</strong> before merge. Established 2026-06-06 on PR #9, where this process caught a spec defect (<code>FileWriteResult.data</code> phantom field, finding #7) that <code>allium check</code>, the lifecycle pass, and CI all missed.</p>
+<p>Rules for the review:</p>
+<ol>
+<li><strong>Fresh context.</strong> The reviewer is a sub-agent that did not write the change. It receives the repo path, branch, base, and the PR's claims — and is instructed to verify them, not trust them.</li>
+<li><strong>Precise, per-dimension instructions.</strong> The prompt enumerates review dimensions specific to the diff: code correctness against the project's hard constraints (C89/i386/Win32s), test quality (does the pinning test actually pin?), spec semantics checked against the <em>implementation read directly</em> (no double-fire rules, faithful modelling of the code paths), tool re-runs (<code>allium check</code>/<code>analyse</code>, build, test suite), and scope discipline (every changed line traces to a stated finding).</li>
+<li><strong>Adversarial framing.</strong> The reviewer is told to refute the PR's claims and to look for adjacent defects of the same class as those being fixed — that is what catches what the tools cannot (the checker does not validate <code>.created()</code> args against entity fields; only a reader comparing spec to entity declarations finds that).</li>
+<li><strong>Structured output.</strong> Findings ordered by severity (blocker / should-fix / nit / observation) with file:line and quoted evidence; explicit "none" per empty level; a merge verdict (approve / approve-with-nits / request-changes).</li>
+<li><strong>Findings are addressed within the same PR</strong> — never deferred out of it — and recorded as numbered findings in the open phase file (host repo) in the same pass.</li>
+<li><strong>Read-only reviewer.</strong> The sub-agent must not modify files or comment on the PR; the main session applies fixes and documents them.</li>
+</ol>
+<p>These per-phase process rules (planning pause, lifecycle, merge gate, review gate) are accreting toward a fully worked <code>/goal</code> skill per phase.</p>
 <h2 id="guidelines"><a class="header" href="#guidelines">Guidelines</a></h2>
 <p>@andrej-karpathy-skills/CLAUDE.md</p>
 
