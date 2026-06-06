@@ -83,9 +83,13 @@ git -C mcp-win32s config core.hooksPath ../.claude/hooks/git
 
 (`.git/hooks` is not tracked, so the git-hook install is a per-clone step. The PreToolUse hook needs no install — it ships in `.claude/settings.json`.) A subject that *starts with* `Phase N` is exempt (the host convention); a phase-synonym anywhere else flags. Idiomatic vocabulary — Conventional Commits types, Conventional Comments labels, code tags (`TODO/FIXME/XXX/HACK`), `WIP` — is never flagged.
 
+### Implement and weed are fan-out jobs (not linear)
+
+A phase's implement and weed stages are **parallel orchestration**, not serial work — this is how Phase 4 was actually done and what made it tractable. Implement: decompose into independent modules, **freeze each module's interface (`.h`) and commit it first** so concurrent work cannot collide on a contract, then spawn one sub-agent per module in parallel; keep the integration seams (dispatcher, glue) for the main session; **independently re-build and re-test every returned module** (sub-agent verification). Weed: split the specs into clusters and run one read-only auditor per cluster in parallel, each adversarial. Stage cadence: each lifecycle stage exit writes a `✅ <stage>` marker into the open `PHASE<N>.md` and is committed + pushed immediately (the same immediate-commit rule as PLAN edits) — those markers are the phase's state.
+
 ### The `/phase` orchestrator
 
-These per-phase process rules (planning pause, lifecycle, safety-transform pinning, merge gate + CI parity, review gate, sub-agent verification) are sequenced by the **`/phase`** skill (`.claude/skills/phase/`) — the state-aware orchestrator that drives a phase open→complete and refuses to skip a gate. Its deterministic gates are enforced by the `/phase-gate` Stop hook, its judgment gate by the adversarial review sub-agent (`review-template.md`), and its parity gate by observed CI. (The skill is named `/phase`, not `/goal`: `/goal` is a built-in Claude Code command — a transcript-evaluated loop — which the orchestrator deliberately does not shadow and does not depend on, since it verifies its gates by running them.)
+These per-phase process rules (planning pause, lifecycle, safety-transform pinning, merge gate + CI parity, review gate, sub-agent verification, fan-out) are sequenced by the **`/phase`** skill (`.claude/skills/phase/`) — the state-aware orchestrator that drives a phase open→complete and refuses to skip a gate. Its deterministic gates are enforced by the `/phase-gate` Stop hook, its judgment gate by the adversarial review sub-agent (`review-template.md`), and its parity gate by observed CI. (The skill is named `/phase`, not `/goal`: `/goal` is a built-in Claude Code command — a transcript-evaluated loop — which the orchestrator deliberately does not shadow and does not depend on, since it verifies its gates by running them.)
 
 ## Guidelines
 
