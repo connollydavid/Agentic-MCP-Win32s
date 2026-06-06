@@ -795,6 +795,15 @@ Integration (extending `tests/test_serial.c`):
 
 (Items previously listed as out-of-scope — interactive stdin/TTY, process signals, resource limits — are now **in scope** via the feature-detection uplift. They function on Windows versions that support them and gracefully degrade on Win32s.)
 
+### Adversarial review (review gate — PR #10, 2026-06-06)
+
+After the lifecycle was clean and CI green, an independent fresh-context sub-agent reviewed the branch across seven dimensions (constraint violations, gate-bypass hunting, orphan/busy correctness, spec↔code semantics, test quality, tool re-runs, scope). Verdict: **request-changes**, on one **BLOCKER** it found that every prior tool missed:
+
+- **Catalog-gate bypass (fixed, mcp-win32s `dea4aee`).** The shell-builtin auto-route copied `command.com /c dir` + `ArgvJoin(args)` verbatim; `ArgvCmdEscape` (the Q15 caret escape) ran only on the external route. A no-whitespace cmd metacharacter in a positional — `argv:["dir","x&calc"]` — reached the shell as a separator and ran the uncatalogued `calc` against the **enforced** catalog with no unsafe flag. Fix: both shell routes now caret-escape the request-derived tail before the trusted `<shell> /c` prefix. Pinning test `exec_builtin_positional_metachar_neutralised` decodes `stdout_b64` and asserts the chained command's output is absent — verified to **fail on the pre-fix dispatcher, pass on the fix**. Spec gains the `ShellTailNeutralised` security invariant so a future weed pass catches a regression (the prior spec abstracted the escaping into `effective_cmd_line`, which is exactly why the lifecycle missed it).
+- Everything else verified and held: all 9 specs `allium check`-clean, 13/13 ctest + host-pbt green, C89/i386/no-FP/import-table all clean, orphan domain correct (no leaks, no second orphan by construction), prior findings stay fixed, scope clean. Verdict after the fix: **approve**.
+
+This is the third phase where the independent review caught a real defect the checker, lifecycle, and CI all passed (cf. PR #9 finding #7) — the gate continues to earn its place.
+
 ### Verification (sub-agent acceptance criteria)
 
 1. `./build.sh test` clean on Linux/MinGW with strict flags.
