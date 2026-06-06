@@ -1425,9 +1425,74 @@ The first line received parses as JSON with <code>status:"ready"</code>, <code>v
 <li><strong>Wire-contract smoke green:</strong> <code>wire_client</code> passes against <code>mcp-w32s.exe /TCP:&lt;port&gt;</code> in CI; all its tests trace to <code>specs/wire-contract.allium</code> obligations.</li>
 </ol>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="phase-5-mcp-integration--not-started"><a class="header" href="#phase-5-mcp-integration--not-started">Phase 5: MCP Integration — Not Started</a></h1>
+<blockquote>
+<p><strong>Drafted 2026-06-06, pending the planning pause.</strong> This plan was authored from June-2026 web research into current MCP best practice (sources at the foot). It is the input the <code>/phase open 5</code> planning pause reviews and amends; the <strong>open questions</strong> below are settled with the user in that pause (which also flips the status to In progress). Nothing executes until then.</p>
+</blockquote>
+<p><strong>Goal:</strong> Expose the MCP-Win32s server's capabilities — catalogued command execution, PTY execution, and file read/write/list/delete — to MCP <strong>clients</strong> through a bridge, so any modern agent host can drive a Windows 3.1-through-11 box. The C server (frozen, Phase-4-proven over serial/TCP) is unchanged; Phase 5 builds the bridge above it.</p>
+<h2 id="architecture"><a class="header" href="#architecture">Architecture</a></h2>
+<pre><code>MCP client  ──MCP/JSON-RPC over stdio──▶  bridge  ──newline-JSON over serial/TCP──▶  mcp-w32s.exe
+(Claude, ChatGPT,                         (modern host)                              (Win32s..Win11)
+ VS Code, Gemini, …)
+</code></pre>
+<p>The <strong>bridge</strong> is simultaneously an MCP <strong>server</strong> (speaks MCP/JSON-RPC to the client) and an MCP-Win32s protocol <strong>client</strong> (speaks the frozen newline-JSON wire protocol to the device — the exact contract <code>tests/smoke/wire_client.c</code> already proves). The C server is <em>not</em> an MCP server itself: C89/Win32s cannot reasonably carry JSON-RPC/OAuth/HTTP, and the device sits behind a serial/TCP link. This split is the textbook stdio-bridge case the spec describes.</p>
+<h2 id="research-grounded-decisions-june-2026-confirm-in-the-pause"><a class="header" href="#research-grounded-decisions-june-2026-confirm-in-the-pause">Research-grounded decisions (June 2026; confirm in the pause)</a></h2>
+<p>The MCP field moved two spec revisions past a Jan-2026 baseline; these are grounded in the current spec and the cross-client landscape.</p>
 <ul>
-<li>Python bridge: map MCP tool calls to serial/TCP protocol</li>
-<li>Test with Claude Code / Claude Desktop</li>
+<li><strong>D1 — Target protocol <code>2025-11-25</code></strong> (the current <em>stable</em> revision), negotiate leniently (echo the client's version if supported, else offer ours). A <strong><code>2026-07-28</code> release candidate</strong> exists (stateless core: drops the <code>initialize</code> handshake and <code>MCP-Session-Id</code>, deprecates sampling/roots/logging, replaces server-initiated requests with Multi-Round-Trip Requests). We do <strong>not</strong> build to the RC — but a tools-only, stateless bridge is <em>naturally</em> forward-compatible with it, which is a reason to stay in the portable subset.</li>
+<li><strong>D2 — Client transport: stdio first.</strong> The spec's preferred default, the universal client baseline, and a direct heir to our newline-JSON-over-a-pipe heritage. Streamable HTTP is optional and later (it pulls in Origin validation, session IDs, and the whole OAuth stack); <strong>never SSE</strong> (deprecated 2025-03-26).</li>
+<li><strong>D3 — Tools-only portable subset.</strong> Tools are the only universally-supported primitive across Claude, ChatGPT/OpenAI Agents SDK, Gemini, VS Code Copilot, Cursor, Windsurf, Cline, Zed, JetBrains. Resources, prompts, sampling, elicitation, roots, and OAuth are unevenly supported → <strong>feature-detect, never depend on</strong>. No core behaviour rests on them.</li>
+<li><strong>D4 — Result shape.</strong> Every tool returns a <code>text</code> content block (universally rendered) <strong>and</strong> a <code>structuredContent</code> mirror (progressive enhancement) when an <code>outputSchema</code> is declared. <code>exit_code</code>, <code>exec_method</code>, <code>binary_type</code>, <code>killed_by</code>, truncation flags, <code>duration_ms</code> go in <code>structuredContent</code>; a human-readable summary goes in <code>text</code>.</li>
+<li><strong>D5 — Errors via <code>isError</code>.</strong> Recoverable failures the model can fix or retry — catalog miss, argument not allowed, busy, timeout, stdin too large, invalid base64, pty-not-available — return as <strong>tool execution errors</strong> (<code>isError: true</code> with an actionable message), per the current spec (input-validation errors are tool errors, not protocol errors). Only malformed/unknown-tool calls are JSON-RPC protocol errors.</li>
+<li><strong>D6 — Tool schema.</strong> Self-prefixed names (<code>win32_*</code>), 1–128 chars, <code>[A-Za-z0-9_.-]</code>; JSON Schema <strong>2020-12</strong>, <code>additionalProperties: false</code>, explicit <code>required</code>; conservative subset (no <code>oneOf</code>/<code>$ref</code> graphs/<code>patternProperties</code> — client validation fidelity varies). Honest, conservative tool <strong>annotations</strong> (<code>destructiveHint</code> for <code>del</code>/<code>rmdir</code>/etc., <code>readOnlyHint</code> for <code>dir</code>/<code>type</code>) — but they are advisory; safety is enforced server-side.</li>
+<li><strong>D7 — Security = the catalog is the OWASP MCP05 boundary, and it is already built.</strong> Command-executing servers are the canonical MCP threat (command injection). Phase 4 already implements the required mitigations: the catalog <strong>allow-list</strong>, <code>argv</code> + <code>ArgvCmdEscape</code> instead of shell string-building (the very gap the review gate caught and closed), <code>CatalogValidateArgs</code>, and job-object sandboxing. The bridge adds: <code>isError</code> translation, per-tool <strong>rate limiting</strong> (LLMs retry aggressively — a circuit breaker for the device), <strong>audit logging</strong> of every invocation (identity, timestamp, args), and surfacing destructive operations for human confirmation. OAuth is <strong>skipped</strong> for the local stdio bridge (the spec says stdio SHOULD NOT use the OAuth flow; rely on OS-level controls).</li>
+<li><strong>D8 — Capability gating from the ready message.</strong> The device's ready message (<code>codepage</code>, <code>version</code>, <code>features</code>) maps onto MCP capabilities: advertise <code>win32_pty_exec</code> <strong>only when</strong> <code>features.pty</code>; decode OEM exec output using <code>codepage</code>; surface <code>features</code> so a capability-aware client sees what the host supports. base64 stays for all binary/OEM payloads (matches MCP's own base64 for image/audio/blob content).</li>
+</ul>
+<h2 id="the-mcp-surface-maps-the-frozen-phase-4-contract"><a class="header" href="#the-mcp-surface-maps-the-frozen-phase-4-contract">The MCP surface (maps the frozen Phase-4 contract)</a></h2>
+<p>The Phase-4 <code>catalog/MCP-MAPPING.md</code> froze the catalog→tool-definition mapping; Phase 5 realises it. The exec/file-ops/ptyExec JSON shapes are frozen; the bridge translates them to MCP results. Candidate tool surface (granularity is <strong>OQ2</strong>):</p>
+<div class="table-wrapper"><table><thead><tr><th>MCP tool (proposed)</th><th>Backs onto</th><th>Notes</th></tr></thead><tbody>
+<tr><td><code>win32_exec</code> <em>(or 30 per-command tools)</em></td><td><code>exec</code> + catalog gate</td><td>catalogued command + validated args; <code>structuredContent</code> carries exit/method/type/killed_by</td></tr>
+<tr><td><code>win32_pty_exec</code></td><td><code>ptyExec</code></td><td>advertised only when <code>features.pty</code>; merged ANSI <code>output_b64</code></td></tr>
+<tr><td><code>win32_read_file</code> / <code>win32_write_file</code> / <code>win32_list_dir</code> / <code>win32_delete_file</code></td><td>file-ops</td><td>base64 payloads; <code>delete</code>/<code>write</code> carry <code>destructiveHint</code></td></tr>
+</tbody></table>
+</div>
+<h2 id="allium-lifecycle-the-bridge-is-behaviour--it-gets-specs"><a class="header" href="#allium-lifecycle-the-bridge-is-behaviour--it-gets-specs">Allium lifecycle (the bridge is behaviour → it gets specs)</a></h2>
+<p>Phase 5 runs the same lifecycle. Allium is language-agnostic, so the bridge's behaviour is specified before it is built: a new <code>mcp-bridge.allium</code> models the tool mapping, the <code>isError</code> translation, capability gating, statelessness, and the device round-trip — sitting <em>above</em> the existing <code>wire-contract.allium</code> (device side). elicit (settle the open questions) → tend (<code>mcp-bridge.allium</code>) → propagate (the bridge test suite: protocol-conformance + tool round-trips, traced to obligations) → implement → distill (if any module lacks a spec) → weed (zero drift) → merge gate + CI parity → review gate → complete. The deterministic <code>/phase-gate</code> arms at first-green; its gate set extends to the bridge's test suite and an MCP <strong>conformance check</strong> (e.g. the MCP Inspector / a 2025-11-25 protocol probe).</p>
+<h2 id="open-questions--for-the-phase-open-5-planning-pause"><a class="header" href="#open-questions--for-the-phase-open-5-planning-pause">Open questions — for the <code>/phase open 5</code> planning pause</a></h2>
+<ol>
+<li><strong>OQ1 — SDK / language.</strong> Python <code>mcp</code> SDK + <code>pyserial</code> (the existing "modern bridge side" deps lean this way) vs the TypeScript SDK. Both are first-class and target the 2025-06-18+ baseline.</li>
+<li><strong>OQ2 — Tool granularity (the central fork).</strong> 30 catalogued commands as <strong>30 tools</strong> (the frozen 1:1 <code>MCP-MAPPING.md</code>, maximal discoverability) vs a <strong>consolidated</strong> surface (one <code>win32_exec</code> with a catalog-validated command param + the file-ops tools + <code>win32_pty_exec</code>). Research favours consolidation ("don't mirror every endpoint; tool count dilutes selection"); the Phase-4 decision favoured 1:1. May the catalog also be exposed as a read-only listing the model can consult?</li>
+<li><strong>OQ3 — Bridge code location.</strong> A <code>bridge/</code> directory inside the <code>mcp-win32s</code> submodule (versioned with the wire protocol it depends on) vs a new submodule (clean language/toolchain separation).</li>
+<li><strong>OQ4 — Spec home &amp; test style.</strong> Where <code>mcp-bridge.allium</code> lives (follows OQ3), and how much of the bridge's logic is theft-style property-tested vs MCP-conformance-tested.</li>
+<li><strong>OQ5 — Transport scope this phase.</strong> stdio only, or stdio <strong>+</strong> Streamable HTTP (the latter adds Origin validation, session IDs, and pulls OAuth into scope).</li>
+<li><strong>OQ6 — Cross-client acceptance.</strong> Which non-Anthropic client(s) join the acceptance test — MCP <strong>Inspector</strong> (baseline conformance) plus at least one of VS Code Copilot / OpenAI Agents SDK / Gemini CLI — so we prove "no overfit," not just "works in Claude."</li>
+<li><strong>OQ7 — Frozen-schema reconciliation.</strong> Verify the Phase-4-frozen JSON shapes (<code>exit_code</code>, <code>stdout_b64</code>, <code>structuredContent</code> candidates) against <code>2025-11-25</code> before locking; the Phase-4 note accepted the risk of a vNext.</li>
+</ol>
+<h2 id="acceptance-criteria-provisional-finalised-in-the-pause"><a class="header" href="#acceptance-criteria-provisional-finalised-in-the-pause">Acceptance criteria (provisional; finalised in the pause)</a></h2>
+<ol>
+<li>The bridge speaks MCP <code>2025-11-25</code> over stdio; <code>initialize</code>/<code>tools/list</code>/<code>tools/call</code> round-trip; version negotiation is lenient.</li>
+<li>Every device error surfaces as <code>isError: true</code> with an actionable message; only malformed/unknown-tool → JSON-RPC error.</li>
+<li><code>win32_pty_exec</code> is advertised iff the device reports <code>features.pty</code>; OEM output is decoded via <code>codepage</code>.</li>
+<li>Tools carry 2020-12 schemas with <code>additionalProperties:false</code>; destructive tools carry <code>destructiveHint</code>; safety is enforced server-side regardless of the hint.</li>
+<li><strong>Cross-client:</strong> passes the MCP Inspector conformance check <strong>and</strong> runs unmodified in ≥1 non-Anthropic client (OQ6), not only Claude.</li>
+<li>The full Allium lifecycle is clean (weed zero-drift), CI green (observed), and the adversarial review gate approves — with the gate-bypass dimension applied to the new tool-argument surface.</li>
+<li>Rate limiting and audit logging are present; a destructive op is surfaced for confirmation.</li>
+</ol>
+<h2 id="out-of-scope-phase-5"><a class="header" href="#out-of-scope-phase-5">Out of scope (Phase 5)</a></h2>
+<ul>
+<li>The <strong>2026-07-28 RC</strong> migration (statelessness/MRTR) — track, don't build; our portable subset is already forward-leaning.</li>
+<li><strong>OAuth / remote multi-tenant</strong> auth — only needed if Streamable HTTP remote serving is in scope (OQ5).</li>
+<li>MCP <strong>resources / prompts / sampling / elicitation / MCP Apps</strong> — progressive enhancements, not core; revisit per client demand.</li>
+<li><strong>Streaming / async exec</strong> — the one-line-in/one-line-out wire protocol and single-threaded device preclude it (deferred since Phase 4).</li>
+</ul>
+<h2 id="sources-june-2026-research"><a class="header" href="#sources-june-2026-research">Sources (June 2026 research)</a></h2>
+<ul>
+<li>MCP spec <code>2025-11-25</code>: changelog, transports, lifecycle, server/tools — modelcontextprotocol.io</li>
+<li>MCP <code>2026-07-28</code> release candidate (stateless core) — blog.modelcontextprotocol.io</li>
+<li>Authorization spec (OAuth Resource Server, RFC 9728/8707, CIMD); Security Best Practices — modelcontextprotocol.io</li>
+<li>OWASP MCP Top 10 (MCP05 Command Injection &amp; Execution) — owasp.org</li>
+<li>Anthropic, "Writing effective tools for AI agents" (2025-09-11)</li>
+<li>Cross-client landscape: OpenAI Agents SDK / Responses API, Google Gemini, VS Code Copilot, Cursor, Cline, Zed, JetBrains docs (2025–2026)</li>
+<li>(Full URLs retained in the planning-session research; folded into a <code>bridge/</code> references list during implementation.)</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="phase-6-cross-platform-testing--not-started"><a class="header" href="#phase-6-cross-platform-testing--not-started">Phase 6: Cross-Platform Testing — Not Started</a></h1>
 <ul>
