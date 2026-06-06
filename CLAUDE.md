@@ -73,7 +73,19 @@ Rules for the review:
 
 When implementation work is delegated to sub-agents (parallel module builds, etc.), the orchestrating session **independently re-runs the build and tests on the integrated result** before marking the work complete — it does not accept a sub-agent's self-report as evidence. A sub-agent can report "done" without having observed its own test output, or pass in isolation but break against a sibling's changes. (Added 2026-06-06: a Phase 4 module agent reported completion with a content-free final message; the orchestrator's own build+test run surfaced real failures the agent never saw.) This is the implementation-stage counterpart to the review gate: trust the artifact you verified, not the claim about it.
 
-These per-phase process rules (planning pause, lifecycle, safety-transform pinning, merge gate + CI parity, review gate, sub-agent verification) are accreting toward a fully worked `/goal` skill per phase.
+### Vocabulary discipline (anti-slop)
+
+Numbered phase-synonyms — `Phase 1`, `Step 2`, `Stage II`, `Pass 1 of 3` — are a cross-model agentic tell (GPT, Gemini, Claude, Cursor, Copilot all stamp them). In the **software submodule** they are slop: keep them out of `src/`/`tests/` comments and out of commit subjects, which should read as idiomatic git / Conventional Commits. The sanctioned `Phase N` structure is *legitimate* and lives **only here in the host** (`plan/`, `PLAN.md`, `PHASE<N>.md`, and the host's `Phase N …` commit convention). This boundary is enforced mechanically by the phase-slop linter (`.claude/hooks/lib/phase-slop-lint.sh`), wired as a Claude Code PreToolUse hook (catches the agent) and as installable git hooks for the submodule (catch humans):
+
+```
+git -C mcp-win32s config core.hooksPath ../.claude/hooks/git
+```
+
+(`.git/hooks` is not tracked, so the git-hook install is a per-clone step. The PreToolUse hook needs no install — it ships in `.claude/settings.json`.) A subject that *starts with* `Phase N` is exempt (the host convention); a phase-synonym anywhere else flags. Idiomatic vocabulary — Conventional Commits types, Conventional Comments labels, code tags (`TODO/FIXME/XXX/HACK`), `WIP` — is never flagged.
+
+### The `/phase` orchestrator
+
+These per-phase process rules (planning pause, lifecycle, safety-transform pinning, merge gate + CI parity, review gate, sub-agent verification) are sequenced by the **`/phase`** skill (`.claude/skills/phase/`) — the state-aware orchestrator that drives a phase open→complete and refuses to skip a gate. Its deterministic gates are enforced by the `/phase-gate` Stop hook, its judgment gate by the adversarial review sub-agent (`review-template.md`), and its parity gate by observed CI. (The skill is named `/phase`, not `/goal`: `/goal` is a built-in Claude Code command — a transcript-evaluated loop — which the orchestrator deliberately does not shadow and does not depend on, since it verifies its gates by running them.)
 
 ## Guidelines
 
