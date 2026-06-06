@@ -20,6 +20,7 @@ A `/allium:weed` audit on 2026-06-06 (allium CLI 3.2.4, specs at MCP-Win32s@e143
 | 4 | Code error vocabulary richer than spec ("read error", "invalid base64", "incomplete write", …) | Intentional gap | tend: recorded-gap note in `file-ops.allium` |
 | 5 | Pre-parse "invalid JSON" reject path unspecified (`src/mcp-w32s.c:93-101`) | Spec gap | tend: rule/prose note in `mcp-protocol.allium` |
 | 6 | No surfaces/actors in `transport.allium`; all 7 external triggers unprovided per `allium analyse` | Maturity gap — **in 4.0 scope** (decided 2026-06-06) | tend: add OS/Winsock/operator surfaces providing all 7 triggers |
+| 7 | `WriteCommand` passes `data: cmd.data` into `FileWriteResult.created` but `FileWriteResult` declares no `data` field (`mcp-protocol.allium:118-122`) — same class as #3; found by PR #9 review sub-agent, not by `allium check` | Spec bug | tend: drop the phantom field (addressed within PR #9) |
 
 ### 4.0b — Wire-contract smoke harness (C + PBT, Allium-specified)
 
