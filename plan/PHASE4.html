@@ -1,0 +1,974 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Phase 4: Command Execution - Agentic-MCP-Win32s</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="Agentic host: plans, phase audits, and process for the MCP-Win32s software under development">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../CLAUDE.html">Agentic Host Guide</a></li><li class="chapter-item expanded "><a href="../AGENTS.html"><strong aria-hidden="true">1.</strong> Agent Guide</a></li><li class="chapter-item expanded "><a href="../MEMORY.html"><strong aria-hidden="true">2.</strong> Memory</a></li><li class="chapter-item expanded "><a href="../plan/PLAN.html"><strong aria-hidden="true">3.</strong> Plan</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../plan/PHASE1.html"><strong aria-hidden="true">3.1.</strong> Phase 1: Foundation</a></li><li class="chapter-item expanded "><a href="../plan/PHASE2.html"><strong aria-hidden="true">3.2.</strong> Phase 2: File Operations + Base64</a></li><li class="chapter-item expanded "><a href="../plan/PHASE3.html"><strong aria-hidden="true">3.3.</strong> Phase 3: Network & Transport</a></li><li class="chapter-item expanded "><a href="../plan/PHASE4.html" class="active"><strong aria-hidden="true">3.4.</strong> Phase 4: Command Execution</a></li><li class="chapter-item expanded "><a href="../plan/PHASE5.html"><strong aria-hidden="true">3.5.</strong> Phase 5: MCP Integration</a></li><li class="chapter-item expanded "><a href="../plan/PHASE6.html"><strong aria-hidden="true">3.6.</strong> Phase 6: Cross-Platform Testing</a></li><li class="chapter-item expanded "><a href="../plan/PHASE7.html"><strong aria-hidden="true">3.7.</strong> Phase 7: Documentation & Polish</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Agentic-MCP-Win32s</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="phase-4-command-execution--specd-not-started"><a class="header" href="#phase-4-command-execution--specd-not-started">Phase 4: Command Execution — Spec'd (not started)</a></h1>
+<p><strong>Goal:</strong> Replace the <code>exec</code> stub with a complete implementation: spawn child processes via <code>CreateProcessA</code>, capture stdout/stderr/exit code, return them base64-encoded in the JSON response. Ship a JSON command catalog so MCP clients can discover what's safe to run when <code>--help</code> is unavailable, and load it server-side as a whitelist (with bypass flag).</p>
+<p>Phase 4 is fully self-contained — argv quoting, timeouts, stdin pass-through, 16-bit detection, catalog enforcement, and the full Allium spec are all in scope here.</p>
+<p><strong>Hooks the existing stub at</strong> <code>src/mcp-w32s.c:171–174</code>. Reuses <code>Base64Encode</code> (<code>src/base64.h</code>) and <code>BuildJsonResponse</code> (<code>src/json_parser.h</code>).</p>
+<h3 id="required-workflow-allium-lifecycle--order-is-mandatory"><a class="header" href="#required-workflow-allium-lifecycle--order-is-mandatory">Required workflow (Allium lifecycle — order is mandatory)</a></h3>
+<p>Phase 4 runs spec-first using the Allium plugin skills (see CLAUDE.md "Specification &amp; Test Workflow"):</p>
+<ol>
+<li><strong><code>/allium:elicit</code></strong> — resolve the open question in <code>specs/mcp-protocol.allium</code> ("Should the ready message include transport metadata?") — answer: yes, the extended ready message below carries <code>codepage</code>, <code>version</code>, <code>features</code>. Confirm the exec/catalog/capability domain model before specifying.</li>
+<li><strong><code>/allium:tend</code></strong> — write <code>specs/process-ops.allium</code> + <code>specs/catalog.allium</code> and update <code>specs/mcp-protocol.allium</code>. The spec sketches in this plan are <em>input</em>; tend owns the final form. <code>allium check</code> must pass on all specs.</li>
+<li><strong><code>/allium:propagate</code></strong> — generate the test-obligation list from the three specs. The test tables in this plan are a floor; propagated obligations may add tests, never remove them. Each test file documents which obligation it covers.</li>
+<li><strong>Implement</strong> — <code>src/*.c</code> + <code>tests/*.c</code>, coding to the specs.</li>
+<li><strong><code>/allium:distill</code></strong> — backfill specs for the pre-existing unspecified modules: <code>specs/base64.allium</code>, <code>specs/json-parser.allium</code>, <code>specs/serial.allium</code>. This is Phases 1–2 spec debt, folded into Phase 4 (no sub-phase).</li>
+<li><strong><code>/allium:weed</code></strong> — audit all specs against implementation. Zero drift is a hard gate for marking Phase 4 Complete.</li>
+</ol>
+<h3 id="theft-host-side-pbt-harness-new-in-phase-4"><a class="header" href="#theft-host-side-pbt-harness-new-in-phase-4">theft host-side PBT harness (new in Phase 4)</a></h3>
+<p><code>vendor/theft</code> is vendored but unwired. Phase 4 wires it as a <strong>host-native</strong> test layer (Linux <code>gcc -std=c99</code>, no MinGW, no Wine) for OS-independent modules. Shipped sources stay C89; only <code>tests/host/*.c</code> harness files are C99. Win32-API-dependent code is out of theft's scope.</p>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Properties (autoshrinking, ≥50k trials each)</th></tr></thead><tbody>
+<tr><td><code>tests/host/theft_base64.c</code></td><td>roundtrip, alphabet validity, length formula — deep version of the prop.h suite</td></tr>
+<tr><td><code>tests/host/theft_json.c</code></td><td>parse(build(cmd)) == cmd; parser never reads past terminator; malformed input never crashes</td></tr>
+<tr><td><code>tests/host/theft_argv.c</code></td><td>ArgvEscapeArg/ArgvJoin roundtrip against a reference CommandLineToArgvW tokenizer implemented in the harness</td></tr>
+<tr><td><code>tests/host/theft_catalog.c</code></td><td>CatalogValidateArgs never accepts unknown flags; glued (<code>/A:v</code>) and split (<code>/A v</code>) flag-arg forms validate identically</td></tr>
+</tbody></table>
+</div>
+<ul>
+<li><code>build.sh host-pbt</code>: builds <code>vendor/theft</code> + harness natively, runs it. Same properties mirrored in <code>prop.h</code> at lower trial counts for the Wine/target run.</li>
+<li>CI: new <code>host-pbt</code> step runs <strong>before</strong> the Wine suite (fail fast on logic bugs with minimal counterexamples).</li>
+</ul>
+<h3 id="critical-win32-quirks-to-design-around"><a class="header" href="#critical-win32-quirks-to-design-around">Critical Win32 quirks to design around</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>#</th><th>Quirk</th><th>Mitigation</th></tr></thead><tbody>
+<tr><td>Q1</td><td><code>WaitForSingleObject(hProcess)</code> returns immediately on Win32s 1.25a (KB Q125213)</td><td>Poll <code>GetExitCodeProcess</code> until <code>!= STILL_ACTIVE</code></td></tr>
+<tr><td>Q2</td><td>Pipe deadlock when child fills stdout buffer (default 4KB) and parent isn't reading</td><td>Pump pipes inside the wait loop, not after</td></tr>
+<tr><td>Q3</td><td><code>PeekNamedPipe</code> is the only single-threaded non-blocking pipe read on Win32</td><td>Use it before every <code>ReadFile</code></td></tr>
+<tr><td>Q4</td><td>Parent must <code>CloseHandle</code> on child's pipe ends after spawn or pipes never EOF</td><td>Close child ends in parent immediately after <code>CreateProcessA</code> returns</td></tr>
+<tr><td>Q5</td><td>Inherited handles on parent's read/write ends cause child to hang on read</td><td><code>SetHandleInformation(*, HANDLE_FLAG_INHERIT, 0)</code> on parent-only ends</td></tr>
+<tr><td>Q6</td><td>Console output uses <strong>OEM</strong> code page; pipes deliver raw bytes</td><td>Always base64; bridge decodes using <code>codepage</code> from ready message</td></tr>
+<tr><td>Q7</td><td><code>CreateProcessA</code> cmdline max 32767; via <code>cmd.exe</code> 8192</td><td>Cap at 8192 if <code>shell:true</code>, else 32767</td></tr>
+<tr><td>Q8</td><td><code>CommandLineToArgvW</code> quoting: <code>2N\</code> + <code>"</code> ⇒ <code>N\</code> + quote toggle; <code>2N+1\</code> + <code>"</code> ⇒ <code>N\</code> + literal <code>"</code></td><td><code>argv.c</code> implements reverse-rules; PBT roundtrip</td></tr>
+<tr><td>Q9</td><td>Win 3.x ships <code>COMMAND.COM</code>, NT/95+ ships <code>cmd.exe</code>; built-ins live in the shell, not as <code>.exe</code></td><td>Pick shell at runtime via <code>GetVersion</code>; catalog records both <code>shell_modern</code> and <code>shell_win32s</code></td></tr>
+<tr><td>Q10</td><td>Console flash on GUI Win32s when child is a console app</td><td><code>STARTF_USESHOWWINDOW</code> + <code>SW_HIDE</code> always</td></tr>
+<tr><td>Q11</td><td><code>CREATE_NO_WINDOW</code> is Win95+; ignored on Win32s</td><td>Use <code>STARTF_USESHOWWINDOW</code>+<code>SW_HIDE</code>, NOT <code>CREATE_NO_WINDOW</code></td></tr>
+<tr><td>Q12</td><td>16-bit DOS apps run in shared VDM — killing one VDM process can kill siblings</td><td>On 16-bit + timeout, drain pipes without <code>TerminateProcess</code>; mark <code>vdm-best-effort</code></td></tr>
+<tr><td>Q13</td><td><code>GetTickCount</code> not <code>QueryPerformanceCounter</code> (QPC is 95+ and may pull FP libs)</td><td>Use <code>GetTickCount</code></td></tr>
+<tr><td>Q14</td><td><code>lpApplicationName=NULL</code> + full cmdline lets Windows resolve via PATH</td><td>Pass <code>NULL</code> for app name</td></tr>
+<tr><td>Q15</td><td><code>cmd.exe</code> metacharacters <code>&amp; | &lt; &gt; ^ ( ) %</code> need <code>^</code>-escape inside <code>cmd /c</code></td><td>When <code>shell:true</code>, <code>argv.c</code> does cmd-aware double-escape after CmdLineToArgv-escape</td></tr>
+<tr><td>Q16</td><td><code>GetBinaryTypeA</code> resolves via path; not on Win32s</td><td><code>GetProcAddress</code>-detect; manual MZ/NE/PE classify on Win32s</td></tr>
+</tbody></table>
+</div>
+<p>Sources to cite in code comments: KB Q125213 (Win32s synchronous spawn), KB 131896 (Win32s general limitations), Old New Thing 2011-07-07 (pipe deadlock), MS Docs <em>Creating a Child Process with Redirected Input and Output</em>, Daniel Colascione <em>Everyone quotes command line arguments the wrong way</em>.</p>
+<h3 id="feature-detection--graceful-uplift"><a class="header" href="#feature-detection--graceful-uplift">Feature detection &amp; graceful uplift</a></h3>
+<p><strong>Principle.</strong> The binary's baseline target is Win32s 1.25a — every required path works there. But when running on NT 4.0+, Win 9x, XP, Win 10+, the binary detects available APIs at startup and <em>uplifts</em> to a better implementation. One binary, every Windows era from 1995 to 2026, best behavior the host can provide.</p>
+<p><strong>Mechanism.</strong> A new <code>src/feat.{c,h}</code> module probes APIs via <code>GetProcAddress(GetModuleHandleA("kernel32"))</code> (and <code>LoadLibraryA</code> for psapi/etc.) at startup. Results cached in a <code>Features</code> struct. <strong>Function pointers for delay-loaded APIs are stored in the struct</strong> so they're never linked at compile time — that would prevent the binary from loading on Win32s, where most of these symbols are absent from the import resolver.</p>
+<p><strong>Capability matrix:</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Capability</th><th>Detection</th><th>Min OS</th><th>Used For</th><th>Win32s/9x fallback</th></tr></thead><tbody>
+<tr><td>Threads</td><td><code>GetVersion</code> high bit + Win32s probe (kernel32 thunk pattern)</td><td>Win 95 / NT 3.1</td><td>Reader threads in capture loop — eliminates <code>Sleep(10)</code> polling latency</td><td><code>PeekNamedPipe</code> polling loop (Q3)</td></tr>
+<tr><td><code>CreateJobObjectA</code> + <code>AssignProcessToJobObject</code> + <code>SetInformationJobObject</code></td><td>kernel32 GetProcAddress</td><td>NT 4.0</td><td>Auto-kill child trees on server exit (<code>JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE</code>); per-process memory cap (<code>JOB_OBJECT_LIMIT_PROCESS_MEMORY</code>); per-process CPU-time cap (<code>JOB_OBJECT_LIMIT_PROCESS_TIME</code>)</td><td>Children survive server crash; no resource caps</td></tr>
+<tr><td><code>GetBinaryTypeA</code></td><td>kernel32 GetProcAddress</td><td>NT 3.51 / Win 95</td><td>Refines <code>binary_type</code> reporting; preferred over manual MZ/NE/PE classification when present (knows about WoW64)</td><td>Manual MZ/NE/PE header read (Q16)</td></tr>
+<tr><td><code>IsWow64Process</code></td><td>kernel32 GetProcAddress</td><td>XP SP2</td><td>Reports <code>binary_type:"pe32-wow64"</code> when applicable</td><td>Plain <code>pe32</code></td></tr>
+<tr><td><code>GenerateConsoleCtrlEvent</code></td><td>kernel32 GetProcAddress + child spawned with <code>CREATE_NEW_PROCESS_GROUP</code></td><td>NT 4.0</td><td>Graceful Ctrl-Break on timeout, give child 1 sec to clean up before falling through to <code>TerminateProcess</code></td><td>Direct <code>TerminateProcess</code> (Q12 still applies for VDM)</td></tr>
+<tr><td><code>QueryFullProcessImageNameA</code></td><td>kernel32 GetProcAddress</td><td>Vista</td><td>Resolves child's actual exe path (better than <code>GetModuleFileNameEx</code> from psapi)</td><td><code>SearchPathA</code> from cmdline first token</td></tr>
+<tr><td><code>CreatePseudoConsole</code>/<code>ClosePseudoConsole</code>/<code>ResizePseudoConsole</code></td><td>kernel32 GetProcAddress</td><td>Win 10 1809</td><td>New optional <code>ptyExec</code> command — spawn child with real PTY (interactive stdin, ANSI color, <code>cols</code>/<code>rows</code> resize); output <code>output_kind:"ansi"</code></td><td><code>ptyExec</code> returns <code>error:"pty not available on this Windows"</code>; regular <code>exec</code> still works</td></tr>
+<tr><td><code>InitializeProcThreadAttributeList</code> + extended <code>STARTUPINFOEX</code></td><td>kernel32 GetProcAddress</td><td>Vista</td><td>Required by <code>CreatePseudoConsole</code>; also enables <code>PROC_THREAD_ATTRIBUTE_HANDLE_LIST</code> to reduce inadvertent handle inheritance</td><td>Plain <code>STARTUPINFO</code>; relies on <code>SetHandleInformation</code> (Q5)</td></tr>
+<tr><td><code>SetProcessMitigationPolicy</code></td><td>kernel32 GetProcAddress</td><td>Win 7 (process); Win 8 (thread attr)</td><td>Defense-in-depth on spawned child (DEP, ASLR force, dynamic-code-disable)</td><td>None</td></tr>
+</tbody></table>
+</div>
+<p><strong><code>feat.h</code> shape:</strong></p>
+<pre><code class="language-c">typedef struct {
+    /* OS version */
+    int win_major, win_minor, win_build;
+    int is_win32s;       /* GetVersion high bit + major==3 */
+    int is_win9x;        /* GetVersion high bit + major==4 */
+    int is_nt;           /* GetVersion high bit clear */
+    int is_wow64;        /* IsWow64Process(GetCurrentProcess()) — defaults 0 */
+    /* Boolean capability flags (mirror function-pointer presence) */
+    int has_threads;
+    int has_create_job_object;
+    int has_get_binary_type;
+    int has_is_wow64_process;
+    int has_generate_ctrl_event;
+    int has_query_full_image_name;
+    int has_create_pseudo_console;
+    int has_proc_thread_attr_list;
+    int has_set_process_mitigation;
+    /* Function pointers — NULL when capability absent */
+    HANDLE  (WINAPI *pCreateJobObjectA)(LPSECURITY_ATTRIBUTES, LPCSTR);
+    BOOL    (WINAPI *pAssignProcessToJobObject)(HANDLE, HANDLE);
+    BOOL    (WINAPI *pSetInformationJobObject)(HANDLE, int, LPVOID, DWORD);
+    BOOL    (WINAPI *pGetBinaryTypeA)(LPCSTR, LPDWORD);
+    BOOL    (WINAPI *pIsWow64Process)(HANDLE, PBOOL);
+    BOOL    (WINAPI *pGenerateConsoleCtrlEvent)(DWORD, DWORD);
+    BOOL    (WINAPI *pQueryFullProcessImageNameA)(HANDLE, DWORD, LPSTR, PDWORD);
+    HRESULT (WINAPI *pCreatePseudoConsole)(COORD, HANDLE, HANDLE, DWORD, void**);
+    void    (WINAPI *pClosePseudoConsole)(void*);
+    BOOL    (WINAPI *pResizePseudoConsole)(void*, COORD);
+    BOOL    (WINAPI *pInitializeProcThreadAttributeList)(LPVOID, DWORD, DWORD, PSIZE_T);
+    BOOL    (WINAPI *pUpdateProcThreadAttribute)(LPVOID, DWORD, DWORD_PTR, PVOID, SIZE_T, PVOID, PSIZE_T);
+    void    (WINAPI *pDeleteProcThreadAttributeList)(LPVOID);
+    BOOL    (WINAPI *pSetProcessMitigationPolicy)(int, PVOID, SIZE_T);
+} Features;
+
+extern Features g_features;
+void        FeatInit(void);                /* call once at startup, before any exec */
+const char *FeatVersionString(void);       /* e.g. "Windows 10.0.19045 (NT)" */
+int         FeatForceFallback(int flags);  /* test-only: zero out selected flags + fnptrs */
+</code></pre>
+<p><strong>Win32s probe</strong> (the one tricky detection — Win32s reports <code>GetVersion</code> major==3 with high bit set, but so does plain Win 3.x without Win32s, which we can never run on anyway). Defensive secondary probe: try <code>GetCurrentDirectoryA</code> (works on Win32s) and <code>CreateThread</code> with a NOOP routine; if <code>CreateThread</code> returns NULL with <code>GetLastError()==ERROR_NOT_SUPPORTED</code> or similar, set <code>is_win32s=1</code> regardless of version DWORD. This double-check catches both Win32s and any future system where threads are explicitly disabled.</p>
+<p><strong>OS-detection sequence in <code>FeatInit</code>:</strong></p>
+<pre><code>1. ver = GetVersion();
+2. is_nt = !(ver &amp; 0x80000000);
+3. major = LOBYTE(LOWORD(ver)); minor = HIBYTE(LOWORD(ver));
+4. build = is_nt ? HIWORD(ver) : 0;
+5. if (!is_nt &amp;&amp; major == 4) is_win9x = 1;
+6. if (!is_nt &amp;&amp; major == 3) is_win32s = 1;          /* presumptive */
+7. Probe CreateThread; if it fails outright, is_win32s = 1, has_threads = 0.
+8. For each delay-loaded API, GetProcAddress; populate p* fields and has_* flags.
+9. If has_is_wow64_process, call IsWow64Process(GetCurrentProcess(), &amp;is_wow64).
+</code></pre>
+<p><strong>Where uplifts apply</strong> (cross-cuts the rest of Phase 4):</p>
+<ol>
+<li>
+<p><strong>Capture loop in <code>exec_ops.c</code></strong> — branch on <code>g_features.has_threads</code>:</p>
+<ul>
+<li><strong>Threaded path (Win 9x / NT+):</strong> spawn one reader thread per stdout/stderr pipe. Threads loop <code>ReadFile</code> into a shared buffer guarded by a <code>CRITICAL_SECTION</code>; main thread <code>WaitForSingleObject(hProc, timeoutMs)</code> (which works correctly outside Win32s — Q1 only affects Win32s). Threads exit naturally when their pipe EOFs after child exit. Far lower latency for chatty children.</li>
+<li><strong>Polling path (Win32s):</strong> the <code>PeekNamedPipe</code> loop already specified.</li>
+</ul>
+</li>
+<li>
+<p><strong>Process containment in <code>exec_ops.c</code></strong> — when <code>g_features.has_create_job_object</code>:</p>
+<ul>
+<li>Spawn child with <code>CREATE_SUSPENDED</code>.</li>
+<li>Create job object; set <code>JOBOBJECT_EXTENDED_LIMIT_INFORMATION</code> with <code>JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE</code> (always) plus <code>JOB_OBJECT_LIMIT_PROCESS_MEMORY</code> if request specifies <code>mem_cap_bytes</code>, plus <code>JOB_OBJECT_LIMIT_PROCESS_TIME</code> if request specifies <code>cpu_time_ms</code>.</li>
+<li><code>AssignProcessToJobObject(hJob, hProc)</code> before resuming.</li>
+<li><code>ResumeThread(hThread)</code>. Children now die automatically if mcp-w32s.exe crashes.</li>
+<li>Skip on Win32s/Win9x — children survive but no resource caps.</li>
+</ul>
+</li>
+<li>
+<p><strong>Graceful termination in <code>exec_ops.c</code></strong> — when <code>g_features.has_generate_ctrl_event</code> AND child was spawned with <code>CREATE_NEW_PROCESS_GROUP</code>:</p>
+<ul>
+<li>On timeout: send <code>CTRL_BREAK_EVENT</code> to child's process group. Wait up to 1000ms for clean exit (loop <code>GetExitCodeProcess</code>). If still alive, <code>TerminateProcess(hProc, 1)</code>.</li>
+<li>Win32s/Win9x path: direct <code>TerminateProcess</code> (Q12 still applies for VDM/16-bit).</li>
+</ul>
+</li>
+<li>
+<p><strong>Binary classification in <code>binfmt.c</code></strong> — when <code>g_features.has_get_binary_type</code>, prefer it (knows about WoW64). When <code>g_features.has_is_wow64_process</code>, refine <code>BIN_PE32</code> → emit <code>binary_type:"pe32-wow64"</code> if true. Otherwise manual MZ/NE/PE classification (Q16).</p>
+</li>
+<li>
+<p><strong>Image path resolution</strong> — when <code>g_features.has_query_full_image_name</code>, prefer it post-spawn for <code>binary_type</code> accuracy; otherwise <code>SearchPathA</code> on the first token.</p>
+</li>
+<li>
+<p><strong>PTY (<code>src/pty_exec.{c,h}</code>, new optional <code>ptyExec</code> JSON command)</strong> — gated on <code>g_features.has_create_pseudo_console</code>. Implementation:</p>
+<ul>
+<li>Two pipes (input, output — PTY merges stdout/stderr by design).</li>
+<li><code>CreatePseudoConsole({cols, rows}, hInputRd, hOutputWr, 0, &amp;hPC)</code>.</li>
+<li><code>InitializeProcThreadAttributeList</code> + <code>UpdateProcThreadAttribute(PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE, hPC)</code>.</li>
+<li><code>CreateProcessA</code> with <code>EXTENDED_STARTUPINFO_PRESENT</code> + <code>STARTUPINFOEX</code>.</li>
+<li>Output retains ANSI escape sequences. Response carries <code>output_kind:"ansi"</code> and a single <code>output_b64</code> (no separate stdout/stderr).</li>
+<li>When capability absent, dispatcher returns <code>error:"pty not available on this Windows"</code>; regular <code>exec</code> is unaffected.</li>
+</ul>
+</li>
+<li>
+<p><strong>Ready message extension</strong> — emitted by <code>mcp-w32s.c</code> after <code>FeatInit</code>:</p>
+<pre><code class="language-json">{
+  "status":   "ready",
+  "codepage": 437,
+  "version":  "Windows 10.0.19045 (NT)",
+  "transport": "tcp",
+  "features": {
+    "is_win32s": false,
+    "is_win9x":  false,
+    "is_nt":     true,
+    "is_wow64":  false,
+    "threads":   true,
+    "job_objects": true,
+    "ctrl_events": true,
+    "pty":       true,
+    "binary_classify": "GetBinaryTypeA",
+    "process_mitigation": false
+  }
+}
+</code></pre>
+<p>Bridge consumes <code>features</code> to surface capability-aware UI to MCP clients.</p>
+</li>
+</ol>
+<p><strong>The uplift architecture is intentionally additive:</strong> every new code path has a <code>if (g_features.has_X)</code> gate with a Win32s-correct fallback. Removing <code>feat.c</code> entirely would leave a working binary that runs at the lowest common denominator. Adding <code>feat.c</code> lets us claim Win 11 features without breaking Win 3.1 + Win32s 1.25a.</p>
+<h3 id="pre-decisions-non-negotiable"><a class="header" href="#pre-decisions-non-negotiable">Pre-decisions (non-negotiable)</a></h3>
+<ol>
+<li><strong><code>argv</code> and <code>line</code> both supported, <code>argv</code> preferred.</strong> Legacy <code>line</code> stays for back-compat. If both present, <code>argv</code> wins.</li>
+<li><strong>stdout/stderr always base64.</strong> No encoding interpretation in the binary.</li>
+<li><strong>Single concurrent exec.</strong> Second exec while one runs returns <code>error:"busy"</code>.</li>
+<li><strong>Catalog loaded at startup; whitelist on by default.</strong> <code>/UNSAFE</code> cmdline flag disables; per-request <code>unsafe:true</code> bypasses for one exec.</li>
+<li><strong>16-bit detected.</strong> <code>GetBinaryTypeA</code> when present, manual MZ/NE/PE classification on Win32s. Best-effort exec for 16-bit, no <code>TerminateProcess</code> on timeout.</li>
+<li><strong><code>GetExitCodeProcess</code> polling on Win32s; <code>WaitForSingleObject(hProc)</code> on threaded path.</strong> Branch on <code>g_features.has_threads</code>. The polling path is the Win32s baseline; uplift uses the better primitive.</li>
+<li><strong><code>MCP_MAX_RESPONSE</code> bumps 128KB → 256KB</strong> to fit two base64-encoded 64KB streams + envelope.</li>
+<li><strong>Feature detection at startup, not compile-time.</strong> All version-specific APIs are <code>GetProcAddress</code>-loaded into the <code>g_features</code> struct. The binary itself imports only Win32s 1.25a symbols. No <code>#ifdef _WIN32_WINNT</code> guards in source — branching is runtime via <code>g_features.has_*</code>.</li>
+<li><strong>One PTY uplift command, gated on Win 10 1809+.</strong> New <code>ptyExec</code> JSON command is the only protocol surface for interactive/ANSI exec; absent capability returns explicit error. Regular <code>exec</code> is unaffected on every Windows version.</li>
+<li><strong>Job-object containment is opt-on-by-default when available.</strong> Every spawned child is assigned to a job with <code>JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE</code> on NT 4.0+. No request flag needed; this is server hygiene, not a per-request choice. Per-request <code>mem_cap_bytes</code> and <code>cpu_time_ms</code> extend the job's limits.</li>
+</ol>
+<h3 id="protocol-extension"><a class="header" href="#protocol-extension">Protocol extension</a></h3>
+<p><strong><code>exec</code> request:</strong></p>
+<pre><code class="language-json">{
+  "cmd":         "exec",
+  "id":          "e1",
+  "argv":        ["cl","/c","test.c"],
+  "line":        "cl /c test.c",
+  "cwd":         "C:\\PROJECTS",
+  "shell":       false,
+  "timeout_ms":  30000,
+  "stdin_b64":   "",
+  "max_output":  65536,
+  "unsafe":      false,
+  "mem_cap_bytes": 0,                  // 0 = no cap; only honored when has_create_job_object
+  "cpu_time_ms":   0                   // 0 = no cap; only honored when has_create_job_object
+}
+</code></pre>
+<p><strong><code>exec</code> response (success):</strong></p>
+<pre><code class="language-json">{
+  "id":             "e1",
+  "status":         "ok",
+  "exit_code":      0,
+  "stdout_b64":     "aGVsbG8NCg==",
+  "stderr_b64":     "",
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "duration_ms":    47,
+  "exec_method":    "direct",
+  "binary_type":    "pe32",
+  "killed_by":      ""                 // "" | "timeout" | "ctrl_break" | "memory_cap" | "cpu_cap"
+}
+</code></pre>
+<p><strong><code>ptyExec</code> request</strong> (only available when <code>g_features.has_create_pseudo_console</code>):</p>
+<pre><code class="language-json">{
+  "cmd":         "ptyExec",
+  "id":          "p1",
+  "argv":        ["cmd"],
+  "cwd":         "C:\\",
+  "timeout_ms":  60000,
+  "stdin_b64":   "",
+  "cols":        80,
+  "rows":        25,
+  "max_output":  65536,
+  "unsafe":      false
+}
+</code></pre>
+<p><strong><code>ptyExec</code> response (success):</strong></p>
+<pre><code class="language-json">{
+  "id":            "p1",
+  "status":        "ok",
+  "exit_code":     0,
+  "output_b64":    "...",              // single merged stream — PTY does not separate stdout/stderr
+  "output_kind":   "ansi",             // contains ANSI escape sequences; bridge interprets/strips
+  "output_truncated": false,
+  "duration_ms":   123
+}
+</code></pre>
+<p><strong>Error reasons</strong> (both commands): <code>"spawn failed: &lt;code&gt;"</code>, <code>"timed out after &lt;N&gt;ms"</code>, <code>"busy"</code>, <code>"command line too long"</code>, <code>"invalid argv"</code>, <code>"invalid base64"</code>, <code>"command not in catalog"</code>, <code>"argument not allowed"</code>, <code>"pty not available on this Windows"</code> (ptyExec only), <code>"job object setup failed"</code> (only when has_create_job_object and assignment fails).</p>
+<p><code>exec_method</code> ∈ {<code>direct</code>, <code>shell</code>, <code>vdm-best-effort</code>}. <code>binary_type</code> ∈ {<code>pe32</code>, <code>pe32-wow64</code>, <code>ne16</code>, <code>mz</code>, <code>unknown</code>, <code>shell-builtin</code>}. <code>killed_by</code> ∈ {<code>""</code>, <code>"timeout"</code>, <code>"ctrl_break"</code>, <code>"memory_cap"</code>, <code>"cpu_cap"</code>}.</p>
+<p>README §1554 (current protocol doc using <code>output</code> key) is updated to <code>stdout_b64</code>/<code>stderr_b64</code> as part of Phase 4, and a new section documents <code>ptyExec</code>.</p>
+<h3 id="files-to-create"><a class="header" href="#files-to-create">Files to create</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Path</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><code>src/feat.{c,h}</code></td><td>OS detection + <code>GetProcAddress</code> probing for capability uplift; <code>g_features</code> global; <code>FeatInit</code>, <code>FeatVersionString</code>, <code>FeatForceFallback</code> (test-only)</td></tr>
+<tr><td><code>src/exec_ops.{c,h}</code></td><td>Pipe + spawn + capture loop with capability-gated branches (threaded vs polling, job-object containment, ctrl-event termination); <code>ExecOpRun</code>, <code>ExecResult</code></td></tr>
+<tr><td><code>src/pty_exec.{c,h}</code></td><td><code>CreatePseudoConsole</code>-based exec for <code>ptyExec</code> command; <code>PtyExecRun</code>; only operative when <code>g_features.has_create_pseudo_console</code></td></tr>
+<tr><td><code>src/argv.{c,h}</code></td><td>argv array → CreateProcess command line (CommandLineToArgvW reverse-rules + cmd metachar escape)</td></tr>
+<tr><td><code>src/binfmt.{c,h}</code></td><td>MZ/NE/PE classifier; uses <code>g_features.pGetBinaryTypeA</code>/<code>pIsWow64Process</code> when available</td></tr>
+<tr><td><code>src/catalog.{c,h}</code></td><td>JSON catalog loader (reuses <code>json_parser.c</code>); whitelist + arg-validation</td></tr>
+<tr><td><code>src/ready.{c,h}</code></td><td>Builds the extended JSON ready message including <code>version</code>, <code>codepage</code>, <code>features</code> object</td></tr>
+<tr><td><code>tests/test_feat.c</code></td><td>≥6 tests: probe results, version-string format, fallback consistency, mock-zeroed struct exec path</td></tr>
+<tr><td><code>tests/test_exec_ops.c</code></td><td>≥22 unit tests (18 baseline + 4 capability fallbacks via <code>FeatForceFallback</code>)</td></tr>
+<tr><td><code>tests/test_pty_exec.c</code></td><td>≥4 tests: PTY spawn (skip if absent), echo round-trip, resize, capability-absent error</td></tr>
+<tr><td><code>tests/test_argv.c</code></td><td>12 fixed + PBT 1000 trials for argv quoting roundtrip</td></tr>
+<tr><td><code>tests/test_binfmt.c</code></td><td>6 tests against fixture binaries (MZ, NE, PE32); plus uplift test using <code>pGetBinaryTypeA</code> when present</td></tr>
+<tr><td><code>tests/test_catalog.c</code></td><td>8 tests for load + lookup + validation</td></tr>
+<tr><td><code>tests/argv_echo.c</code></td><td>Helper: prints argc + each argv[i] base64-encoded for PBT roundtrip</td></tr>
+<tr><td><code>tests/fixtures/{tiny_mz.exe,tiny_ne.exe}</code></td><td>Minimal binary headers for <code>binfmt</code> classification tests</td></tr>
+<tr><td><code>specs/process-ops.allium</code></td><td><code>Process</code> + <code>ExecResult</code> + <code>Capabilities</code> entities, 8+ rules (incl. capability-gated rules), 3+ invariants — written via <code>/allium:tend</code></td></tr>
+<tr><td><code>specs/catalog.allium</code></td><td><code>Catalog</code> + <code>CatalogEntry</code> entities, lookup/validate rules — written via <code>/allium:tend</code></td></tr>
+<tr><td><code>specs/base64.allium</code></td><td>Distilled from <code>src/base64.c</code> via <code>/allium:distill</code> (Phase 1–2 spec debt)</td></tr>
+<tr><td><code>specs/json-parser.allium</code></td><td>Distilled from <code>src/json_parser.c</code> via <code>/allium:distill</code></td></tr>
+<tr><td><code>specs/serial.allium</code></td><td>Distilled from <code>src/serial.c</code> via <code>/allium:distill</code></td></tr>
+<tr><td><code>tests/host/theft_base64.c</code></td><td>theft host-native PBT: base64 properties with autoshrinking</td></tr>
+<tr><td><code>tests/host/theft_json.c</code></td><td>theft host-native PBT: JSON parser robustness + roundtrip</td></tr>
+<tr><td><code>tests/host/theft_argv.c</code></td><td>theft host-native PBT: argv quoting vs reference tokenizer</td></tr>
+<tr><td><code>tests/host/theft_catalog.c</code></td><td>theft host-native PBT: catalog validation properties</td></tr>
+<tr><td><code>catalog/win32-commands.json</code></td><td>≥30 entries (built-ins + externals + build tools)</td></tr>
+<tr><td><code>catalog/README.md</code></td><td>How to extend the catalog</td></tr>
+</tbody></table>
+</div>
+<h3 id="files-to-modify"><a class="header" href="#files-to-modify">Files to modify</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Path</th><th>Change</th></tr></thead><tbody>
+<tr><td><code>src/common.h</code></td><td><code>JsonCommand</code> adds <code>argv_count</code>, <code>argv[MCP_MAX_ARGV][MCP_MAX_ARG_LEN]</code>, <code>cwd</code>, <code>timeout_ms</code>, <code>shell_flag</code>, <code>stdin_b64</code>, <code>max_output</code>, <code>unsafe_flag</code>, <code>mem_cap_bytes</code>, <code>cpu_time_ms</code>, <code>cols</code>, <code>rows</code>. Constants: <code>MCP_MAX_ARGV=64</code>, <code>MCP_MAX_ARG_LEN=512</code>. Bump <code>MCP_MAX_RESPONSE</code> to <code>262144</code>.</td></tr>
+<tr><td><code>src/json_parser.{c,h}</code></td><td>Parse new fields. Array parsing for <code>argv</code>. Number parsing for ints. Boolean for <code>shell</code>/<code>unsafe</code>.</td></tr>
+<tr><td><code>src/mcp-w32s.c</code></td><td>Call <code>FeatInit()</code> first thing in <code>main</code> (before transport open). Replace stub at lines 171–174 with: catalog lookup → argv build → <code>ExecOpRun</code> → response. Add <code>ptyExec</code> dispatch (returns capability-error when absent). Track <code>g_exec_busy</code> flag. Load catalog at startup; honor <code>/UNSAFE</code> cmdline. Send extended ready message via <code>BuildReadyMessage</code> from <code>ready.c</code>. <strong>Builds on the transport abstraction (foundational work above): all dispatch/response I/O is via <code>Transport *</code>, never <code>HANDLE</code>.</strong></td></tr>
+<tr><td><code>src/serial.{c,h}</code></td><td>Parse <code>/UNSAFE</code> and <code>/CATALOG:path</code> cmdline flags into <code>TransportConfig</code>.</td></tr>
+<tr><td><code>specs/mcp-protocol.allium</code></td><td>Replace <code>rule ExecCommand</code> (lines 211–221) with rule that delegates to <code>process-ops.ExecResult</code> and gates on <code>CatalogLookup</code>. Add <code>rule PtyExecCommand</code> (gated on <code>Capabilities.has_pty</code>). Remove <code>deferred ExecCommand.implementation</code> (line 244). Add <code>Capabilities</code> reference.</td></tr>
+<tr><td><code>CMakeLists.txt</code> (single source of truth; <code>build.sh</code>/<code>build.bat</code> wrap the mingw/vc6 presets)</td><td>Add seven new <code>.c</code> files (<code>feat</code>, <code>exec_ops</code>, <code>pty_exec</code>, <code>argv</code>, <code>binfmt</code>, <code>catalog</code>, <code>ready</code>). Add six test targets + <code>argv_echo</code> helper. Copy <code>catalog/win32-commands.json</code> next to test binaries.</td></tr>
+<tr><td><code>.github/workflows/build-and-test.yml</code></td><td>Run new test binaries under Wine: <code>test_feat</code>, <code>test_exec_ops</code>, <code>test_pty_exec</code>, <code>test_argv</code>, <code>test_binfmt</code>, <code>test_catalog</code>. Add catalog file to artifact upload. <strong>Verify uplift on Wine:</strong> Wine reports as NT — assert <code>is_nt=true</code> and <code>has_threads=true</code> in <code>test_feat.exe</code> output, but skip <code>test_pty_exec</code> if Wine version doesn't expose <code>CreatePseudoConsole</code> (probe-and-skip pattern).</td></tr>
+<tr><td><code>README.md</code></td><td>§1554: protocol shape (<code>stdout_b64</code>/<code>stderr_b64</code>); Implementation Phases: Phase 4 → Complete; new "Command Execution: Win32s caveats" referencing Q1, Q9, Q12; new "Command Catalog" section; new "Feature Detection &amp; Graceful Uplift" section with capability matrix; new "PTY Execution (<code>ptyExec</code>)" section.</td></tr>
+<tr><td><code>CLAUDE.md</code></td><td>Phase 4 → Complete; bump test count to ≥152; document <code>g_features</code> global and the runtime-detection convention (no <code>#ifdef _WIN32_WINNT</code>).</td></tr>
+</tbody></table>
+</div>
+<h3 id="public-apis"><a class="header" href="#public-apis">Public APIs</a></h3>
+<pre><code class="language-c">/* exec_ops.h */
+typedef struct {
+    int  exit_code;          /* 0 = success; -1 if spawn failed */
+    int  duration_ms;
+    int  stdout_len;
+    int  stderr_len;
+    int  stdout_truncated;
+    int  stderr_truncated;
+    int  timed_out;
+    int  binary_type;        /* see binfmt.h */
+} ExecResult;
+
+int ExecOpRun(
+    const char *cmdLine,
+    const char *cwd,                    /* NULL = inherit */
+    int  timeoutMs,                     /* 0 = no timeout */
+    int  hideWindow,
+    const unsigned char *stdinBytes,    /* NULL ok */
+    int  stdinLen,
+    unsigned char *stdoutBuf, int stdoutBufSize,
+    unsigned char *stderrBuf, int stderrBufSize,
+    ExecResult *result,
+    char *errMsg, int errSize
+);
+
+/* argv.h */
+int ArgvEscapeArg(const char *arg, char *out, int outSize);
+int ArgvJoin(const char **argv, int argc, char *out, int outSize);
+int ArgvCmdEscape(const char *line, char *out, int outSize);
+
+/* binfmt.h */
+typedef enum {
+    BIN_UNKNOWN = 0, BIN_PE32 = 1, BIN_NE16 = 2, BIN_MZ = 3, BIN_SHELL = 4
+} BinaryType;
+int BinFmtClassify(const char *exePath, BinaryType *outType, char *errMsg, int errSize);
+
+/* catalog.h */
+typedef struct CatalogEntry CatalogEntry;
+typedef struct Catalog      Catalog;
+
+int  CatalogLoad(const char *path, Catalog **outCat, char *errMsg, int errSize);
+void CatalogFree(Catalog *cat);
+const CatalogEntry *CatalogLookup(const Catalog *cat, const char *cmdName);
+int  CatalogValidateArgs(const CatalogEntry *entry, const char **argv, int argc, char *errMsg, int errSize);
+
+/* feat.h — see "Feature detection &amp; graceful uplift" above for full Features struct */
+extern Features g_features;
+void        FeatInit(void);
+const char *FeatVersionString(void);
+int         FeatForceFallback(int flagsMask);   /* test-only: zero out selected flags + fnptrs */
+
+/* pty_exec.h */
+typedef struct {
+    int  exit_code;
+    int  duration_ms;
+    int  output_len;
+    int  output_truncated;
+    int  timed_out;
+} PtyExecResult;
+
+int PtyExecRun(
+    const char *cmdLine,
+    const char *cwd,
+    int  cols, int rows,
+    int  timeoutMs,
+    const unsigned char *stdinBytes, int stdinLen,
+    unsigned char *outputBuf, int outputBufSize,
+    PtyExecResult *result,
+    char *errMsg, int errSize
+);
+
+/* ready.h */
+int BuildReadyMessage(char *json, int jsonSize);   /* uses g_features + GetACP() */
+</code></pre>
+<p><code>ExecOpRun</code> extended signature (over the baseline above) takes <code>int memCapBytes</code> and <code>int cpuTimeMs</code> for job-object limits — silently ignored on non-NT-4-or-later. Plus <code>int *killedBy</code> out-param: 0 normal, 1 timeout, 2 ctrl_break, 3 memory_cap, 4 cpu_cap. Implementations that elide these args may pass 0/NULL — they no-op on Win32s/9x.</p>
+<h3 id="implementation-checklist"><a class="header" href="#implementation-checklist">Implementation checklist</a></h3>
+<p><strong>Startup (<code>mcp-w32s.c main</code>):</strong></p>
+<ol>
+<li><code>FeatInit()</code> first — populates <code>g_features</code>. Must complete before any spawn / catalog load / ready message.</li>
+<li>Parse cmdline (<code>/SERIAL</code>, <code>/UNSAFE</code>, <code>/CATALOG:path</code>, etc.).</li>
+<li>Catalog load (<code>CatalogLoad</code>); on failure record <code>warning:"catalog not loaded"</code> for ready message.</li>
+<li>Open transport.</li>
+<li><code>BuildReadyMessage</code> + <code>WriteFile</code> — extended ready message with <code>version</code>/<code>codepage</code>/<code>features</code>.</li>
+<li>Enter main loop.</li>
+</ol>
+<p><strong>Pipe + spawn (common to <code>exec_ops.c</code> and <code>pty_exec.c</code>):</strong></p>
+<ol>
+<li>Three pipes (stdin, stdout, stderr) — or two (input, output) for PTY. <code>SECURITY_ATTRIBUTES.bInheritHandle=TRUE</code>. <code>SetHandleInformation</code> on parent-only ends with <code>HANDLE_FLAG_INHERIT=0</code> (Q5).</li>
+<li><code>STARTUPINFO</code>: <code>dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW</code>, <code>wShowWindow = SW_HIDE</code> (Q10/Q11). For PTY path use <code>STARTUPINFOEX</code> with <code>PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE</code>.</li>
+<li><code>CreateProcessA</code>:
+<ul>
+<li><code>bInheritHandles=TRUE</code>, <code>lpApplicationName=NULL</code> (Q14), full cmdline in <code>lpCommandLine</code>.</li>
+<li><code>dwCreationFlags = 0</code> baseline; OR <code>CREATE_NEW_PROCESS_GROUP</code> if <code>g_features.has_generate_ctrl_event</code> (enables <code>GenerateConsoleCtrlEvent</code> later); OR <code>EXTENDED_STARTUPINFO_PRESENT</code> for PTY path.</li>
+<li><strong>NOT</strong> <code>CREATE_NO_WINDOW</code> (Q11).</li>
+<li>If <code>g_features.has_create_job_object</code>, also OR in <code>CREATE_SUSPENDED</code> so we can assign to job before the child's first instruction runs.</li>
+</ul>
+</li>
+<li><strong>Job-object setup (when <code>g_features.has_create_job_object</code>):</strong>
+<ul>
+<li><code>g_features.pCreateJobObjectA(NULL, NULL)</code> → <code>hJob</code>.</li>
+<li>Build <code>JOBOBJECT_EXTENDED_LIMIT_INFORMATION</code>: always set <code>JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE</code>. If <code>memCapBytes&gt;0</code>, set <code>JOB_OBJECT_LIMIT_PROCESS_MEMORY</code> + <code>ProcessMemoryLimit</code>. If <code>cpuTimeMs&gt;0</code>, set <code>JOB_OBJECT_LIMIT_PROCESS_TIME</code> + <code>PerProcessUserTimeLimit</code> (in 100ns ticks: <code>cpuTimeMs * 10000</code>).</li>
+<li><code>pSetInformationJobObject(hJob, JobObjectExtendedLimitInformation, &amp;limits, sizeof(limits))</code>.</li>
+<li><code>pAssignProcessToJobObject(hJob, pi.hProcess)</code>.</li>
+<li><code>ResumeThread(pi.hThread)</code>.</li>
+<li>On any failure: <code>TerminateProcess</code> + <code>CloseHandle(hJob)</code> + return <code>"job object setup failed"</code>. Don't silently degrade — the user explicitly opted in via <code>mem_cap_bytes</code>/<code>cpu_time_ms</code>.</li>
+</ul>
+</li>
+<li>After spawn (and after job assignment if applicable): close child ends in parent (Q4). Write stdin if any, then close <code>parentInWr</code>.</li>
+</ol>
+<p><strong>Capture loop — Win32s/Win9x polling path</strong> (<code>g_features.has_threads == 0</code>):</p>
+<pre><code>start = GetTickCount();
+loop {
+    PumpPipe(parentOutRd, stdoutBuf, &amp;stdoutLen, stdoutBufSize, &amp;stdoutTruncated);
+    PumpPipe(parentErrRd, stderrBuf, &amp;stderrLen, stderrBufSize, &amp;stderrTruncated);
+    GetExitCodeProcess(hProc, &amp;exitCode);
+    if (exitCode != STILL_ACTIVE) break;        /* Q1 */
+    if (timeoutMs &gt; 0 &amp;&amp; GetTickCount() - start &gt;= timeoutMs) {
+        TimeoutTerminate(hProc, binaryType, &amp;killedBy);   /* see below */
+        break;
+    }
+    Sleep(10);
+}
+PumpPipe(parentOutRd, ...);  /* final drain */
+PumpPipe(parentErrRd, ...);
+GetExitCodeProcess(hProc, &amp;exitCode);
+</code></pre>
+<p><strong>Capture loop — threaded path</strong> (<code>g_features.has_threads == 1</code>):</p>
+<pre><code>start = GetTickCount();
+hOutThread = CreateThread(NULL, 0, ReaderThread, &amp;outCtx, 0, NULL);
+hErrThread = CreateThread(NULL, 0, ReaderThread, &amp;errCtx, 0, NULL);
+HANDLE waitObj[1] = { hProc };
+DWORD wait = WaitForSingleObject(hProc, timeoutMs &gt; 0 ? timeoutMs : INFINITE);
+if (wait == WAIT_TIMEOUT) {
+    TimeoutTerminate(hProc, binaryType, &amp;killedBy);
+    WaitForSingleObject(hProc, INFINITE);   /* await actual exit */
+}
+WaitForSingleObject(hOutThread, INFINITE);
+WaitForSingleObject(hErrThread, INFINITE);
+GetExitCodeProcess(hProc, &amp;exitCode);
+</code></pre>
+<p><code>ReaderThread</code>: loops <code>ReadFile(pipe, buf, ...)</code> until 0 bytes or error; appends to caller's buffer guarded by a <code>CRITICAL_SECTION</code>. Marks <code>truncated=1</code> if buffer fills.</p>
+<p><strong><code>TimeoutTerminate(hProc, binaryType, &amp;killedBy)</code>:</strong></p>
+<pre><code>if (binaryType == BIN_NE16 || binaryType == BIN_MZ) {
+    /* Q12: do not kill VDM */
+    killedBy = 1;  /* "timeout" — but TerminateProcess skipped */
+    return;
+}
+if (g_features.has_generate_ctrl_event) {
+    g_features.pGenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, processGroupId);
+    /* Wait up to 1 sec for graceful exit */
+    if (WaitForSingleObject(hProc, 1000) == WAIT_OBJECT_0) {
+        killedBy = 2;  /* "ctrl_break" */
+        return;
+    }
+}
+TerminateProcess(hProc, 1);
+killedBy = 1;  /* "timeout" */
+</code></pre>
+<p>When job-object containment kills the child via <code>JOB_OBJECT_LIMIT_PROCESS_MEMORY</code> or <code>JOB_OBJECT_LIMIT_PROCESS_TIME</code>, <code>GetExitCodeProcess</code> returns the special exit codes set by the kernel (memory cap: per Win32 docs the child gets terminated and exit code is 1 or implementation-defined; CPU cap: similar). Detect by also calling <code>pQueryInformationJobObject(hJob, JobObjectBasicAccountingInformation, ...)</code> to read termination flag; or simpler: track via <code>JOBOBJECT_ASSOCIATE_COMPLETION_PORT</code> (NT 4.0+) — use a completion port on the job and read messages to know precisely which limit killed the child. Set <code>killedBy=3</code> (memory_cap) or <code>4</code> (cpu_cap) accordingly.</p>
+<p><strong><code>PumpPipe</code> (polling path only):</strong> <code>PeekNamedPipe</code> → <code>dwAvail</code>. If 0 return. Else <code>ReadFile</code> for <code>min(dwAvail, bufRemaining)</code>. If <code>bufRemaining==0</code> and <code>dwAvail&gt;0</code>, set <code>truncated=1</code>.</p>
+<p><strong>PTY path (<code>pty_exec.c</code>):</strong> when <code>g_features.has_create_pseudo_console</code>:</p>
+<ol>
+<li>Create input + output pipes.</li>
+<li><code>g_features.pCreatePseudoConsole({cols,rows}, hInputRd, hOutputWr, 0, &amp;hPC)</code>.</li>
+<li>Allocate <code>STARTUPINFOEX</code>; size attribute list via <code>pInitializeProcThreadAttributeList(NULL, 1, 0, &amp;size)</code>; allocate; init.</li>
+<li><code>pUpdateProcThreadAttribute(attrList, 0, PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE, hPC, sizeof(hPC), NULL, NULL)</code>.</li>
+<li><code>CreateProcessA</code> with <code>EXTENDED_STARTUPINFO_PRESENT</code>.</li>
+<li>Capture via threaded reader (PTY only meaningful on systems with <code>has_threads</code>, which is implied by Win 10).</li>
+<li>Cleanup: <code>pClosePseudoConsole(hPC)</code>; <code>pDeleteProcThreadAttributeList(attrList)</code>; close handles.</li>
+</ol>
+<p><strong>Cleanup (universal):</strong> <code>CloseHandle(hProc)</code>, <code>CloseHandle(hThread)</code>, remaining pipe ends, job handle if any, attr list if any — always, including every early-return path.</p>
+<h3 id="argvc-quoting-algorithm"><a class="header" href="#argvc-quoting-algorithm"><code>argv.c</code> quoting algorithm</a></h3>
+<p>For each arg (Q8):</p>
+<ul>
+<li>Empty → <code>""</code>.</li>
+<li>No <code>[ \t\n\v"]</code> → emit verbatim.</li>
+<li>Else: emit <code>"</code>; for each char with backslash run accumulation:
+<ul>
+<li>On <code>\</code>: increment count.</li>
+<li>On <code>"</code>: emit <code>2N+1</code> backslashes, then <code>\"</code>. Reset count.</li>
+<li>On other: emit <code>N</code> backslashes, then char. Reset count.</li>
+<li>At end: emit <code>2N</code> backslashes (closing quote unescaped). Emit <code>"</code>.</li>
+</ul>
+</li>
+</ul>
+<p>Join with single spaces. When <code>shell=true</code>, run <code>ArgvCmdEscape</code> after to <code>^</code>-escape cmd metacharacters outside double-quoted regions (Q15).</p>
+<p>PBT property: random argv (printable + space + tab + <code>\</code> + <code>"</code> + control, length 0–32, count 1–8) → <code>argvJoin → CreateProcessA → tests/argv_echo.exe → child argv[i]</code> matches input byte-for-byte.</p>
+<h3 id="binfmtc-classification"><a class="header" href="#binfmtc-classification"><code>binfmt.c</code> classification</a></h3>
+<p>Resolve via <code>SearchPathA</code> (Q16). Read first 512 bytes:</p>
+<ul>
+<li><code>MZ</code> magic at 0 + valid <code>e_lfanew</code> → check magic at <code>e_lfanew</code>: <code>PE\0\0</code> = <code>BIN_PE32</code>, <code>NE</code> = <code>BIN_NE16</code>, else <code>BIN_MZ</code>.</li>
+<li><code>MZ</code> magic + invalid <code>e_lfanew</code> → <code>BIN_MZ</code>.</li>
+<li>No <code>MZ</code> → <code>BIN_UNKNOWN</code>.</li>
+<li>Shell built-in (no resolvable .exe) → <code>BIN_SHELL</code>.</li>
+</ul>
+<p><code>GetBinaryTypeA</code> via <code>GetProcAddress(GetModuleHandleA("kernel32"), "GetBinaryTypeA")</code> on NT/95+; prefer its result when present (knows about WoW64).</p>
+<h3 id="catalog-catalogwin32-commandsjson"><a class="header" href="#catalog-catalogwin32-commandsjson">Catalog (<code>catalog/win32-commands.json</code>)</a></h3>
+<pre><code class="language-json">{
+  "version": 1,
+  "commands": {
+    "dir": {
+      "kind":            "shell-builtin",
+      "shell_modern":    "cmd.exe /c dir",
+      "shell_win32s":    "command.com /c dir",
+      "supports_win32s": true,
+      "description":     "List directory contents.",
+      "options": [
+        {"flag":"/A","arg":"attrs","desc":"Filter by attribute (D R H S A; negate with -)."},
+        {"flag":"/B","desc":"Bare format (filenames only)."},
+        {"flag":"/S","desc":"Recurse into subdirectories."},
+        {"flag":"/O","arg":"order","desc":"Sort by N E S D; negate with -."}
+      ],
+      "positional": [{"name":"path","optional":true,"type":"path"}],
+      "examples": ["dir","dir /B","dir C:\\PROJECTS /S /B"]
+    }
+  }
+}
+</code></pre>
+<p><strong>Validation</strong> (<code>CatalogValidateArgs</code>):</p>
+<ul>
+<li>Flags must appear in <code>options</code> list (case-insensitive on flag name).</li>
+<li>Unknown flags → <code>"argument not allowed"</code>.</li>
+<li>Flag-with-arg consumes next token if it doesn't start with <code>/</code> or <code>-</code>, OR accepts glued <code>/A:value</code>.</li>
+<li>Positional <code>type</code> is advisory only (no path-validity check).</li>
+</ul>
+<p><strong>Initial entries (≥30):</strong></p>
+<ul>
+<li><em>Shell built-ins (13):</em> <code>dir</code>, <code>copy</code>, <code>del</code>, <code>type</code>, <code>echo</code>, <code>cd</code>, <code>mkdir</code>, <code>rmdir</code>, <code>ren</code>, <code>set</code>, <code>path</code>, <code>ver</code>, <code>cls</code></li>
+<li><em>Externals (5):</em> <code>attrib</code>, <code>xcopy</code>, <code>find</code>, <code>more</code>, <code>sort</code></li>
+<li><em>Build tools (10):</em> <code>cl</code>, <code>link</code>, <code>lib</code>, <code>nmake</code>, <code>ml</code>, <code>rc</code>, <code>mt</code>, <code>mc</code>, <code>gcc</code>, <code>make</code></li>
+<li><em>Diagnostics (2):</em> <code>mem</code>, <code>chkdsk</code></li>
+</ul>
+<p>Each: <code>description</code>, <code>options</code> (descriptions sourced from official MS docs), <code>positional</code>, ≥2 <code>examples</code>, <code>supports_win32s</code>.</p>
+<p><strong>Server-side enforcement:</strong></p>
+<ul>
+<li>Default load location: <code>catalog/win32-commands.json</code> next to <code>mcp-w32s.exe</code>. Missing → ready message includes <code>"warning":"catalog not loaded"</code>.</li>
+<li><code>/CATALOG:&lt;path&gt;</code> cmdline overrides location.</li>
+<li><code>/UNSAFE</code> disables whitelist (catalog still consulted for <code>binary_type</code>).</li>
+<li>Per-request <code>unsafe:true</code> bypasses whitelist for that exec; logged in stderr buffer.</li>
+</ul>
+<h3 id="allium-specs"><a class="header" href="#allium-specs">Allium specs</a></h3>
+<p><code>specs/process-ops.allium</code>:</p>
+<pre><code>entity Capabilities {
+    is_win32s, is_win9x, is_nt, is_wow64: Boolean
+    has_threads, has_job_objects, has_ctrl_events: Boolean
+    has_pty, has_get_binary_type, has_query_full_image_name: Boolean
+}
+
+entity Process {
+    cmd_line: String
+    cwd: String
+    binary_type: pe32 | pe32_wow64 | ne16 | mz | shell | unknown
+    capabilities: Capabilities
+    status: not_started | running | exited | timed_out | spawn_failed
+    killed_by: none | timeout | ctrl_break | memory_cap | cpu_cap
+    transitions status {
+        not_started -&gt; running
+        not_started -&gt; spawn_failed
+        running     -&gt; exited
+        running     -&gt; timed_out
+        terminal: exited, timed_out, spawn_failed
+    }
+}
+
+entity ExecResult {
+    process: Process
+    exit_code: Integer
+    stdout_b64, stderr_b64: String
+    stdout_truncated, stderr_truncated: Boolean
+    duration_ms: Integer
+    request_id: String
+    status: ok | error
+    error_reason: String when status = error
+    transitions status { terminal: ok, error }
+}
+
+entity PtyExecResult {
+    process: Process
+    exit_code: Integer
+    output_b64: String
+    output_kind: ansi | text
+    output_truncated: Boolean
+    duration_ms: Integer
+    request_id: String
+    status: ok | error
+    error_reason: String when status = error
+    transitions status { terminal: ok, error }
+}
+
+rule ExecSpawnSuccess { ... }
+rule ExecSpawnFailed  { ... }
+rule ExecCompleted    { ... }
+rule ExecTimedOut     { ... }
+rule ExecOutputTruncated { ... }
+rule ExecBusyRejected { ... }
+rule ExecCtrlBreakKilled    { ... }   -- requires capabilities.has_ctrl_events
+rule ExecMemoryCapKilled    { ... }   -- requires capabilities.has_job_objects
+rule ExecCpuCapKilled       { ... }   -- requires capabilities.has_job_objects
+rule PtyExecSpawnSuccess    { ... }   -- requires capabilities.has_pty
+rule PtyExecCapabilityAbsent { ... }  -- emits "pty not available on this Windows" when !capabilities.has_pty
+
+invariant ExitCodeOnSuccess { ... }
+invariant TimedOutHasReason { ... }
+invariant PtyOnlyWhenCapable { for r in PtyExecResults: r.status = ok implies r.process.capabilities.has_pty = true }
+invariant Win32sNoJobObjects { for p in Processes: p.capabilities.is_win32s = true implies p.capabilities.has_job_objects = false }
+</code></pre>
+<p><code>specs/catalog.allium</code>:</p>
+<pre><code>entity Catalog { path: String; loaded: Boolean; entry_count: Integer }
+entity CatalogEntry { name: String; kind: shell_builtin | external; supports_win32s: Boolean }
+rule CatalogLookupHit  { ... }
+rule CatalogLookupMiss { ... }     -- emits "command not in catalog"
+rule CatalogArgValid   { ... }
+rule CatalogArgInvalid { ... }     -- emits "argument not allowed"
+invariant LoadedCatalogHasEntries { for c in Catalogs: c.loaded implies c.entry_count &gt; 0 }
+</code></pre>
+<p><code>specs/mcp-protocol.allium</code>: rewrite <code>rule ExecCommand</code> to gate on <code>CatalogLookup</code> then delegate to <code>process-ops/ExecResult</code>. Remove <code>deferred ExecCommand.implementation</code> line.</p>
+<h3 id="tests"><a class="header" href="#tests">Tests</a></h3>
+<p><code>tests/test_feat.c</code> (≥6):</p>
+<ol>
+<li><code>FeatInit</code> populates struct without crashing.</li>
+<li>Win-version parses correctly under Wine (<code>is_nt=true</code> typically; <code>win_major&gt;=4</code>).</li>
+<li><code>FeatVersionString</code> returns non-empty starting with "Windows ".</li>
+<li>Each <code>has_*</code> flag is consistent with corresponding <code>p*</code> function pointer (TRUE iff non-NULL).</li>
+<li><code>has_create_pseudo_console</code> reflects host accurately (test guards subsequent calls with skip-if-absent).</li>
+<li><code>FeatForceFallback(FORCE_NO_THREADS | FORCE_NO_JOB_OBJECTS | FORCE_NO_CTRL_EVENTS)</code> zeroes flags+fnptrs and exec_ops still succeeds via polling/no-job/Terminate path (verifies fallback equivalence).</li>
+</ol>
+<p><code>tests/test_exec_ops.c</code> (≥22 — 18 baseline + 4 capability-fallback):</p>
+<ol>
+<li><code>cmd /c echo hello</code> → exit=0, stdout = <code>"hello\r\n"</code> (b64 <code>"aGVsbG8NCg=="</code>)</li>
+<li><code>cmd /c exit 7</code> → exit=7</li>
+<li>nonexistent exe → spawn_failed, errMsg has Win32 error code</li>
+<li>80KB stdout → <code>stdout_truncated=1</code></li>
+<li>Timeout (<code>cmd /c "ping -n 30 127.0.0.1"</code>, 200ms) → <code>timed_out=1</code>, <code>killed_by</code> ∈ {<code>timeout</code>,<code>ctrl_break</code>}</li>
+<li>Stdin pass-through (<code>cmd /c findstr foo</code> with <code>"foo\nbar\nfoo\n"</code>) → 2 lines</li>
+<li>cwd respected (<code>cmd /c cd</code> cwd=<code>C:\</code>) → stdout starts with <code>C:\</code></li>
+<li>Stderr capture (<code>cmd /c dir nonexistent_xyz</code>) → stderr non-empty, exit≠0</li>
+<li>Empty cmdline → spawn_failed</li>
+<li>Cmdline &gt; 32767 → <code>"command line too long"</code></li>
+<li>Cmdline &gt; 8192 with shell → <code>"command line too long"</code></li>
+<li>Nonexistent cwd → spawn_failed</li>
+<li>timeout=0 + quick command → completes</li>
+<li>stdin_b64 invalid → <code>"invalid base64"</code></li>
+<li>shell=true vs shell=false: <code>dir</code> works only with shell=true</li>
+<li>exit_code=-1 sentinel for spawn-failed</li>
+<li>Two concurrent execs → second returns <code>"busy"</code> until first finishes</li>
+<li>Final drain: child writes 1KB then exits — all 1KB captured</li>
+<li><strong>Capability fallback — polling path:</strong> <code>FeatForceFallback(FORCE_NO_THREADS)</code> then run test #1 → identical result via <code>PeekNamedPipe</code> loop (verifies Win32s code path on Wine/NT).</li>
+<li><strong>Capability fallback — no job objects:</strong> <code>FeatForceFallback(FORCE_NO_JOB_OBJECTS)</code> then run test #1 → succeeds; no Win32 error from missing call.</li>
+<li><strong>Capability fallback — no ctrl events:</strong> force off, run test #5 → falls through to direct <code>TerminateProcess</code>, <code>killed_by:"timeout"</code>.</li>
+<li><strong>Job-object memory cap (skip if <code>!has_create_job_object</code>):</strong> run <code>cmd /c "for /L %i in (1,1,9999999) do @set X=%X%blah"</code> with <code>mem_cap_bytes=8388608</code> → child killed, <code>killed_by:"memory_cap"</code>.</li>
+</ol>
+<p><code>tests/test_pty_exec.c</code> (≥4 — skipped if <code>!has_create_pseudo_console</code>):</p>
+<ol>
+<li>PTY echo: spawn <code>cmd</code> with stdin <code>"echo hi\r\nexit\r\n"</code>, cols=80 rows=25 → <code>output_b64</code> decodes to text containing <code>"hi"</code> and ANSI escape sequences (output_kind="ansi").</li>
+<li>PTY exit code: <code>cmd /c "exit 5"</code> via PTY → exit=5.</li>
+<li>PTY resize: spawn <code>cmd</code>, send sized to 132×43 → no error from resize call.</li>
+<li>PTY capability absent: <code>FeatForceFallback(FORCE_NO_PTY)</code> then <code>PtyExecRun</code> → returns error <code>"pty not available on this Windows"</code>.</li>
+</ol>
+<p><code>tests/test_argv.c</code> (12 fixed + PBT 1000 trials):</p>
+<ul>
+<li><code>["a","b"]</code> → <code>"a b"</code></li>
+<li><code>["hello world"]</code> → <code>"\"hello world\""</code></li>
+<li><code>["a\"b"]</code> → <code>"\"a\\\"b\""</code></li>
+<li><code>["a\\"]</code> → <code>"\"a\\\\\""</code></li>
+<li><code>["a\\b"]</code> → <code>"a\\b"</code></li>
+<li><code>["a\\\""]</code> → trailing-backslash-before-quote</li>
+<li><code>[""]</code> → <code>"\"\""</code></li>
+<li><code>["x","",""]</code> → <code>"x \"\" \"\""</code></li>
+<li>shell=false <code>["a&amp;b"]</code> → <code>"\"a&amp;b\""</code></li>
+<li>shell=true <code>[..., "a&amp;b"]</code> → <code>^&amp;</code> inside escape</li>
+<li>All ASCII printable</li>
+<li>DBCS lead bytes (0x81–0x9F, 0xE0–0xFC) — verify no mid-character split</li>
+<li>PBT roundtrip via <code>argv_echo.exe</code></li>
+</ul>
+<p><code>tests/test_binfmt.c</code> (6):</p>
+<ul>
+<li><code>mcp-w32s.exe</code> → <code>BIN_PE32</code></li>
+<li>Fixture NE16 → <code>BIN_NE16</code></li>
+<li>Fixture MZ → <code>BIN_MZ</code></li>
+<li>Text file → <code>BIN_UNKNOWN</code></li>
+<li>Missing file → error</li>
+<li>Shell built-in name (<code>"dir"</code>) → <code>BIN_SHELL</code> without file read</li>
+</ul>
+<p><code>tests/test_catalog.c</code> (8):</p>
+<ul>
+<li>Load valid file → entry_count ≥ 30</li>
+<li>Missing file → error</li>
+<li>Malformed JSON → error</li>
+<li>Lookup <code>"dir"</code> → entry; <code>kind=shell_builtin</code></li>
+<li>Lookup <code>"unknown_xyz"</code> → NULL</li>
+<li>Validate <code>dir /B</code> → ok</li>
+<li>Validate <code>dir /UNKNOWN</code> → <code>"argument not allowed"</code></li>
+<li>Validate <code>cl /TC file.c</code> → ok</li>
+</ul>
+<p>Integration (extending <code>tests/test_serial.c</code>):</p>
+<ul>
+<li>Full exec JSON → <code>ProcessCommand</code> → response shape with all new keys</li>
+<li><code>unsafe:true</code> bypasses catalog</li>
+<li><code>unsafe:false</code> + uncatalogued cmd → <code>"command not in catalog"</code></li>
+</ul>
+<h3 id="buildci-integration"><a class="header" href="#buildci-integration">Build/CI integration</a></h3>
+<ul>
+<li><code>CMakeLists.txt</code> (single source of truth; <code>build.sh</code>/<code>build.bat</code> wrap the mingw/vc6 presets): append seven new modules — <code>src/feat.c src/exec_ops.c src/pty_exec.c src/argv.c src/binfmt.c src/catalog.c src/ready.c</code> — to main link. Add six test targets (<code>test_feat</code>, <code>test_exec_ops</code>, <code>test_pty_exec</code>, <code>test_argv</code>, <code>test_binfmt</code>, <code>test_catalog</code>) + <code>argv_echo</code> helper. Copy <code>catalog/win32-commands.json</code> next to test binaries. <strong>Linker note:</strong> none of the delay-loaded APIs (<code>CreateJobObjectA</code>, <code>CreatePseudoConsole</code>, <code>IsWow64Process</code>, etc.) may be referenced by name at link time — they are only called via <code>g_features.p*</code> function pointers. If the linker pulls them in, <code>mcp-w32s.exe</code> will fail to load on Win32s 1.25a.</li>
+<li><code>.github/workflows/build-and-test.yml</code>: add Wine runs for all six new test binaries. Existing FPU/486 grep auto-applies to all new <code>.o</code> files. <strong>Critical checks:</strong>
+<ul>
+<li><code>objdump -d {feat,exec_ops,pty_exec,argv,binfmt,catalog,ready}.o | grep -E 'fld|fst[^r]|cpuid|cmpxchg|bswap|chkstk'</code> must be empty. If <code>__chkstk</code> appears, shrink stack frames (move large <code>STARTUPINFO</code>/<code>PROCESS_INFORMATION</code>/buffers to <code>static</code>).</li>
+<li><code>objdump -p mcp-w32s.exe | grep -E 'CreateJobObject|CreatePseudoConsole|IsWow64Process|GenerateConsoleCtrlEvent|QueryFullProcessImageName'</code> must be empty (these must NOT appear in the import table — they are runtime-loaded only).</li>
+<li><code>test_feat.exe</code> output asserts host capabilities under Wine: <code>is_nt=1</code>, <code>has_threads=1</code>. PTY tests skip if Wine version doesn't expose <code>CreatePseudoConsole</code>.</li>
+</ul>
+</li>
+<li><code>build.sh</code>: new <code>host-pbt</code> target — native <code>gcc -std=c99</code> build of <code>vendor/theft</code> (<code>src/theft*.c</code>) + <code>tests/host/*.c</code> against the C89 modules under test (<code>base64.c</code>, <code>json_parser.c</code>, <code>argv.c</code>, <code>catalog.c</code>); runs without Wine.</li>
+<li><code>.github/workflows/build-and-test.yml</code>: <code>host-pbt</code> step runs before the MinGW/Wine suite (fail fast with shrunk counterexamples).</li>
+<li>The seven new <code>.c</code> files build under the <code>vc6</code> preset too (CMake's NMake Makefiles generator); the theft harness is NOT added — host-side only.</li>
+<li>Artifact upload: <code>catalog/win32-commands.json</code> alongside <code>mcp-w32s.exe</code>.</li>
+</ul>
+<h3 id="out-of-scope-for-phase-4-architectural-reasons"><a class="header" href="#out-of-scope-for-phase-4-architectural-reasons">Out of scope for Phase 4 (architectural reasons)</a></h3>
+<ul>
+<li><strong>Streaming chunked output.</strong> Current MCP-Win32s protocol is one JSON line in, one out. Streaming requires multi-frame response handling on the bridge side. Phase 5+.</li>
+<li><strong>Async exec (job-id, poll-later).</strong> Conflicts with single-threaded request/response. Phase 5+ if needed.</li>
+</ul>
+<p>(Items previously listed as out-of-scope — interactive stdin/TTY, process signals, resource limits — are now <strong>in scope</strong> via the feature-detection uplift. They function on Windows versions that support them and gracefully degrade on Win32s.)</p>
+<h3 id="verification-sub-agent-acceptance-criteria"><a class="header" href="#verification-sub-agent-acceptance-criteria">Verification (sub-agent acceptance criteria)</a></h3>
+<ol>
+<li><code>./build.sh test</code> clean on Linux/MinGW with strict flags.</li>
+<li>All new test binaries pass under Wine: <code>test_feat</code>, <code>test_exec_ops</code>, <code>test_pty_exec</code> (or skipped with reason), <code>test_argv</code>, <code>test_binfmt</code>, <code>test_catalog</code>, plus extended <code>test_serial</code>.</li>
+<li>CI FPU/486 grep stays empty for new <code>.o</code> files.</li>
+<li><strong>Import-table check:</strong> <code>objdump -p mcp-w32s.exe | grep CreatePseudoConsole</code> (and the other delay-loaded APIs) returns empty — confirms binary still loads on Win32s 1.25a.</li>
+<li>End-to-end: <code>printf '{"cmd":"exec","id":"e1","argv":["cmd","/c","echo","hi"]}\n' | wine mcp-w32s.exe …</code> returns <code>exit_code:0</code>, <code>stdout_b64:"aGkNCg=="</code>, <code>binary_type:"pe32"</code>, <code>exec_method:"direct"</code>, <code>killed_by:""</code>.</li>
+<li>End-to-end (catalog miss): <code>argv:["nonexistent_xyz"]</code> without <code>unsafe</code> → <code>"command not in catalog"</code>.</li>
+<li>End-to-end (timeout, modern host with ctrl-events): <code>argv:["cmd","/c","ping","-n","30","127.0.0.1"]</code> with <code>timeout_ms:200</code> → <code>timed_out:true</code>, <code>killed_by:"ctrl_break"</code> or <code>"timeout"</code>.</li>
+<li>End-to-end (PTY, host with <code>has_create_pseudo_console</code>): <code>{"cmd":"ptyExec","argv":["cmd"],"stdin_b64":"&lt;echo+exit&gt;","cols":80,"rows":25}</code> → <code>output_kind:"ansi"</code>, output contains echoed text.</li>
+<li>End-to-end (PTY absent): same request with <code>FeatForceFallback(FORCE_NO_PTY)</code> (debug build) or on a Win 7 host → <code>error:"pty not available on this Windows"</code>.</li>
+<li><strong>Ready-message capability assertion</strong> under Wine:
+<pre><code>printf '\n' | wine mcp-w32s.exe /STDIO | head -1
+</code></pre>
+First line parses as JSON with <code>status:"ready"</code>, <code>version</code> non-empty, <code>features.is_nt:true</code>, <code>features.threads:true</code>. (Field set varies by Wine version — must always include the documented keys.)</li>
+<li><code>specs/process-ops.allium</code> (with <code>Capabilities</code> entity) and <code>specs/catalog.allium</code> follow <code>specs/file-ops.allium</code> lexical conventions.</li>
+<li>README §1554 updated; new "Feature Detection &amp; Graceful Uplift" + "PTY Execution" sections; CLAUDE.md test count bumped to ≥152; <code>PLAN.md</code> Phase 4 marked Complete.</li>
+<li>Total tests: 87 + ≥6 (feat) + ≥22 (exec_ops, incl. 4 capability fallbacks) + ≥4 (pty_exec) + ≥12 fixed + 1000 PBT trials (argv) + ≥6 (binfmt) + ≥8 (catalog) + ≥3 integration = <strong>≥152 tests</strong>.</li>
+<li>Catalog file ships with binary in CI artifact; loads without warning on startup.</li>
+<li><strong>Manual smoke (optional, documented):</strong> load <code>mcp-w32s.exe</code> on a real Windows 3.1 + Win32s 1.25a system; ready message advertises <code>is_win32s:true</code>, <code>threads:false</code>, <code>pty:false</code>, <code>job_objects:false</code>; <code>exec</code> with simple <code>command.com /c dir</code> returns expected output through the polling/Terminate fallback path.</li>
+<li><strong>Allium lifecycle complete:</strong> all six skills exercised as per "Required workflow" — elicit notes recorded, all specs tend-written/<code>allium check</code> clean (including the three distilled backfill specs), test files reference their propagated obligations, and a final <code>/allium:weed</code> audit reports zero spec↔code drift.</li>
+<li><strong>theft harness green:</strong> <code>./build.sh host-pbt</code> builds <code>vendor/theft</code> + <code>tests/host/*</code> natively and passes ≥50k trials per property; CI runs it before the Wine suite.</li>
+<li>Every theft property has a mirrored <code>prop.h</code> equivalent running on the target binary under Wine.</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../plan/PHASE3.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../plan/PHASE5.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../plan/PHASE3.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../plan/PHASE5.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

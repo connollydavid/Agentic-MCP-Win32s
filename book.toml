@@ -1,0 +1,14 @@
+[book]
+title = "Agentic-MCP-Win32s"
+description = "Agentic host: plans, phase audits, and process for the MCP-Win32s software under development"
+authors = ["David Connolly"]
+language = "en"
+src = "."
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+additional-css = ["custom.css"]

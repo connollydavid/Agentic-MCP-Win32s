@@ -1,0 +1,509 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Phase 3: Network &amp; Transport - Agentic-MCP-Win32s</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="Agentic host: plans, phase audits, and process for the MCP-Win32s software under development">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../CLAUDE.html">Agentic Host Guide</a></li><li class="chapter-item expanded "><a href="../AGENTS.html"><strong aria-hidden="true">1.</strong> Agent Guide</a></li><li class="chapter-item expanded "><a href="../MEMORY.html"><strong aria-hidden="true">2.</strong> Memory</a></li><li class="chapter-item expanded "><a href="../plan/PLAN.html"><strong aria-hidden="true">3.</strong> Plan</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../plan/PHASE1.html"><strong aria-hidden="true">3.1.</strong> Phase 1: Foundation</a></li><li class="chapter-item expanded "><a href="../plan/PHASE2.html"><strong aria-hidden="true">3.2.</strong> Phase 2: File Operations + Base64</a></li><li class="chapter-item expanded "><a href="../plan/PHASE3.html" class="active"><strong aria-hidden="true">3.3.</strong> Phase 3: Network & Transport</a></li><li class="chapter-item expanded "><a href="../plan/PHASE4.html"><strong aria-hidden="true">3.4.</strong> Phase 4: Command Execution</a></li><li class="chapter-item expanded "><a href="../plan/PHASE5.html"><strong aria-hidden="true">3.5.</strong> Phase 5: MCP Integration</a></li><li class="chapter-item expanded "><a href="../plan/PHASE6.html"><strong aria-hidden="true">3.6.</strong> Phase 6: Cross-Platform Testing</a></li><li class="chapter-item expanded "><a href="../plan/PHASE7.html"><strong aria-hidden="true">3.7.</strong> Phase 7: Documentation & Polish</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Agentic-MCP-Win32s</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="phase-3-network--transport-serial--tcpwinsock--complete"><a class="header" href="#phase-3-network--transport-serial--tcpwinsock--complete">Phase 3: Network &amp; Transport (serial + TCP/Winsock) — <strong>Complete</strong></a></h1>
+<p><strong>Goal.</strong> Make the network a first-class peer of the serial port. Replace the <code>HANDLE</code>-hardwired protocol I/O with a transport-agnostic byte-pipe interface backed by pluggable, runtime-registered backends; refactor serial onto it; add a TCP backend over Winsock 1.1; add a mock backend that makes response bytes assertable in tests. The same seam admits future backends — UDP / HTTP-3 (QUIC), then exotic message/RDMA transports (e.g. ibverbs-over-Thunderbolt) — without touching the protocol core. Phase 3 is fully self-contained: abstraction + registry + serial refactor + TCP backend + runtime detection + mock backend + specs + tests + CI, all in scope here.</p>
+<p><strong>Why this is its own phase, ahead of command execution.</strong> Today the protocol I/O is hard-wired to a Win32 <code>HANDLE</code>: <code>MainLoop</code>, <code>SendReady</code>, <code>ProcessCommand</code>, and <code>ProcessBuffer</code>'s handler all call <code>ReadFile</code>/<code>WriteFile</code> directly (<code>src/mcp-w32s.c:84,197,213</code>; handler typedef at <code>:51</code>). That works for serial because a COM port <em>is</em> a file handle — but a Winsock <code>SOCKET</code> is <strong>not</strong> a Win32 file handle on Win32s/Win9x, so <code>ReadFile</code>/<code>WriteFile</code> cannot drive it (README §449 says exactly this). Phase 4 (command execution) emits the ready message and exec stdout/stderr over the transport, so this abstraction must exist first — otherwise exec ships serial-only and is rewritten later.</p>
+<h3 id="pre-decisions-non-negotiable"><a class="header" href="#pre-decisions-non-negotiable">Pre-decisions (non-negotiable)</a></h3>
+<ol>
+<li><strong>vtable interface, not tagged dispatch.</strong> A backend is a struct of function pointers; the core knows only the interface. This is what makes the layer agnostic and future-proof.</li>
+<li><strong>Network backends are runtime-probed (<code>LoadLibraryA</code>/<code>GetProcAddress</code>), never statically imported.</strong> <code>wsock32.dll</code> is absent on bare Win32s; a static import would stop the binary loading there. Same philosophy as Phase 4's <code>feat.c</code>.</li>
+<li><strong>TCP server is single-client-sequential.</strong> <code>listen(s, 1)</code> → <code>accept</code> one client → serve until disconnect → accept the next. Matches the single-threaded, one-exec-at-a-time model. Blocking sockets; no <code>select</code> loop.</li>
+<li><strong>Framing stays above the transport.</strong> Newline-JSON (<code>LineBuffer</code>) lives in the core; any reliable ordered byte backend works unchanged. A message-oriented backend sets a <code>flags</code> bit to bypass <code>LineBuffer</code>.</li>
+<li><strong>Transport config moves to the transport module.</strong> <code>TransportConfig</code>, <code>TRANSPORT_*</code>, and <code>ParseCommandLine</code> move from <code>serial.{c,h}</code> to <code>transport.{c,h}</code> — they are transport-level, not serial-level.</li>
+<li><strong>Serial is the always-available baseline + auto-detect fallback.</strong> Explicit <code>/SERIAL</code>/<code>/TCP</code> are honored exactly; default (no flag) stays serial COM1 (preserves current behavior + tests). Auto-detect, if requested, probes TCP then falls back to serial (README chain: TCP &gt; serial).</li>
+<li><strong><code>htons</code>/<code>htonl</code> implemented by hand</strong> (<code>((x&amp;0xff)&lt;&lt;8)|((x&gt;&gt;8)&amp;0xff)</code>) — avoids importing the symbols and avoids the banned <code>bswap</code> (486+) instruction. Integer-only, i386-safe.</li>
+<li><strong>The mock backend is the test seam.</strong> Response-byte assertions (impossible today) become possible; unit tests never open a real port or socket.</li>
+</ol>
+<h3 id="critical-winsock-11--win32s-quirks-to-design-around"><a class="header" href="#critical-winsock-11--win32s-quirks-to-design-around">Critical Winsock 1.1 / Win32s quirks to design around</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>#</th><th>Quirk</th><th>Mitigation</th></tr></thead><tbody>
+<tr><td>T1</td><td>A <code>SOCKET</code> is <strong>not</strong> a Win32 file handle on Win32s/Win9x</td><td>TCP backend uses <code>recv</code>/<code>send</code>, never <code>ReadFile</code>/<code>WriteFile</code>; the vtable hides the difference</td></tr>
+<tr><td>T2</td><td><code>wsock32.dll</code> absent on bare Win32s (needs TCP/IP-32 add-on on WfW 3.11)</td><td><code>LoadLibraryA("wsock32.dll")</code> + <code>GetProcAddress</code>; probe fail ⇒ backend unavailable, fall back to serial</td></tr>
+<tr><td>T3</td><td>Winsock must be initialized/negotiated</td><td><code>WSAStartup(MAKEWORD(1,1), &amp;wsaData)</code>; verify <code>wsaData.wVersion == 0x0101</code>; one <code>WSACleanup</code> at shutdown</td></tr>
+<tr><td>T4</td><td><code>SOCKET</code> is <code>unsigned int</code>; failure sentinel differs</td><td>Check <code>== INVALID_SOCKET</code> (not <code>INVALID_HANDLE_VALUE</code>); API errors are <code>SOCKET_ERROR</code> (-1)</td></tr>
+<tr><td>T5</td><td>Socket teardown differs from handles</td><td><code>closesocket()</code> per socket (not <code>CloseHandle</code>); pair the single <code>WSAStartup</code> with one <code>WSACleanup</code></td></tr>
+<tr><td>T6</td><td>Network byte order needed for <code>bind</code>/port</td><td>Manual <code>htons</code>/<code>htonl</code> (shift, not <code>bswap</code> — 486+ banned)</td></tr>
+<tr><td>T7</td><td><code>recv</code> returns 0 on orderly close, &lt;0 on error</td><td>Treat 0 as peer-closed (advance accept loop); &lt;0 → check <code>WSAGetLastError</code>, close conn</td></tr>
+<tr><td>T8</td><td><code>send</code> may move fewer bytes than requested</td><td><code>TransportWriteAll</code> loops until all bytes sent or hard error</td></tr>
+<tr><td>T9</td><td>Socket errors don't use <code>GetLastError</code></td><td>Use <code>WSAGetLastError()</code> for socket diagnostics in <code>errMsg</code></td></tr>
+<tr><td>T10</td><td><strong>Winsock 1.1 only</strong> — no <code>ws2_32</code></td><td>Resolve from <code>wsock32.dll</code>; never link/<code>LoadLibrary</code> <code>ws2_32</code></td></tr>
+<tr><td>T11</td><td>Win32s has a low socket-handle ceiling and shared address space</td><td><code>closesocket</code> promptly on disconnect; one listener + one conn at a time</td></tr>
+<tr><td>T12</td><td><code>accept</code> blocks the single thread</td><td>Acceptable by design (single-client-sequential); no concurrent work expected while idle</td></tr>
+</tbody></table>
+</div>
+<p>Sources to cite in code comments: README §447–453 (Win32s socket vs handle, no ws2_32), §1147–1199 (Winsock 1.1 TCP design + runtime detection), MS Docs <em>Winsock 1.1 reference</em> (<code>WSAStartup</code>, <code>recv</code>, <code>send</code>).</p>
+<h3 id="design-vtable-interface--backend-registry"><a class="header" href="#design-vtable-interface--backend-registry">Design: vtable interface + backend registry</a></h3>
+<p>A backend is a small struct of function pointers (C89 indirect calls — fine on i386; Phase 4's <code>feat.c</code> uses the same pattern). The protocol core knows only the interface.</p>
+<pre><code class="language-c">/* transport.h */
+typedef struct Transport Transport;
+
+struct Transport {
+    const char *name;     /* "serial" | "tcp" | "mock" | ... — surfaced in ready message */
+    int kind;             /* TRANSPORT_SERIAL | TRANSPORT_TCP | ... */
+    int flags;            /* bit0: message-oriented (bypass LineBuffer); else byte-stream */
+
+    /* Connection vtable. Return: &gt;0 bytes moved, 0 = orderly peer close, &lt;0 = error. */
+    int  (*read)(Transport *t, void *buf, int len);
+    int  (*write)(Transport *t, const void *buf, int len);
+    void (*close)(Transport *t);
+
+    /* Server lifecycle. NULL for point-to-point backends (serial).
+     * For listeners (tcp): blocks for a client, returns a *connection* Transport
+     * (may be `t` itself reused, or a distinct conn). NULL `accept` =&gt; one-shot peer. */
+    Transport *(*accept)(Transport *t);
+
+    union { HANDLE handle; unsigned int sock; void *ptr; } io;  /* backend-private */
+};
+
+/* Backend registry — enables agnostic auto-detect + future backends */
+typedef struct {
+    int kind;
+    const char *name;
+    int  (*probe)(void);                                   /* 1 if usable on this host */
+    int  (*open)(const TransportConfig *cfg, Transport *out, char *err, int errSize);
+} TransportBackend;
+
+int  TransportOpen(const TransportConfig *cfg, Transport *out, char *err, int errSize);
+int  TransportWriteAll(Transport *t, const void *buf, int len);   /* loops on short writes */
+const char *TransportName(const Transport *t);
+</code></pre>
+<p><strong>Framing stays above the transport.</strong> Newline-delimited JSON (<code>LineBuffer</code>) sits in the core and is fed by whatever bytes a backend's <code>read</code> delivers. Reliable, ordered byte transports (serial, TCP, and later QUIC/RDMA) need no change. A genuinely message-oriented exotic backend sets <code>flags</code> bit0 so the core treats one message = one command and skips <code>LineBuffer</code>. This is the only concession the core makes to non-stream transports — everything else is the backend's problem (reliability, ordering, MTU).</p>
+<p><strong>The main loop becomes transport- and lifecycle-agnostic:</strong></p>
+<pre><code class="language-c">TransportOpen(&amp;cfg, &amp;listener, err, sizeof err);
+for (;;) {
+    Transport *conn = listener.accept ? listener.accept(&amp;listener) : &amp;listener;
+    SendReady(conn);
+    Serve(conn);                       /* read → LineBuffer → ProcessCommand(line, conn) */
+    if (conn != &amp;listener) conn-&gt;close(conn);
+    if (!listener.accept) break;       /* serial: one peer, done */
+    /* tcp: loop back to accept the next client (single-client-sequential) */
+}
+listener.close(&amp;listener);
+</code></pre>
+<h3 id="backends-in-scope-here"><a class="header" href="#backends-in-scope-here">Backends in scope here</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Backend</th><th>File</th><th>Mechanism</th><th>Availability</th></tr></thead><tbody>
+<tr><td>serial</td><td><code>src/serial.c</code> (refactor)</td><td>wraps existing <code>OpenSerialPort</code> + <code>ReadFile</code>/<code>WriteFile</code>; <code>accept = NULL</code></td><td>All Win32</td></tr>
+<tr><td>tcp</td><td><code>src/tcp.c</code> (new)</td><td>Winsock 1.1 <code>socket</code>/<code>bind</code>/<code>listen</code>/<code>accept</code>/<code>recv</code>/<code>send</code>/<code>closesocket</code>; <code>recv</code>/<code>send</code> (NOT ReadFile)</td><td>WfW 3.11 + TCP/IP-32, Win95+</td></tr>
+<tr><td>mock</td><td><code>tests/mock_transport.c</code> (new)</td><td>in-memory buffers; captures written bytes, feeds scripted input</td><td>Test-only</td></tr>
+</tbody></table>
+</div>
+<p>The <strong>mock backend is a testability win</strong>: today <code>ProcessCommand</code> tests pass <code>INVALID_HANDLE_VALUE</code> and cannot assert response bytes (<code>tests/test_serial.c:330</code>). With a mock transport, tests assert the exact JSON written.</p>
+<h3 id="tcp-backend-srctcpc--winsock-11-runtime-probed"><a class="header" href="#tcp-backend-srctcpc--winsock-11-runtime-probed">TCP backend (<code>src/tcp.c</code>) — Winsock 1.1, runtime-probed</a></h3>
+<p><code>wsock32.dll</code> is absent on bare Win32s without TCP/IP-32, so a <strong>static import would prevent the binary from loading there</strong>. Per README §1191, the TCP backend <code>LoadLibraryA("wsock32.dll")</code> + <code>GetProcAddress</code> for every entry point and stores them in a function-pointer table (same philosophy as <code>feat.c</code>). Probe fails ⇒ backend unavailable ⇒ explicit <code>/TCP</code> errors cleanly, auto-detect falls back to serial.</p>
+<ul>
+<li><code>WSAStartup(MAKEWORD(1,1), &amp;wsaData)</code>; verify <code>wsaData.wVersion</code>.</li>
+<li><code>socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)</code> → <code>SOCKET</code> (<code>unsigned int</code>, <code>INVALID_SOCKET</code> on failure — <strong>not</strong> <code>INVALID_HANDLE_VALUE</code>).</li>
+<li><code>bind</code> to <code>INADDR_ANY:htons(port)</code>; <code>listen(s, 1)</code> (backlog 1 — single client).</li>
+<li><code>accept</code> blocks; returns the client <code>SOCKET</code> wrapped in a connection <code>Transport</code>.</li>
+<li><code>recv(conn, buf, len, 0)</code>: <code>&gt;0</code> data, <code>0</code> orderly close, <code>SOCKET_ERROR</code> (&lt;0) error. <code>send</code> likewise.</li>
+<li><code>closesocket</code> per socket; <code>WSACleanup</code> at process shutdown.</li>
+<li><strong><code>htons</code>/<code>htonl</code> implemented manually</strong> (<code>((x&amp;0xff)&lt;&lt;8)|((x&gt;&gt;8)&amp;0xff)</code>) — avoids pulling the symbols <em>and</em> avoids the banned <code>bswap</code> instruction. Integer-only, i386-safe.</li>
+<li>Blocking sockets only (no <code>select</code> loop needed for one client; single-threaded honored).</li>
+</ul>
+<h3 id="files"><a class="header" href="#files">Files</a></h3>
+<p><strong>Create:</strong> <code>src/transport.{c,h}</code> (interface + registry + <code>TransportOpen</code>/<code>TransportWriteAll</code>), <code>src/tcp.{c,h}</code> (TCP backend + Winsock fnptr table), <code>tests/mock_transport.{c,h}</code>, <code>tests/test_transport.c</code> (≥10), <code>tests/test_tcp.c</code> (≥6, in-process loopback; proven natively on the Windows host against real Winsock), <code>specs/transport.allium</code>.</p>
+<p><strong>Modify:</strong></p>
+<ul>
+<li><code>src/serial.{c,h}</code> — keep <code>BuildSerialDCB</code>/<code>BuildSerialTimeouts</code>/<code>OpenSerialPort</code>; add <code>SerialBackendOpen</code> producing a serial <code>Transport</code>. <strong>Move</strong> <code>TransportConfig</code>, <code>TRANSPORT_*</code>, and <code>ParseCommandLine</code> out to <code>transport.{c,h}</code> (they are transport-level, not serial-level); <code>serial.h</code> includes <code>transport.h</code>.</li>
+<li><code>src/mcp-w32s.c</code> — <code>MainLoop</code>/<code>SendReady</code>/<code>Serve</code>/<code>ProcessCommand</code>/<code>ProcessBuffer</code> handler take <code>Transport *</code> instead of <code>HANDLE</code>; writes go through <code>TransportWriteAll</code>. <code>main</code> calls <code>TransportOpen</code>, runs the accept loop, drops the "only serial supported" rejection.</li>
+<li><code>tests/test_serial.c</code> — update handler signature to <code>Transport *</code>; switch the <code>ProcessCommand</code> stub tests to the mock backend and assert real response bytes; fix <code>ParseCommandLine</code> include path.</li>
+<li><code>CMakeLists.txt</code> (the single source of truth; <code>build.sh</code>/<code>build.bat</code> are thin wrappers around the mingw/vc6 presets) — add <code>transport.c</code>, <code>tcp.c</code> to the link; add <code>test_transport</code>, <code>test_tcp</code> targets (link <code>-lwsock32</code> for the tcp test only). Link main with <code>-lwsock32</code> <strong>only if</strong> static-link is chosen; default is runtime-probe, so main does <strong>not</strong> statically import wsock32 (CI assertion below).</li>
+<li><code>.github/workflows/build-and-test.yml</code> — run <code>test_transport</code>, <code>test_tcp</code> (CI is Ubuntu+Wine; local dev runs the PEs natively on the Windows host via WSL2 interop — Wine is a convenience, not the source of truth). <strong>Import-table assertion:</strong> <code>objdump -p mcp-w32s.exe | grep -i wsock32</code> must be empty (TCP is runtime-loaded, so the binary still loads on bare Win32s). FPU/486 grep auto-applies to <code>transport.o</code>/<code>tcp.o</code>.</li>
+<li><code>README.md</code> — replace the "TCP is Phase 3+ / not yet implemented" notes (§1161, §1191–1194) with the implemented design; document the vtable interface and the backend-registry extension point for future UDP/QUIC/RDMA backends.</li>
+<li><code>specs/mcp-protocol.allium</code> — tend the existing <code>entity Transport { ready: Boolean }</code> and <code>surface SerialPort</code> into a backend-agnostic model (see below).</li>
+</ul>
+<h3 id="public-apis"><a class="header" href="#public-apis">Public APIs</a></h3>
+<pre><code class="language-c">/* transport.h — interface, registry, config (moved here from serial.h) */
+
+#define TRANSPORT_NONE   0
+#define TRANSPORT_SERIAL 1
+#define TRANSPORT_TCP    2
+#define TRANSPORT_PIPE   3        /* reserved — Phase 5+ */
+#define TRANSPORT_MOCK   99       /* test-only */
+
+#define TRANSPORT_FLAG_MESSAGE 0x01   /* one message = one command; bypass LineBuffer */
+
+typedef struct {
+    int   transport;              /* TRANSPORT_SERIAL | TRANSPORT_TCP | ... */
+    char  port[32];               /* "COM1" ... (serial) */
+    DWORD baudRate;               /* serial */
+    int   tcpPort;                /* TCP listen port */
+    char  pipeName[260];          /* reserved */
+    int   autodetect;             /* 1 = probe TCP then fall back to serial */
+} TransportConfig;
+
+typedef struct Transport Transport;
+struct Transport {
+    const char *name;             /* "serial" | "tcp" | "mock" — surfaced in ready message */
+    int   kind;
+    int   flags;                  /* TRANSPORT_FLAG_* */
+    int   (*read)(Transport *t, void *buf, int len);        /* &gt;0 / 0=close / &lt;0=error */
+    int   (*write)(Transport *t, const void *buf, int len); /* &gt;0 / &lt;0=error */
+    void  (*close)(Transport *t);
+    Transport *(*accept)(Transport *t);                     /* NULL for point-to-point */
+    union { HANDLE handle; unsigned int sock; void *ptr; } io;
+};
+
+typedef struct {
+    int   kind;
+    const char *name;
+    int   (*probe)(void);                                              /* 1 if usable here */
+    int   (*open)(const TransportConfig *cfg, Transport *out,
+                  char *err, int errSize);
+} TransportBackend;
+
+int         ParseCommandLine(const char *cmdLine, TransportConfig *cfg);   /* moved from serial */
+int         TransportOpen(const TransportConfig *cfg, Transport *out,
+                          char *err, int errSize);  /* registry dispatch + fallback */
+int         TransportWriteAll(Transport *t, const void *buf, int len);     /* loops short writes */
+const char *TransportName(const Transport *t);
+int         TransportRegister(const TransportBackend *backend);            /* used by backends */
+
+/* serial.h — backend factory (config/parse now live in transport.h) */
+int  SerialBackendOpen(const TransportConfig *cfg, Transport *out, char *err, int errSize);
+/* existing BuildSerialDCB / BuildSerialTimeouts / OpenSerialPort / CloseSerialPort retained */
+
+/* tcp.h — Winsock 1.1 backend, runtime-probed */
+int  TcpBackendProbe(void);   /* 1 if wsock32 loads + WSAStartup(1,1) succeeds */
+int  TcpBackendOpen(const TransportConfig *cfg, Transport *out, char *err, int errSize);
+void TcpBackendCleanup(void); /* WSACleanup at process shutdown */
+unsigned short McpHtons(unsigned short x);   /* manual; no bswap */
+unsigned long  McpHtonl(unsigned long x);
+
+/* tests/mock_transport.h — in-memory backend */
+typedef struct {
+    Transport t;
+    const char *scriptIn;   /* bytes delivered by read(), then 0 (close) */
+    int  inPos, inLen;
+    char outBuf[MCP_MAX_RESPONSE];   /* bytes captured from write() */
+    int  outLen;
+    int  shortWrite;        /* if &gt;0, write() returns at most this many bytes/call */
+} MockTransport;
+void MockTransportInit(MockTransport *m, const char *scriptIn, int scriptLen);
+</code></pre>
+<h3 id="implementation-checklist-the-dangerous-parts"><a class="header" href="#implementation-checklist-the-dangerous-parts">Implementation checklist (the dangerous parts)</a></h3>
+<p><strong>Serial refactor (do first — pure restructure, behavior-preserving):</strong></p>
+<ol>
+<li>Move <code>TransportConfig</code>, <code>TRANSPORT_*</code>, <code>ParseCommandLine</code> into <code>transport.{c,h}</code>. <code>serial.h</code> includes <code>transport.h</code>. Update includes in <code>mcp-w32s.c</code>, <code>test_serial.c</code>.</li>
+<li>Wrap the existing serial open into <code>SerialBackendOpen</code>: fill <code>Transport</code> with <code>name="serial"</code>, <code>kind=TRANSPORT_SERIAL</code>, <code>flags=0</code>, <code>accept=NULL</code>, <code>read</code>/<code>write</code> = thin <code>ReadFile</code>/<code>WriteFile</code> wrappers over <code>io.handle</code>, <code>close</code> = <code>CloseSerialPort</code>.</li>
+<li>Register the serial backend at startup. Confirm the existing serial behavior is byte-identical (regression test).</li>
+</ol>
+<p><strong>Core dispatch retargeting:</strong>
+4. Change <code>ProcessBuffer</code>'s handler typedef and <code>ProcessCommand</code>/<code>SendReady</code>/<code>MainLoop</code>/new <code>Serve</code> from <code>HANDLE</code> to <code>Transport *</code>. Replace every <code>WriteFile(...)</code> with <code>TransportWriteAll(t, buf, len)</code>.
+5. Rewrite <code>main</code> to: <code>ParseCommandLine</code> → <code>TransportOpen</code> → accept loop (see below). Delete the "only serial supported" rejection.</p>
+<p><strong>Accept loop (transport- and lifecycle-agnostic):</strong></p>
+<pre><code class="language-c">if (!TransportOpen(&amp;cfg, &amp;listener, err, sizeof err)) { /* MessageBoxA(err); return 1; */ }
+for (;;) {
+    Transport *conn = listener.accept ? listener.accept(&amp;listener) : &amp;listener;
+    if (conn == NULL) break;                 /* accept error */
+    SendReady(conn);
+    Serve(conn);                             /* read → LineBuffer → ProcessCommand(line, conn) */
+    if (conn != &amp;listener) conn-&gt;close(conn);
+    if (!listener.accept) break;             /* serial: single peer, done */
+}
+listener.close(&amp;listener);
+TcpBackendCleanup();                          /* no-op unless TCP was used */
+</code></pre>
+<p><strong>TCP backend (<code>tcp.c</code>) — strict Winsock 1.1 ordering:</strong>
+6. Probe: <code>LoadLibraryA("wsock32.dll")</code>; <code>GetProcAddress</code> for <code>WSAStartup,WSACleanup,socket,bind,listen,accept,recv,send,closesocket,WSAGetLastError</code>; store in a fnptr table. Any NULL ⇒ probe fails (return 0).
+7. Open listener: <code>WSAStartup(MAKEWORD(1,1),&amp;wsa)</code>; verify <code>wsa.wVersion==0x0101</code>; <code>socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)</code>; fill <code>sockaddr_in</code> with <code>sin_family=AF_INET</code>, <code>sin_port=McpHtons(cfg-&gt;tcpPort)</code>, <code>sin_addr=INADDR_ANY</code>; <code>bind</code>; <code>listen(s,1)</code>. On any failure: <code>errMsg</code> via <code>WSAGetLastError</code>, <code>closesocket</code>, <code>WSACleanup</code>, return 0.
+8. <code>accept</code> method: blocking <code>accept(listener.io.sock,...)</code>; on <code>INVALID_SOCKET</code> return NULL; else fill a connection <code>Transport</code> (<code>name="tcp"</code>, <code>read</code>=<code>recv</code> wrapper, <code>write</code>=<code>send</code> wrapper, <code>close</code>=<code>closesocket</code>, <code>accept</code>=NULL).
+9. <code>read</code> wrapper: <code>n=recv(sock,buf,len,0)</code>; map <code>0</code>→0 (close), <code>SOCKET_ERROR</code>→-1, else <code>n</code>. <code>write</code> wrapper: <code>send(...)</code>; <code>SOCKET_ERROR</code>→-1.
+10. Cleanup: <code>closesocket</code> both sockets; <code>TcpBackendCleanup</code> calls <code>WSACleanup</code> once. Track init so double-cleanup is safe.</p>
+<p><strong><code>TransportWriteAll</code>:</strong> loop <code>t-&gt;write</code> over the buffer; sum bytes; return total or &lt;0 on hard error. Handles serial short writes and TCP <code>send</code> partials (T8).</p>
+<p><strong><code>TransportOpen</code>:</strong> look up backend by <code>cfg-&gt;transport</code> in the registry; if <code>autodetect</code>, try TCP <code>probe</code>+<code>open</code>, on failure fall back to the serial backend; write a clear <code>errMsg</code> if the explicitly-requested backend is unavailable.</p>
+<p><strong>Mock backend (<code>mock_transport.c</code>):</strong> <code>read</code> drains <code>scriptIn</code> then returns 0; <code>write</code> appends to <code>outBuf</code> (honoring <code>shortWrite</code> to exercise <code>TransportWriteAll</code>); <code>accept=NULL</code>; <code>close</code> is idempotent.</p>
+<h3 id="allium-lifecycle-mandatory"><a class="header" href="#allium-lifecycle-mandatory">Allium lifecycle (mandatory)</a></h3>
+<ol>
+<li><code>/allium:elicit</code> — settle the transport domain model (listener vs connection lifecycle, the message-vs-stream <code>flags</code> bit, fallback semantics). This also resolves the standing open question in <code>mcp-protocol.allium</code> ("Should the ready message include transport metadata?") — yes: the ready message names the active backend.</li>
+<li><code>/allium:tend</code> — write <code>specs/transport.allium</code>; update <code>mcp-protocol.allium</code>. <code>allium check</code> clean.</li>
+<li><code>/allium:propagate</code> — derive test obligations (table below is the floor).</li>
+<li>Implement.</li>
+<li><code>/allium:weed</code> — zero spec↔code drift before this work is marked done.</li>
+</ol>
+<p><code>specs/transport.allium</code> sketch (tend owns final form):</p>
+<pre><code>entity Transport {
+    name: String
+    kind: serial | tcp | mock
+    role: listener | connection | point_to_point
+    message_oriented: Boolean
+    status: opening | listening | connected | closed | error
+    transitions status {
+        opening   -&gt; listening      -- server backends (tcp)
+        opening   -&gt; connected      -- point-to-point (serial)
+        opening   -&gt; error
+        listening -&gt; connected      -- accept() returns a client
+        connected -&gt; closed         -- peer disconnect / orderly close
+        connected -&gt; listening      -- tcp: client gone, back to accept (single-client-sequential)
+        terminal: closed, error
+    }
+}
+rule SerialIsPointToPoint   { ... }   -- serial has no accept; role = point_to_point
+rule TcpListensThenAccepts  { ... }   -- tcp: listening -&gt; connected via accept
+rule UnavailableBackendFallsBack { ... } -- probe fail + auto-detect =&gt; serial
+rule ReadyOnConnect         { ... }   -- ready message emitted once per connection
+invariant ConnectionCanIO   { for t in Transports: t.status = connected implies t.name.size &gt; 0 }
+invariant ClosedIsTerminal  { ... }
+</code></pre>
+<h3 id="tests-floor-propagate-may-add"><a class="header" href="#tests-floor-propagate-may-add">Tests (floor; propagate may add)</a></h3>
+<p><code>tests/test_transport.c</code> (≥10): registry lookup by kind; <code>TransportOpen</code> selects serial by default; explicit unknown kind errors; <code>TransportWriteAll</code> loops on short writes (mock returns partial); mock read delivers scripted bytes then 0 (close); <code>accept == NULL</code> ⇒ one-shot loop exits; message-oriented flag routes around <code>LineBuffer</code>; serial backend <code>accept</code> is NULL; name surfaced correctly; double-close is safe.</p>
+<p><code>tests/test_tcp.c</code> (≥6, run natively on Windows against real Winsock — not skipped locally; self-skips with a printed reason only where Winsock is genuinely absent, e.g. CI/Wine): probe returns availability honestly; open listener binds a port; <code>accept</code> + <code>recv</code> round-trips a line over loopback (client = a second socket in the test); <code>send</code> delivers a response; orderly close returns 0 from <code>read</code>; <code>htons</code> matches a known value (e.g. <code>htons(8932)</code> byte pattern).</p>
+<p>Integration (extend <code>tests/test_serial.c</code>): full command → mock transport → assert exact response JSON bytes (now possible).</p>
+<h3 id="future-backends-design-intent-not-implemented-here"><a class="header" href="#future-backends-design-intent-not-implemented-here">Future backends (design intent, NOT implemented here)</a></h3>
+<p>The registry + vtable is the extension seam. A new backend implements <code>{probe, open}</code> and the connection vtable, then registers — the core is untouched.</p>
+<ul>
+<li><strong>UDP / HTTP-3 (QUIC):</strong> QUIC gives reliable, ordered byte streams → reuse the stream path and <code>LineBuffer</code> unchanged; only the backend differs. Modern-only ⇒ runtime-probed/feature-detected, never statically linked on the Win32s path.</li>
+<li><strong>Exotic message/RDMA (ibverbs-over-Thunderbolt class):</strong> set <code>flags</code> message-oriented bit; one message = one command, bypassing <code>LineBuffer</code>. These are uplift backends present only on capable hosts; the Win32s baseline always retains serial.</li>
+</ul>
+<h3 id="test-execution-environment-wsl2--windows-host"><a class="header" href="#test-execution-environment-wsl2--windows-host">Test execution environment (WSL2 + Windows host)</a></h3>
+<p>The dev host is <strong>WSL2 on Windows</strong>, so MinGW-built PEs run <strong>natively on the Windows host via WSL interop</strong> (<code>./test_tcp.exe</code> executes through real <code>kernel32</code>/<code>wsock32</code>, no Wine). This is the source of truth for local verification — <strong>Wine is a convenience/fallback, not a requirement.</strong> Consequence: <code>test_tcp</code> and the end-to-end TCP path are <strong>proven against real Winsock locally and must not be skipped</strong>; the <code>wsock32</code>-probe self-skip exists only for environments that genuinely lack Winsock (e.g. CI's Ubuntu+Wine if its Winsock is unusable). <code>build.sh test</code> should detect WSL2-with-interop and run the PEs natively, falling back to Wine only when no Windows host is reachable.</p>
+<h3 id="buildci-integration"><a class="header" href="#buildci-integration">Build/CI integration</a></h3>
+<ul>
+<li><code>CMakeLists.txt</code> (single source of truth; <code>build.sh</code>/<code>build.bat</code> wrap the mingw/vc6 presets): add <code>src/transport.c</code> + <code>src/tcp.c</code> to the main link; add <code>test_transport</code> and <code>test_tcp</code> targets (link <code>-lwsock32</code> for <code>test_tcp</code> only). Main does <strong>not</strong> statically import <code>wsock32</code> (runtime-probed) — so do <strong>not</strong> add <code>-lwsock32</code> to the main link.</li>
+<li><code>build.sh test</code>: prefer <strong>native Windows execution</strong> of the test PEs on WSL2 (run <code>tests/*.exe</code> directly via interop); use Wine only as a fallback. <code>host-pbt</code> (Phase 4) stays native Linux.</li>
+<li><code>.github/workflows/build-and-test.yml</code> (Ubuntu — no Windows host): runs <code>test_transport</code> + <code>test_tcp</code> under Wine; <code>test_tcp</code> self-skips with a printed reason only if Wine's Winsock is unusable. Existing FPU/486 grep auto-applies to <code>transport.o</code>/<code>tcp.o</code>. <strong>Import-table assertion:</strong> <code>objdump -p mcp-w32s.exe | grep -i 'wsock32\|ws2_32'</code> must be empty.</li>
+<li>Stack-frame watch: <code>sockaddr_in</code>/<code>WSADATA</code> are small, but keep them off oversized frames; if <code>__chkstk</code> appears in <code>tcp.o</code>, move buffers to <code>static</code>.</li>
+</ul>
+<h3 id="out-of-scope-for-phase-3-architectural-reasons"><a class="header" href="#out-of-scope-for-phase-3-architectural-reasons">Out of scope for Phase 3 (architectural reasons)</a></h3>
+<ul>
+<li><strong>Named pipes backend.</strong> Win95+ only, not Win32s; same vtable shape, deferred to Phase 5+ (cross-platform) where it adds value. The registry already reserves <code>TRANSPORT_PIPE</code>.</li>
+<li><strong>Multi-client / <code>select</code> concurrency.</strong> Conflicts with the single-threaded, single-exec model. Single-client-sequential is the deliberate design.</li>
+<li><strong>UDP / HTTP-3 / RDMA backends.</strong> Design seam is provided (registry + <code>flags</code>), but implementations are modern-host uplift work, not part of the Win32s baseline. Future phases.</li>
+<li><strong>TLS / authentication.</strong> No crypto libraries compile on the Win32s target; out of the project's threat model (trusted serial/LAN link).</li>
+</ul>
+<h3 id="verification-sub-agent-acceptance-criteria"><a class="header" href="#verification-sub-agent-acceptance-criteria">Verification (sub-agent acceptance criteria)</a></h3>
+<ol>
+<li><code>./build.sh test</code> clean (strict flags); <code>transport.o</code>/<code>tcp.o</code> FPU/486-free.</li>
+<li><code>objdump -p mcp-w32s.exe | grep -i 'wsock32\|ws2_32'</code> empty — binary still loads on bare Win32s; TCP is runtime-loaded.</li>
+<li><code>test_transport</code>, <code>test_tcp</code>, and refactored <code>test_serial</code> all pass <strong>run natively on the Windows host (WSL2 interop)</strong>; <code>test_tcp</code> is proven against real Winsock (not skipped). Wine is a fallback only.</li>
+<li>End-to-end serial path unchanged: existing behavior preserved (regression check).</li>
+<li>End-to-end TCP, run natively on the Windows host: start <code>mcp-w32s.exe /TCP:8932</code> as a Windows process; a Windows-side client (e.g. <code>powershell.exe</code> <code>System.Net.Sockets.TcpClient</code>, so both ends share Windows loopback) sends <code>{"cmd":"echo","id":"1","line":"hi"}\n</code> and receives the echo response; disconnect; the server then accepts a second client (sequential). The in-process loopback in <code>test_tcp.exe</code> is the primary automated proof.</li>
+<li><code>specs/transport.allium</code> <code>allium check</code> clean; <code>/allium:weed</code> reports zero drift; all six Allium skills exercised per the lifecycle above.</li>
+<li>Phase 4 exec/ready code, when written, uses <code>Transport *</code> — no <code>HANDLE</code>-typed I/O in the protocol core.</li>
+<li>Total tests: 87 + ≥10 (transport) + ≥6 (tcp) + mock-backed <code>test_serial</code> response-byte assertions = <strong>≥103 tests</strong>.</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../plan/PHASE2.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../plan/PHASE4.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../plan/PHASE2.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../plan/PHASE4.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,1369 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Agentic-MCP-Win32s</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="Agentic host: plans, phase audits, and process for the MCP-Win32s software under development">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="custom.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="CLAUDE.html">Agentic Host Guide</a></li><li class="chapter-item expanded "><a href="AGENTS.html"><strong aria-hidden="true">1.</strong> Agent Guide</a></li><li class="chapter-item expanded "><a href="MEMORY.html"><strong aria-hidden="true">2.</strong> Memory</a></li><li class="chapter-item expanded "><a href="plan/PLAN.html"><strong aria-hidden="true">3.</strong> Plan</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="plan/PHASE1.html"><strong aria-hidden="true">3.1.</strong> Phase 1: Foundation</a></li><li class="chapter-item expanded "><a href="plan/PHASE2.html"><strong aria-hidden="true">3.2.</strong> Phase 2: File Operations + Base64</a></li><li class="chapter-item expanded "><a href="plan/PHASE3.html"><strong aria-hidden="true">3.3.</strong> Phase 3: Network & Transport</a></li><li class="chapter-item expanded "><a href="plan/PHASE4.html"><strong aria-hidden="true">3.4.</strong> Phase 4: Command Execution</a></li><li class="chapter-item expanded "><a href="plan/PHASE5.html"><strong aria-hidden="true">3.5.</strong> Phase 5: MCP Integration</a></li><li class="chapter-item expanded "><a href="plan/PHASE6.html"><strong aria-hidden="true">3.6.</strong> Phase 6: Cross-Platform Testing</a></li><li class="chapter-item expanded "><a href="plan/PHASE7.html"><strong aria-hidden="true">3.7.</strong> Phase 7: Documentation & Polish</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Agentic-MCP-Win32s</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="agentic-mcp-win32s"><a class="header" href="#agentic-mcp-win32s">Agentic-MCP-Win32s</a></h1>
+<p>Agentic host repository. Agentic software-development assets (skills, plans, phase audits, harness config) live here; the software under development is vendored as git submodules.</p>
+<h2 id="layout"><a class="header" href="#layout">Layout</a></h2>
+<ul>
+<li><code>mcp-win32s/</code> — submodule: the software under development (MCP server for Win32s). Its own <code>CLAUDE.md</code> carries the project-specific constraints (C89, i386, Win32s API subset) and build instructions.</li>
+<li><code>andrej-karpathy-skills/</code> — submodule: behavioral guidelines and skills for agentic development.</li>
+<li><code>plan/</code> — committed, auditable phase plans. <code>plan/PLAN.md</code> is the index and defines the strict phase-file rules (sequential <code>PHASE&lt;N&gt;.md</code> naming, closed phases immutable).</li>
+<li><code>AGENTS.md</code> — agent guide for this host: where each concern's source of truth lives. The submodule's own docs (<code>mcp-win32s/CLAUDE.md</code>, and <code>mcp-win32s/vendor/theft/CLAUDE.md</code> for theft's internal idioms) are referenced, never duplicated.</li>
+<li><code>MEMORY.md</code> — append-only record of decisions, constraints, and lessons learned.</li>
+</ul>
+<h2 id="working-in-this-repository"><a class="header" href="#working-in-this-repository">Working in this repository</a></h2>
+<ul>
+<li>All planning artifacts (phase plans, status changes) are committed here, in the host repo — never inside the software submodule.</li>
+<li>Code changes happen inside <code>mcp-win32s/</code> on a branch, are merged via PR in that repo, and the submodule pointer is then bumped here in a separate commit.</li>
+<li>Follow the phase-file rules in <code>plan/PLAN.md</code> strictly: phases are append-only and closed phases are never revisited.</li>
+</ul>
+<h2 id="specification--test-workflow-allium--theft"><a class="header" href="#specification--test-workflow-allium--theft">Specification &amp; Test Workflow (Allium + theft)</a></h2>
+<p>Behaviour of the software under development is specified in <a href="https://juxt.github.io/allium/">Allium</a> (<code>mcp-win32s/specs/*.allium</code>, language version 3) <strong>before</strong> it is implemented. The Allium plugin (<code>allium@juxt-plugins</code>, enabled via <code>.claude/settings.json</code>) provides six skills. Every phase passes through this lifecycle:</p>
+<div class="table-wrapper"><table><thead><tr><th>Stage</th><th>Skill</th><th>When</th><th>Output</th></tr></thead><tbody>
+<tr><td>1. Discover</td><td><code>/allium:elicit</code></td><td>Phase planning — turn phase goals and open questions into draft entities/rules through structured Q&amp;A</td><td>Draft spec content</td></tr>
+<tr><td>2. Specify</td><td><code>/allium:tend</code></td><td>ALL spec writing and editing — new specs, refinements, syntax fixes, migrations. Never hand-edit <code>.allium</code> files outside tend</td><td>Valid <code>specs/*.allium</code> (<code>allium check</code> clean)</td></tr>
+<tr><td>3. Derive tests</td><td><code>/allium:propagate</code></td><td>Before implementation — generate the test obligations the specs imply</td><td>Obligation list: unit + property + state-machine tests</td></tr>
+<tr><td>4. Implement</td><td>(normal coding)</td><td>Code to the spec; every test traces to a propagated obligation</td><td><code>src/*.c</code> + <code>tests/*.c</code></td></tr>
+<tr><td>5. Audit</td><td><code>/allium:weed</code></td><td>Before marking a phase Complete — find spec↔code drift</td><td>Drift report; zero drift is the completion gate</td></tr>
+<tr><td>6. Backfill</td><td><code>/allium:distill</code></td><td>Whenever code exists without a spec — reverse-engineer one</td><td>New <code>specs/*.allium</code></td></tr>
+</tbody></table>
+</div>
+<p><code>/allium:allium</code> is the language reference for any syntax or semantics question.</p>
+<h3 id="merge-gate-non-negotiable"><a class="header" href="#merge-gate-non-negotiable">Merge gate (non-negotiable)</a></h3>
+<p><strong>Never merge a PR in the software submodule until the full Allium lifecycle has been run for the change.</strong> Concretely, before merging any branch:</p>
+<ol>
+<li><strong>Specs current (<code>/allium:tend</code>)</strong> — every behavioural change is reflected in <code>specs/*.allium</code>, <code>allium check</code> clean. Code without a spec is backfilled (<code>/allium:distill</code>).</li>
+<li><strong>Obligations propagated (<code>/allium:propagate</code>)</strong> — the spec's implied unit/property/state-machine tests exist and trace to the implementation.</li>
+<li><strong>Audit clean (<code>/allium:weed</code>)</strong> — a weed pass reports <strong>zero spec↔code drift</strong>. This is the gate; a non-zero drift report blocks the merge until resolved (fix code, fix spec, or record an explicit intentional gap).</li>
+</ol>
+<p>This applies to <em>every</em> PR, not just phase-completion PRs. CI green is necessary but <strong>not sufficient</strong> — the weed audit must also be clean. Running the lifecycle is part of preparing a PR for merge, the same way tests are.</p>
+<h2 id="guidelines"><a class="header" href="#guidelines">Guidelines</a></h2>
+<p>@andrej-karpathy-skills/CLAUDE.md</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="agentsmd--agentic-host-guide"><a class="header" href="#agentsmd--agentic-host-guide">AGENTS.md — Agentic host guide</a></h1>
+<p>This is the agentic host repository. The software under development lives in the <code>mcp-win32s/</code> submodule and is the <strong>single source of truth for everything about itself</strong> — do not duplicate its content here.</p>
+<h2 id="where-things-live"><a class="header" href="#where-things-live">Where things live</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Concern</th><th>Source of truth</th></tr></thead><tbody>
+<tr><td>Technical constraints (C89, i386, Win32s API subset), build commands, code conventions</td><td><code>mcp-win32s/CLAUDE.md</code></td></tr>
+<tr><td>Behavioural specs</td><td><code>mcp-win32s/specs/*.allium</code></td></tr>
+<tr><td>Vendored theft library internal idioms</td><td><code>mcp-win32s/vendor/theft/CLAUDE.md</code> (third-party; referenced, not duplicated)</td></tr>
+<tr><td>Phase plans, phase index, per-phase status</td><td><code>plan/PLAN.md</code> + <code>plan/PHASE&lt;N&gt;.md</code> (here)</td></tr>
+<tr><td>Agentic process: Allium lifecycle, merge gate, phase-file rules</td><td><code>CLAUDE.md</code> (here)</td></tr>
+<tr><td>Decisions and lessons learned</td><td><code>MEMORY.md</code> (here)</td></tr>
+</tbody></table>
+</div>
+<h2 id="how-agents-work-here"><a class="header" href="#how-agents-work-here">How agents work here</a></h2>
+<ol>
+<li>Read <code>CLAUDE.md</code> (here) for the process; read <code>mcp-win32s/CLAUDE.md</code> before touching any code.</li>
+<li>Plan in <code>plan/</code> (host commits, pushed immediately); code in <code>mcp-win32s/</code> on a branch, merged via PR in that repo behind the Allium merge gate; bump the submodule pointer here in a separate commit.</li>
+<li>Record non-obvious findings in <code>MEMORY.md</code> (here), in separate commits.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="memorymd--decisions-constraints-lessons-learned"><a class="header" href="#memorymd--decisions-constraints-lessons-learned">MEMORY.md — decisions, constraints, lessons learned</a></h1>
+<p>Append-only. Newer entries correct older ones by reference; never rewrite or delete.</p>
+<h2 id="2026-06-06--repo-separation"><a class="header" href="#2026-06-06--repo-separation">2026-06-06 — Repo separation</a></h2>
+<ul>
+<li>The original inline MCP-Win32s repo was split: agentic assets (plans, harness config, process docs) moved to this host repo; the software itself is vendored as the <code>mcp-win32s/</code> submodule. PLAN.md was split into <code>plan/PHASE1-7.md</code> with strict sequencing rules in <code>plan/PLAN.md</code>.</li>
+<li><strong>Submodule paths are lowercase</strong> (<code>mcp-win32s/</code>, <code>andrej-karpathy-skills/</code>). A WSL2 9p/drvfs bug poisoned the dentry for the mixed-case path <code>MCP-Win32s</code> after a rename-then-failed-clone sequence; the poison survived <code>drop_caches</code> and remounts. Lowercase paths sidestep the entire class of case-mismatch problems on /mnt/c — prefer them for all new top-level entries.</li>
+<li>The allium plugin is registered project-scope in <code>~/.claude/plugins/installed_plugins.json</code> keyed by <strong>absolute project path</strong> — moving/renaming the project directory silently orphans the plugin (<code>/reload-plugins</code> reports 0 plugins). <code>.claude/settings.json</code> here carries <code>extraKnownMarketplaces</code> + <code>enabledPlugins</code> so a fresh clone self-registers.</li>
+<li>Planning state must exist in exactly one place: <code>plan/PLAN.md</code> index here. The submodule's CLAUDE.md previously carried a duplicate phase-status table (removed in MCP-Win32s@91df55a) and host AGENTS.md was a stale copy of the submodule's constraints (rewritten as a source-of-truth map). Watch for this drift pattern when adding docs.</li>
+<li><code>mcp-win32s/specs/transport.allium</code> has 2 pre-existing parse errors at line 202: a stray <code>@</code> and an <code>invariant SerialHasNoOrderlyClose</code> with a comment but no body (truncated edit, committed). The merge gate ("allium check clean") was therefore not actually met at MCP-Win32s@28055d7. Fix must go through <code>/allium:tend</code> once the plugin session loads.</li>
+<li>Version drift found 2026-06-06: allium CLI 3.2.3 installed vs 3.2.4 on crates.io; allium plugin 3.1.5 cached vs 3.3.0 in the juxt-plugins marketplace (3.3.0 adds tend/weed agents). Update via <code>cargo install allium-cli</code> and <code>/plugin update allium@juxt-plugins</code>.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="implementation-plan-mcp-win32s"><a class="header" href="#implementation-plan-mcp-win32s">Implementation Plan: MCP-Win32s</a></h1>
+<p>Phase plans for the software under development (<code>mcp-win32s/</code> submodule). Each phase lives in its own <code>PHASE&lt;N&gt;.md</code> file in this directory.</p>
+<h2 id="phase-index"><a class="header" href="#phase-index">Phase Index</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Phase</th><th>File</th><th>Focus</th><th>Status</th></tr></thead><tbody>
+<tr><td>1</td><td><a href="plan/PHASE1.html">PHASE1.md</a></td><td>Foundation: test framework, JSON parser, serial init, main loop, CI</td><td><strong>Complete</strong></td></tr>
+<tr><td>2</td><td><a href="plan/PHASE2.html">PHASE2.md</a></td><td>File operations + base64 + PBT</td><td><strong>Complete</strong></td></tr>
+<tr><td>3</td><td><a href="plan/PHASE3.html">PHASE3.md</a></td><td>Network &amp; transport: vtable backends, serial refactor, TCP/Winsock</td><td><strong>Complete</strong></td></tr>
+<tr><td>4</td><td><a href="plan/PHASE4.html">PHASE4.md</a></td><td>Command execution + catalog + feature uplift + theft harness + spec backfill</td><td>Spec'd</td></tr>
+<tr><td>5</td><td><a href="plan/PHASE5.html">PHASE5.md</a></td><td>MCP integration</td><td>Not started</td></tr>
+<tr><td>6</td><td><a href="plan/PHASE6.html">PHASE6.md</a></td><td>Cross-platform testing</td><td>Not started</td></tr>
+<tr><td>7</td><td><a href="plan/PHASE7.html">PHASE7.md</a></td><td>Documentation &amp; polish</td><td>Not started</td></tr>
+</tbody></table>
+</div>
+<h2 id="phase-file-rules-strict"><a class="header" href="#phase-file-rules-strict">Phase File Rules (strict)</a></h2>
+<ol>
+<li><strong>Sequential naming.</strong> Phase files are named <code>PHASE&lt;N&gt;.md</code> with <code>N</code> a positive integer, no gaps, no zero-padding. A new phase MUST be <code>PHASE&lt;max+1&gt;.md</code> — never insert, renumber, or reuse a number.</li>
+<li><strong>Closed phases are immutable.</strong> Once a phase is marked <strong>Complete</strong> in its file and in the index above, its <code>PHASE&lt;N&gt;.md</code> MUST NOT be edited again — no rewording, no retroactive scope changes, no status flips. The git history of each phase file is the audit trail.</li>
+<li><strong>Corrections go forward.</strong> If a completed phase turns out to be wrong or incomplete, do not reopen it. Record the correction as scope in the next (or a new) phase file, referencing the closed phase.</li>
+<li><strong>One status transition path.</strong> <code>Not started → Spec'd → In progress → Complete</code>. Status changes are recorded in both the phase file heading and the index table, in the same commit.</li>
+<li><strong>Completion gate.</strong> A phase may only be marked Complete after the Allium lifecycle gate passes (specs tended, obligations propagated, weed audit clean) in the <code>mcp-win32s/</code> submodule.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="phase-1-foundation--complete"><a class="header" href="#phase-1-foundation--complete">Phase 1: Foundation — <strong>Complete</strong></a></h1>
+<ul>
+<li>Test framework, JSON parser, serial init, main loop, CI</li>
+<li>59 tests passing</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="phase-2-file-operations--base64--complete"><a class="header" href="#phase-2-file-operations--base64--complete">Phase 2: File Operations + Base64 — <strong>Complete</strong></a></h1>
+<ul>
+<li><code>src/base64.c/.h</code> — base64 encode/decode (integer-only)</li>
+<li><code>src/file_ops.c/.h</code> — file read/write/list/delete (ANSI APIs)</li>
+<li><code>src/mcp-w32s.c</code> — dispatch: echo, read, write, list, delete, exec (stub)</li>
+<li><code>tests/test_base64.c</code> — 14 tests</li>
+<li><code>tests/test_file_ops.c</code> — 10 tests</li>
+<li><code>tests/prop.h</code> — C89 property-based testing framework</li>
+<li><code>tests/test_pbt_base64.c</code> — 4 PBT (4000 trials)</li>
+<li><code>specs/mcp-protocol.allium</code> / <code>specs/file-ops.allium</code> — Allium specs</li>
+<li>87 tests passing, all builds clean, binary FPU/486-free</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="phase-3-network--transport-serial--tcpwinsock--complete"><a class="header" href="#phase-3-network--transport-serial--tcpwinsock--complete">Phase 3: Network &amp; Transport (serial + TCP/Winsock) — <strong>Complete</strong></a></h1>
+<p><strong>Goal.</strong> Make the network a first-class peer of the serial port. Replace the <code>HANDLE</code>-hardwired protocol I/O with a transport-agnostic byte-pipe interface backed by pluggable, runtime-registered backends; refactor serial onto it; add a TCP backend over Winsock 1.1; add a mock backend that makes response bytes assertable in tests. The same seam admits future backends — UDP / HTTP-3 (QUIC), then exotic message/RDMA transports (e.g. ibverbs-over-Thunderbolt) — without touching the protocol core. Phase 3 is fully self-contained: abstraction + registry + serial refactor + TCP backend + runtime detection + mock backend + specs + tests + CI, all in scope here.</p>
+<p><strong>Why this is its own phase, ahead of command execution.</strong> Today the protocol I/O is hard-wired to a Win32 <code>HANDLE</code>: <code>MainLoop</code>, <code>SendReady</code>, <code>ProcessCommand</code>, and <code>ProcessBuffer</code>'s handler all call <code>ReadFile</code>/<code>WriteFile</code> directly (<code>src/mcp-w32s.c:84,197,213</code>; handler typedef at <code>:51</code>). That works for serial because a COM port <em>is</em> a file handle — but a Winsock <code>SOCKET</code> is <strong>not</strong> a Win32 file handle on Win32s/Win9x, so <code>ReadFile</code>/<code>WriteFile</code> cannot drive it (README §449 says exactly this). Phase 4 (command execution) emits the ready message and exec stdout/stderr over the transport, so this abstraction must exist first — otherwise exec ships serial-only and is rewritten later.</p>
+<h3 id="pre-decisions-non-negotiable"><a class="header" href="#pre-decisions-non-negotiable">Pre-decisions (non-negotiable)</a></h3>
+<ol>
+<li><strong>vtable interface, not tagged dispatch.</strong> A backend is a struct of function pointers; the core knows only the interface. This is what makes the layer agnostic and future-proof.</li>
+<li><strong>Network backends are runtime-probed (<code>LoadLibraryA</code>/<code>GetProcAddress</code>), never statically imported.</strong> <code>wsock32.dll</code> is absent on bare Win32s; a static import would stop the binary loading there. Same philosophy as Phase 4's <code>feat.c</code>.</li>
+<li><strong>TCP server is single-client-sequential.</strong> <code>listen(s, 1)</code> → <code>accept</code> one client → serve until disconnect → accept the next. Matches the single-threaded, one-exec-at-a-time model. Blocking sockets; no <code>select</code> loop.</li>
+<li><strong>Framing stays above the transport.</strong> Newline-JSON (<code>LineBuffer</code>) lives in the core; any reliable ordered byte backend works unchanged. A message-oriented backend sets a <code>flags</code> bit to bypass <code>LineBuffer</code>.</li>
+<li><strong>Transport config moves to the transport module.</strong> <code>TransportConfig</code>, <code>TRANSPORT_*</code>, and <code>ParseCommandLine</code> move from <code>serial.{c,h}</code> to <code>transport.{c,h}</code> — they are transport-level, not serial-level.</li>
+<li><strong>Serial is the always-available baseline + auto-detect fallback.</strong> Explicit <code>/SERIAL</code>/<code>/TCP</code> are honored exactly; default (no flag) stays serial COM1 (preserves current behavior + tests). Auto-detect, if requested, probes TCP then falls back to serial (README chain: TCP &gt; serial).</li>
+<li><strong><code>htons</code>/<code>htonl</code> implemented by hand</strong> (<code>((x&amp;0xff)&lt;&lt;8)|((x&gt;&gt;8)&amp;0xff)</code>) — avoids importing the symbols and avoids the banned <code>bswap</code> (486+) instruction. Integer-only, i386-safe.</li>
+<li><strong>The mock backend is the test seam.</strong> Response-byte assertions (impossible today) become possible; unit tests never open a real port or socket.</li>
+</ol>
+<h3 id="critical-winsock-11--win32s-quirks-to-design-around"><a class="header" href="#critical-winsock-11--win32s-quirks-to-design-around">Critical Winsock 1.1 / Win32s quirks to design around</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>#</th><th>Quirk</th><th>Mitigation</th></tr></thead><tbody>
+<tr><td>T1</td><td>A <code>SOCKET</code> is <strong>not</strong> a Win32 file handle on Win32s/Win9x</td><td>TCP backend uses <code>recv</code>/<code>send</code>, never <code>ReadFile</code>/<code>WriteFile</code>; the vtable hides the difference</td></tr>
+<tr><td>T2</td><td><code>wsock32.dll</code> absent on bare Win32s (needs TCP/IP-32 add-on on WfW 3.11)</td><td><code>LoadLibraryA("wsock32.dll")</code> + <code>GetProcAddress</code>; probe fail ⇒ backend unavailable, fall back to serial</td></tr>
+<tr><td>T3</td><td>Winsock must be initialized/negotiated</td><td><code>WSAStartup(MAKEWORD(1,1), &amp;wsaData)</code>; verify <code>wsaData.wVersion == 0x0101</code>; one <code>WSACleanup</code> at shutdown</td></tr>
+<tr><td>T4</td><td><code>SOCKET</code> is <code>unsigned int</code>; failure sentinel differs</td><td>Check <code>== INVALID_SOCKET</code> (not <code>INVALID_HANDLE_VALUE</code>); API errors are <code>SOCKET_ERROR</code> (-1)</td></tr>
+<tr><td>T5</td><td>Socket teardown differs from handles</td><td><code>closesocket()</code> per socket (not <code>CloseHandle</code>); pair the single <code>WSAStartup</code> with one <code>WSACleanup</code></td></tr>
+<tr><td>T6</td><td>Network byte order needed for <code>bind</code>/port</td><td>Manual <code>htons</code>/<code>htonl</code> (shift, not <code>bswap</code> — 486+ banned)</td></tr>
+<tr><td>T7</td><td><code>recv</code> returns 0 on orderly close, &lt;0 on error</td><td>Treat 0 as peer-closed (advance accept loop); &lt;0 → check <code>WSAGetLastError</code>, close conn</td></tr>
+<tr><td>T8</td><td><code>send</code> may move fewer bytes than requested</td><td><code>TransportWriteAll</code> loops until all bytes sent or hard error</td></tr>
+<tr><td>T9</td><td>Socket errors don't use <code>GetLastError</code></td><td>Use <code>WSAGetLastError()</code> for socket diagnostics in <code>errMsg</code></td></tr>
+<tr><td>T10</td><td><strong>Winsock 1.1 only</strong> — no <code>ws2_32</code></td><td>Resolve from <code>wsock32.dll</code>; never link/<code>LoadLibrary</code> <code>ws2_32</code></td></tr>
+<tr><td>T11</td><td>Win32s has a low socket-handle ceiling and shared address space</td><td><code>closesocket</code> promptly on disconnect; one listener + one conn at a time</td></tr>
+<tr><td>T12</td><td><code>accept</code> blocks the single thread</td><td>Acceptable by design (single-client-sequential); no concurrent work expected while idle</td></tr>
+</tbody></table>
+</div>
+<p>Sources to cite in code comments: README §447–453 (Win32s socket vs handle, no ws2_32), §1147–1199 (Winsock 1.1 TCP design + runtime detection), MS Docs <em>Winsock 1.1 reference</em> (<code>WSAStartup</code>, <code>recv</code>, <code>send</code>).</p>
+<h3 id="design-vtable-interface--backend-registry"><a class="header" href="#design-vtable-interface--backend-registry">Design: vtable interface + backend registry</a></h3>
+<p>A backend is a small struct of function pointers (C89 indirect calls — fine on i386; Phase 4's <code>feat.c</code> uses the same pattern). The protocol core knows only the interface.</p>
+<pre><code class="language-c">/* transport.h */
+typedef struct Transport Transport;
+
+struct Transport {
+    const char *name;     /* "serial" | "tcp" | "mock" | ... — surfaced in ready message */
+    int kind;             /* TRANSPORT_SERIAL | TRANSPORT_TCP | ... */
+    int flags;            /* bit0: message-oriented (bypass LineBuffer); else byte-stream */
+
+    /* Connection vtable. Return: &gt;0 bytes moved, 0 = orderly peer close, &lt;0 = error. */
+    int  (*read)(Transport *t, void *buf, int len);
+    int  (*write)(Transport *t, const void *buf, int len);
+    void (*close)(Transport *t);
+
+    /* Server lifecycle. NULL for point-to-point backends (serial).
+     * For listeners (tcp): blocks for a client, returns a *connection* Transport
+     * (may be `t` itself reused, or a distinct conn). NULL `accept` =&gt; one-shot peer. */
+    Transport *(*accept)(Transport *t);
+
+    union { HANDLE handle; unsigned int sock; void *ptr; } io;  /* backend-private */
+};
+
+/* Backend registry — enables agnostic auto-detect + future backends */
+typedef struct {
+    int kind;
+    const char *name;
+    int  (*probe)(void);                                   /* 1 if usable on this host */
+    int  (*open)(const TransportConfig *cfg, Transport *out, char *err, int errSize);
+} TransportBackend;
+
+int  TransportOpen(const TransportConfig *cfg, Transport *out, char *err, int errSize);
+int  TransportWriteAll(Transport *t, const void *buf, int len);   /* loops on short writes */
+const char *TransportName(const Transport *t);
+</code></pre>
+<p><strong>Framing stays above the transport.</strong> Newline-delimited JSON (<code>LineBuffer</code>) sits in the core and is fed by whatever bytes a backend's <code>read</code> delivers. Reliable, ordered byte transports (serial, TCP, and later QUIC/RDMA) need no change. A genuinely message-oriented exotic backend sets <code>flags</code> bit0 so the core treats one message = one command and skips <code>LineBuffer</code>. This is the only concession the core makes to non-stream transports — everything else is the backend's problem (reliability, ordering, MTU).</p>
+<p><strong>The main loop becomes transport- and lifecycle-agnostic:</strong></p>
+<pre><code class="language-c">TransportOpen(&amp;cfg, &amp;listener, err, sizeof err);
+for (;;) {
+    Transport *conn = listener.accept ? listener.accept(&amp;listener) : &amp;listener;
+    SendReady(conn);
+    Serve(conn);                       /* read → LineBuffer → ProcessCommand(line, conn) */
+    if (conn != &amp;listener) conn-&gt;close(conn);
+    if (!listener.accept) break;       /* serial: one peer, done */
+    /* tcp: loop back to accept the next client (single-client-sequential) */
+}
+listener.close(&amp;listener);
+</code></pre>
+<h3 id="backends-in-scope-here"><a class="header" href="#backends-in-scope-here">Backends in scope here</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Backend</th><th>File</th><th>Mechanism</th><th>Availability</th></tr></thead><tbody>
+<tr><td>serial</td><td><code>src/serial.c</code> (refactor)</td><td>wraps existing <code>OpenSerialPort</code> + <code>ReadFile</code>/<code>WriteFile</code>; <code>accept = NULL</code></td><td>All Win32</td></tr>
+<tr><td>tcp</td><td><code>src/tcp.c</code> (new)</td><td>Winsock 1.1 <code>socket</code>/<code>bind</code>/<code>listen</code>/<code>accept</code>/<code>recv</code>/<code>send</code>/<code>closesocket</code>; <code>recv</code>/<code>send</code> (NOT ReadFile)</td><td>WfW 3.11 + TCP/IP-32, Win95+</td></tr>
+<tr><td>mock</td><td><code>tests/mock_transport.c</code> (new)</td><td>in-memory buffers; captures written bytes, feeds scripted input</td><td>Test-only</td></tr>
+</tbody></table>
+</div>
+<p>The <strong>mock backend is a testability win</strong>: today <code>ProcessCommand</code> tests pass <code>INVALID_HANDLE_VALUE</code> and cannot assert response bytes (<code>tests/test_serial.c:330</code>). With a mock transport, tests assert the exact JSON written.</p>
+<h3 id="tcp-backend-srctcpc--winsock-11-runtime-probed"><a class="header" href="#tcp-backend-srctcpc--winsock-11-runtime-probed">TCP backend (<code>src/tcp.c</code>) — Winsock 1.1, runtime-probed</a></h3>
+<p><code>wsock32.dll</code> is absent on bare Win32s without TCP/IP-32, so a <strong>static import would prevent the binary from loading there</strong>. Per README §1191, the TCP backend <code>LoadLibraryA("wsock32.dll")</code> + <code>GetProcAddress</code> for every entry point and stores them in a function-pointer table (same philosophy as <code>feat.c</code>). Probe fails ⇒ backend unavailable ⇒ explicit <code>/TCP</code> errors cleanly, auto-detect falls back to serial.</p>
+<ul>
+<li><code>WSAStartup(MAKEWORD(1,1), &amp;wsaData)</code>; verify <code>wsaData.wVersion</code>.</li>
+<li><code>socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)</code> → <code>SOCKET</code> (<code>unsigned int</code>, <code>INVALID_SOCKET</code> on failure — <strong>not</strong> <code>INVALID_HANDLE_VALUE</code>).</li>
+<li><code>bind</code> to <code>INADDR_ANY:htons(port)</code>; <code>listen(s, 1)</code> (backlog 1 — single client).</li>
+<li><code>accept</code> blocks; returns the client <code>SOCKET</code> wrapped in a connection <code>Transport</code>.</li>
+<li><code>recv(conn, buf, len, 0)</code>: <code>&gt;0</code> data, <code>0</code> orderly close, <code>SOCKET_ERROR</code> (&lt;0) error. <code>send</code> likewise.</li>
+<li><code>closesocket</code> per socket; <code>WSACleanup</code> at process shutdown.</li>
+<li><strong><code>htons</code>/<code>htonl</code> implemented manually</strong> (<code>((x&amp;0xff)&lt;&lt;8)|((x&gt;&gt;8)&amp;0xff)</code>) — avoids pulling the symbols <em>and</em> avoids the banned <code>bswap</code> instruction. Integer-only, i386-safe.</li>
+<li>Blocking sockets only (no <code>select</code> loop needed for one client; single-threaded honored).</li>
+</ul>
+<h3 id="files"><a class="header" href="#files">Files</a></h3>
+<p><strong>Create:</strong> <code>src/transport.{c,h}</code> (interface + registry + <code>TransportOpen</code>/<code>TransportWriteAll</code>), <code>src/tcp.{c,h}</code> (TCP backend + Winsock fnptr table), <code>tests/mock_transport.{c,h}</code>, <code>tests/test_transport.c</code> (≥10), <code>tests/test_tcp.c</code> (≥6, in-process loopback; proven natively on the Windows host against real Winsock), <code>specs/transport.allium</code>.</p>
+<p><strong>Modify:</strong></p>
+<ul>
+<li><code>src/serial.{c,h}</code> — keep <code>BuildSerialDCB</code>/<code>BuildSerialTimeouts</code>/<code>OpenSerialPort</code>; add <code>SerialBackendOpen</code> producing a serial <code>Transport</code>. <strong>Move</strong> <code>TransportConfig</code>, <code>TRANSPORT_*</code>, and <code>ParseCommandLine</code> out to <code>transport.{c,h}</code> (they are transport-level, not serial-level); <code>serial.h</code> includes <code>transport.h</code>.</li>
+<li><code>src/mcp-w32s.c</code> — <code>MainLoop</code>/<code>SendReady</code>/<code>Serve</code>/<code>ProcessCommand</code>/<code>ProcessBuffer</code> handler take <code>Transport *</code> instead of <code>HANDLE</code>; writes go through <code>TransportWriteAll</code>. <code>main</code> calls <code>TransportOpen</code>, runs the accept loop, drops the "only serial supported" rejection.</li>
+<li><code>tests/test_serial.c</code> — update handler signature to <code>Transport *</code>; switch the <code>ProcessCommand</code> stub tests to the mock backend and assert real response bytes; fix <code>ParseCommandLine</code> include path.</li>
+<li><code>CMakeLists.txt</code> (the single source of truth; <code>build.sh</code>/<code>build.bat</code> are thin wrappers around the mingw/vc6 presets) — add <code>transport.c</code>, <code>tcp.c</code> to the link; add <code>test_transport</code>, <code>test_tcp</code> targets (link <code>-lwsock32</code> for the tcp test only). Link main with <code>-lwsock32</code> <strong>only if</strong> static-link is chosen; default is runtime-probe, so main does <strong>not</strong> statically import wsock32 (CI assertion below).</li>
+<li><code>.github/workflows/build-and-test.yml</code> — run <code>test_transport</code>, <code>test_tcp</code> (CI is Ubuntu+Wine; local dev runs the PEs natively on the Windows host via WSL2 interop — Wine is a convenience, not the source of truth). <strong>Import-table assertion:</strong> <code>objdump -p mcp-w32s.exe | grep -i wsock32</code> must be empty (TCP is runtime-loaded, so the binary still loads on bare Win32s). FPU/486 grep auto-applies to <code>transport.o</code>/<code>tcp.o</code>.</li>
+<li><code>README.md</code> — replace the "TCP is Phase 3+ / not yet implemented" notes (§1161, §1191–1194) with the implemented design; document the vtable interface and the backend-registry extension point for future UDP/QUIC/RDMA backends.</li>
+<li><code>specs/mcp-protocol.allium</code> — tend the existing <code>entity Transport { ready: Boolean }</code> and <code>surface SerialPort</code> into a backend-agnostic model (see below).</li>
+</ul>
+<h3 id="public-apis"><a class="header" href="#public-apis">Public APIs</a></h3>
+<pre><code class="language-c">/* transport.h — interface, registry, config (moved here from serial.h) */
+
+#define TRANSPORT_NONE   0
+#define TRANSPORT_SERIAL 1
+#define TRANSPORT_TCP    2
+#define TRANSPORT_PIPE   3        /* reserved — Phase 5+ */
+#define TRANSPORT_MOCK   99       /* test-only */
+
+#define TRANSPORT_FLAG_MESSAGE 0x01   /* one message = one command; bypass LineBuffer */
+
+typedef struct {
+    int   transport;              /* TRANSPORT_SERIAL | TRANSPORT_TCP | ... */
+    char  port[32];               /* "COM1" ... (serial) */
+    DWORD baudRate;               /* serial */
+    int   tcpPort;                /* TCP listen port */
+    char  pipeName[260];          /* reserved */
+    int   autodetect;             /* 1 = probe TCP then fall back to serial */
+} TransportConfig;
+
+typedef struct Transport Transport;
+struct Transport {
+    const char *name;             /* "serial" | "tcp" | "mock" — surfaced in ready message */
+    int   kind;
+    int   flags;                  /* TRANSPORT_FLAG_* */
+    int   (*read)(Transport *t, void *buf, int len);        /* &gt;0 / 0=close / &lt;0=error */
+    int   (*write)(Transport *t, const void *buf, int len); /* &gt;0 / &lt;0=error */
+    void  (*close)(Transport *t);
+    Transport *(*accept)(Transport *t);                     /* NULL for point-to-point */
+    union { HANDLE handle; unsigned int sock; void *ptr; } io;
+};
+
+typedef struct {
+    int   kind;
+    const char *name;
+    int   (*probe)(void);                                              /* 1 if usable here */
+    int   (*open)(const TransportConfig *cfg, Transport *out,
+                  char *err, int errSize);
+} TransportBackend;
+
+int         ParseCommandLine(const char *cmdLine, TransportConfig *cfg);   /* moved from serial */
+int         TransportOpen(const TransportConfig *cfg, Transport *out,
+                          char *err, int errSize);  /* registry dispatch + fallback */
+int         TransportWriteAll(Transport *t, const void *buf, int len);     /* loops short writes */
+const char *TransportName(const Transport *t);
+int         TransportRegister(const TransportBackend *backend);            /* used by backends */
+
+/* serial.h — backend factory (config/parse now live in transport.h) */
+int  SerialBackendOpen(const TransportConfig *cfg, Transport *out, char *err, int errSize);
+/* existing BuildSerialDCB / BuildSerialTimeouts / OpenSerialPort / CloseSerialPort retained */
+
+/* tcp.h — Winsock 1.1 backend, runtime-probed */
+int  TcpBackendProbe(void);   /* 1 if wsock32 loads + WSAStartup(1,1) succeeds */
+int  TcpBackendOpen(const TransportConfig *cfg, Transport *out, char *err, int errSize);
+void TcpBackendCleanup(void); /* WSACleanup at process shutdown */
+unsigned short McpHtons(unsigned short x);   /* manual; no bswap */
+unsigned long  McpHtonl(unsigned long x);
+
+/* tests/mock_transport.h — in-memory backend */
+typedef struct {
+    Transport t;
+    const char *scriptIn;   /* bytes delivered by read(), then 0 (close) */
+    int  inPos, inLen;
+    char outBuf[MCP_MAX_RESPONSE];   /* bytes captured from write() */
+    int  outLen;
+    int  shortWrite;        /* if &gt;0, write() returns at most this many bytes/call */
+} MockTransport;
+void MockTransportInit(MockTransport *m, const char *scriptIn, int scriptLen);
+</code></pre>
+<h3 id="implementation-checklist-the-dangerous-parts"><a class="header" href="#implementation-checklist-the-dangerous-parts">Implementation checklist (the dangerous parts)</a></h3>
+<p><strong>Serial refactor (do first — pure restructure, behavior-preserving):</strong></p>
+<ol>
+<li>Move <code>TransportConfig</code>, <code>TRANSPORT_*</code>, <code>ParseCommandLine</code> into <code>transport.{c,h}</code>. <code>serial.h</code> includes <code>transport.h</code>. Update includes in <code>mcp-w32s.c</code>, <code>test_serial.c</code>.</li>
+<li>Wrap the existing serial open into <code>SerialBackendOpen</code>: fill <code>Transport</code> with <code>name="serial"</code>, <code>kind=TRANSPORT_SERIAL</code>, <code>flags=0</code>, <code>accept=NULL</code>, <code>read</code>/<code>write</code> = thin <code>ReadFile</code>/<code>WriteFile</code> wrappers over <code>io.handle</code>, <code>close</code> = <code>CloseSerialPort</code>.</li>
+<li>Register the serial backend at startup. Confirm the existing serial behavior is byte-identical (regression test).</li>
+</ol>
+<p><strong>Core dispatch retargeting:</strong>
+4. Change <code>ProcessBuffer</code>'s handler typedef and <code>ProcessCommand</code>/<code>SendReady</code>/<code>MainLoop</code>/new <code>Serve</code> from <code>HANDLE</code> to <code>Transport *</code>. Replace every <code>WriteFile(...)</code> with <code>TransportWriteAll(t, buf, len)</code>.
+5. Rewrite <code>main</code> to: <code>ParseCommandLine</code> → <code>TransportOpen</code> → accept loop (see below). Delete the "only serial supported" rejection.</p>
+<p><strong>Accept loop (transport- and lifecycle-agnostic):</strong></p>
+<pre><code class="language-c">if (!TransportOpen(&amp;cfg, &amp;listener, err, sizeof err)) { /* MessageBoxA(err); return 1; */ }
+for (;;) {
+    Transport *conn = listener.accept ? listener.accept(&amp;listener) : &amp;listener;
+    if (conn == NULL) break;                 /* accept error */
+    SendReady(conn);
+    Serve(conn);                             /* read → LineBuffer → ProcessCommand(line, conn) */
+    if (conn != &amp;listener) conn-&gt;close(conn);
+    if (!listener.accept) break;             /* serial: single peer, done */
+}
+listener.close(&amp;listener);
+TcpBackendCleanup();                          /* no-op unless TCP was used */
+</code></pre>
+<p><strong>TCP backend (<code>tcp.c</code>) — strict Winsock 1.1 ordering:</strong>
+6. Probe: <code>LoadLibraryA("wsock32.dll")</code>; <code>GetProcAddress</code> for <code>WSAStartup,WSACleanup,socket,bind,listen,accept,recv,send,closesocket,WSAGetLastError</code>; store in a fnptr table. Any NULL ⇒ probe fails (return 0).
+7. Open listener: <code>WSAStartup(MAKEWORD(1,1),&amp;wsa)</code>; verify <code>wsa.wVersion==0x0101</code>; <code>socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)</code>; fill <code>sockaddr_in</code> with <code>sin_family=AF_INET</code>, <code>sin_port=McpHtons(cfg-&gt;tcpPort)</code>, <code>sin_addr=INADDR_ANY</code>; <code>bind</code>; <code>listen(s,1)</code>. On any failure: <code>errMsg</code> via <code>WSAGetLastError</code>, <code>closesocket</code>, <code>WSACleanup</code>, return 0.
+8. <code>accept</code> method: blocking <code>accept(listener.io.sock,...)</code>; on <code>INVALID_SOCKET</code> return NULL; else fill a connection <code>Transport</code> (<code>name="tcp"</code>, <code>read</code>=<code>recv</code> wrapper, <code>write</code>=<code>send</code> wrapper, <code>close</code>=<code>closesocket</code>, <code>accept</code>=NULL).
+9. <code>read</code> wrapper: <code>n=recv(sock,buf,len,0)</code>; map <code>0</code>→0 (close), <code>SOCKET_ERROR</code>→-1, else <code>n</code>. <code>write</code> wrapper: <code>send(...)</code>; <code>SOCKET_ERROR</code>→-1.
+10. Cleanup: <code>closesocket</code> both sockets; <code>TcpBackendCleanup</code> calls <code>WSACleanup</code> once. Track init so double-cleanup is safe.</p>
+<p><strong><code>TransportWriteAll</code>:</strong> loop <code>t-&gt;write</code> over the buffer; sum bytes; return total or &lt;0 on hard error. Handles serial short writes and TCP <code>send</code> partials (T8).</p>
+<p><strong><code>TransportOpen</code>:</strong> look up backend by <code>cfg-&gt;transport</code> in the registry; if <code>autodetect</code>, try TCP <code>probe</code>+<code>open</code>, on failure fall back to the serial backend; write a clear <code>errMsg</code> if the explicitly-requested backend is unavailable.</p>
+<p><strong>Mock backend (<code>mock_transport.c</code>):</strong> <code>read</code> drains <code>scriptIn</code> then returns 0; <code>write</code> appends to <code>outBuf</code> (honoring <code>shortWrite</code> to exercise <code>TransportWriteAll</code>); <code>accept=NULL</code>; <code>close</code> is idempotent.</p>
+<h3 id="allium-lifecycle-mandatory"><a class="header" href="#allium-lifecycle-mandatory">Allium lifecycle (mandatory)</a></h3>
+<ol>
+<li><code>/allium:elicit</code> — settle the transport domain model (listener vs connection lifecycle, the message-vs-stream <code>flags</code> bit, fallback semantics). This also resolves the standing open question in <code>mcp-protocol.allium</code> ("Should the ready message include transport metadata?") — yes: the ready message names the active backend.</li>
+<li><code>/allium:tend</code> — write <code>specs/transport.allium</code>; update <code>mcp-protocol.allium</code>. <code>allium check</code> clean.</li>
+<li><code>/allium:propagate</code> — derive test obligations (table below is the floor).</li>
+<li>Implement.</li>
+<li><code>/allium:weed</code> — zero spec↔code drift before this work is marked done.</li>
+</ol>
+<p><code>specs/transport.allium</code> sketch (tend owns final form):</p>
+<pre><code>entity Transport {
+    name: String
+    kind: serial | tcp | mock
+    role: listener | connection | point_to_point
+    message_oriented: Boolean
+    status: opening | listening | connected | closed | error
+    transitions status {
+        opening   -&gt; listening      -- server backends (tcp)
+        opening   -&gt; connected      -- point-to-point (serial)
+        opening   -&gt; error
+        listening -&gt; connected      -- accept() returns a client
+        connected -&gt; closed         -- peer disconnect / orderly close
+        connected -&gt; listening      -- tcp: client gone, back to accept (single-client-sequential)
+        terminal: closed, error
+    }
+}
+rule SerialIsPointToPoint   { ... }   -- serial has no accept; role = point_to_point
+rule TcpListensThenAccepts  { ... }   -- tcp: listening -&gt; connected via accept
+rule UnavailableBackendFallsBack { ... } -- probe fail + auto-detect =&gt; serial
+rule ReadyOnConnect         { ... }   -- ready message emitted once per connection
+invariant ConnectionCanIO   { for t in Transports: t.status = connected implies t.name.size &gt; 0 }
+invariant ClosedIsTerminal  { ... }
+</code></pre>
+<h3 id="tests-floor-propagate-may-add"><a class="header" href="#tests-floor-propagate-may-add">Tests (floor; propagate may add)</a></h3>
+<p><code>tests/test_transport.c</code> (≥10): registry lookup by kind; <code>TransportOpen</code> selects serial by default; explicit unknown kind errors; <code>TransportWriteAll</code> loops on short writes (mock returns partial); mock read delivers scripted bytes then 0 (close); <code>accept == NULL</code> ⇒ one-shot loop exits; message-oriented flag routes around <code>LineBuffer</code>; serial backend <code>accept</code> is NULL; name surfaced correctly; double-close is safe.</p>
+<p><code>tests/test_tcp.c</code> (≥6, run natively on Windows against real Winsock — not skipped locally; self-skips with a printed reason only where Winsock is genuinely absent, e.g. CI/Wine): probe returns availability honestly; open listener binds a port; <code>accept</code> + <code>recv</code> round-trips a line over loopback (client = a second socket in the test); <code>send</code> delivers a response; orderly close returns 0 from <code>read</code>; <code>htons</code> matches a known value (e.g. <code>htons(8932)</code> byte pattern).</p>
+<p>Integration (extend <code>tests/test_serial.c</code>): full command → mock transport → assert exact response JSON bytes (now possible).</p>
+<h3 id="future-backends-design-intent-not-implemented-here"><a class="header" href="#future-backends-design-intent-not-implemented-here">Future backends (design intent, NOT implemented here)</a></h3>
+<p>The registry + vtable is the extension seam. A new backend implements <code>{probe, open}</code> and the connection vtable, then registers — the core is untouched.</p>
+<ul>
+<li><strong>UDP / HTTP-3 (QUIC):</strong> QUIC gives reliable, ordered byte streams → reuse the stream path and <code>LineBuffer</code> unchanged; only the backend differs. Modern-only ⇒ runtime-probed/feature-detected, never statically linked on the Win32s path.</li>
+<li><strong>Exotic message/RDMA (ibverbs-over-Thunderbolt class):</strong> set <code>flags</code> message-oriented bit; one message = one command, bypassing <code>LineBuffer</code>. These are uplift backends present only on capable hosts; the Win32s baseline always retains serial.</li>
+</ul>
+<h3 id="test-execution-environment-wsl2--windows-host"><a class="header" href="#test-execution-environment-wsl2--windows-host">Test execution environment (WSL2 + Windows host)</a></h3>
+<p>The dev host is <strong>WSL2 on Windows</strong>, so MinGW-built PEs run <strong>natively on the Windows host via WSL interop</strong> (<code>./test_tcp.exe</code> executes through real <code>kernel32</code>/<code>wsock32</code>, no Wine). This is the source of truth for local verification — <strong>Wine is a convenience/fallback, not a requirement.</strong> Consequence: <code>test_tcp</code> and the end-to-end TCP path are <strong>proven against real Winsock locally and must not be skipped</strong>; the <code>wsock32</code>-probe self-skip exists only for environments that genuinely lack Winsock (e.g. CI's Ubuntu+Wine if its Winsock is unusable). <code>build.sh test</code> should detect WSL2-with-interop and run the PEs natively, falling back to Wine only when no Windows host is reachable.</p>
+<h3 id="buildci-integration"><a class="header" href="#buildci-integration">Build/CI integration</a></h3>
+<ul>
+<li><code>CMakeLists.txt</code> (single source of truth; <code>build.sh</code>/<code>build.bat</code> wrap the mingw/vc6 presets): add <code>src/transport.c</code> + <code>src/tcp.c</code> to the main link; add <code>test_transport</code> and <code>test_tcp</code> targets (link <code>-lwsock32</code> for <code>test_tcp</code> only). Main does <strong>not</strong> statically import <code>wsock32</code> (runtime-probed) — so do <strong>not</strong> add <code>-lwsock32</code> to the main link.</li>
+<li><code>build.sh test</code>: prefer <strong>native Windows execution</strong> of the test PEs on WSL2 (run <code>tests/*.exe</code> directly via interop); use Wine only as a fallback. <code>host-pbt</code> (Phase 4) stays native Linux.</li>
+<li><code>.github/workflows/build-and-test.yml</code> (Ubuntu — no Windows host): runs <code>test_transport</code> + <code>test_tcp</code> under Wine; <code>test_tcp</code> self-skips with a printed reason only if Wine's Winsock is unusable. Existing FPU/486 grep auto-applies to <code>transport.o</code>/<code>tcp.o</code>. <strong>Import-table assertion:</strong> <code>objdump -p mcp-w32s.exe | grep -i 'wsock32\|ws2_32'</code> must be empty.</li>
+<li>Stack-frame watch: <code>sockaddr_in</code>/<code>WSADATA</code> are small, but keep them off oversized frames; if <code>__chkstk</code> appears in <code>tcp.o</code>, move buffers to <code>static</code>.</li>
+</ul>
+<h3 id="out-of-scope-for-phase-3-architectural-reasons"><a class="header" href="#out-of-scope-for-phase-3-architectural-reasons">Out of scope for Phase 3 (architectural reasons)</a></h3>
+<ul>
+<li><strong>Named pipes backend.</strong> Win95+ only, not Win32s; same vtable shape, deferred to Phase 5+ (cross-platform) where it adds value. The registry already reserves <code>TRANSPORT_PIPE</code>.</li>
+<li><strong>Multi-client / <code>select</code> concurrency.</strong> Conflicts with the single-threaded, single-exec model. Single-client-sequential is the deliberate design.</li>
+<li><strong>UDP / HTTP-3 / RDMA backends.</strong> Design seam is provided (registry + <code>flags</code>), but implementations are modern-host uplift work, not part of the Win32s baseline. Future phases.</li>
+<li><strong>TLS / authentication.</strong> No crypto libraries compile on the Win32s target; out of the project's threat model (trusted serial/LAN link).</li>
+</ul>
+<h3 id="verification-sub-agent-acceptance-criteria"><a class="header" href="#verification-sub-agent-acceptance-criteria">Verification (sub-agent acceptance criteria)</a></h3>
+<ol>
+<li><code>./build.sh test</code> clean (strict flags); <code>transport.o</code>/<code>tcp.o</code> FPU/486-free.</li>
+<li><code>objdump -p mcp-w32s.exe | grep -i 'wsock32\|ws2_32'</code> empty — binary still loads on bare Win32s; TCP is runtime-loaded.</li>
+<li><code>test_transport</code>, <code>test_tcp</code>, and refactored <code>test_serial</code> all pass <strong>run natively on the Windows host (WSL2 interop)</strong>; <code>test_tcp</code> is proven against real Winsock (not skipped). Wine is a fallback only.</li>
+<li>End-to-end serial path unchanged: existing behavior preserved (regression check).</li>
+<li>End-to-end TCP, run natively on the Windows host: start <code>mcp-w32s.exe /TCP:8932</code> as a Windows process; a Windows-side client (e.g. <code>powershell.exe</code> <code>System.Net.Sockets.TcpClient</code>, so both ends share Windows loopback) sends <code>{"cmd":"echo","id":"1","line":"hi"}\n</code> and receives the echo response; disconnect; the server then accepts a second client (sequential). The in-process loopback in <code>test_tcp.exe</code> is the primary automated proof.</li>
+<li><code>specs/transport.allium</code> <code>allium check</code> clean; <code>/allium:weed</code> reports zero drift; all six Allium skills exercised per the lifecycle above.</li>
+<li>Phase 4 exec/ready code, when written, uses <code>Transport *</code> — no <code>HANDLE</code>-typed I/O in the protocol core.</li>
+<li>Total tests: 87 + ≥10 (transport) + ≥6 (tcp) + mock-backed <code>test_serial</code> response-byte assertions = <strong>≥103 tests</strong>.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="phase-4-command-execution--specd-not-started"><a class="header" href="#phase-4-command-execution--specd-not-started">Phase 4: Command Execution — Spec'd (not started)</a></h1>
+<p><strong>Goal:</strong> Replace the <code>exec</code> stub with a complete implementation: spawn child processes via <code>CreateProcessA</code>, capture stdout/stderr/exit code, return them base64-encoded in the JSON response. Ship a JSON command catalog so MCP clients can discover what's safe to run when <code>--help</code> is unavailable, and load it server-side as a whitelist (with bypass flag).</p>
+<p>Phase 4 is fully self-contained — argv quoting, timeouts, stdin pass-through, 16-bit detection, catalog enforcement, and the full Allium spec are all in scope here.</p>
+<p><strong>Hooks the existing stub at</strong> <code>src/mcp-w32s.c:171–174</code>. Reuses <code>Base64Encode</code> (<code>src/base64.h</code>) and <code>BuildJsonResponse</code> (<code>src/json_parser.h</code>).</p>
+<h3 id="required-workflow-allium-lifecycle--order-is-mandatory"><a class="header" href="#required-workflow-allium-lifecycle--order-is-mandatory">Required workflow (Allium lifecycle — order is mandatory)</a></h3>
+<p>Phase 4 runs spec-first using the Allium plugin skills (see CLAUDE.md "Specification &amp; Test Workflow"):</p>
+<ol>
+<li><strong><code>/allium:elicit</code></strong> — resolve the open question in <code>specs/mcp-protocol.allium</code> ("Should the ready message include transport metadata?") — answer: yes, the extended ready message below carries <code>codepage</code>, <code>version</code>, <code>features</code>. Confirm the exec/catalog/capability domain model before specifying.</li>
+<li><strong><code>/allium:tend</code></strong> — write <code>specs/process-ops.allium</code> + <code>specs/catalog.allium</code> and update <code>specs/mcp-protocol.allium</code>. The spec sketches in this plan are <em>input</em>; tend owns the final form. <code>allium check</code> must pass on all specs.</li>
+<li><strong><code>/allium:propagate</code></strong> — generate the test-obligation list from the three specs. The test tables in this plan are a floor; propagated obligations may add tests, never remove them. Each test file documents which obligation it covers.</li>
+<li><strong>Implement</strong> — <code>src/*.c</code> + <code>tests/*.c</code>, coding to the specs.</li>
+<li><strong><code>/allium:distill</code></strong> — backfill specs for the pre-existing unspecified modules: <code>specs/base64.allium</code>, <code>specs/json-parser.allium</code>, <code>specs/serial.allium</code>. This is Phases 1–2 spec debt, folded into Phase 4 (no sub-phase).</li>
+<li><strong><code>/allium:weed</code></strong> — audit all specs against implementation. Zero drift is a hard gate for marking Phase 4 Complete.</li>
+</ol>
+<h3 id="theft-host-side-pbt-harness-new-in-phase-4"><a class="header" href="#theft-host-side-pbt-harness-new-in-phase-4">theft host-side PBT harness (new in Phase 4)</a></h3>
+<p><code>vendor/theft</code> is vendored but unwired. Phase 4 wires it as a <strong>host-native</strong> test layer (Linux <code>gcc -std=c99</code>, no MinGW, no Wine) for OS-independent modules. Shipped sources stay C89; only <code>tests/host/*.c</code> harness files are C99. Win32-API-dependent code is out of theft's scope.</p>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Properties (autoshrinking, ≥50k trials each)</th></tr></thead><tbody>
+<tr><td><code>tests/host/theft_base64.c</code></td><td>roundtrip, alphabet validity, length formula — deep version of the prop.h suite</td></tr>
+<tr><td><code>tests/host/theft_json.c</code></td><td>parse(build(cmd)) == cmd; parser never reads past terminator; malformed input never crashes</td></tr>
+<tr><td><code>tests/host/theft_argv.c</code></td><td>ArgvEscapeArg/ArgvJoin roundtrip against a reference CommandLineToArgvW tokenizer implemented in the harness</td></tr>
+<tr><td><code>tests/host/theft_catalog.c</code></td><td>CatalogValidateArgs never accepts unknown flags; glued (<code>/A:v</code>) and split (<code>/A v</code>) flag-arg forms validate identically</td></tr>
+</tbody></table>
+</div>
+<ul>
+<li><code>build.sh host-pbt</code>: builds <code>vendor/theft</code> + harness natively, runs it. Same properties mirrored in <code>prop.h</code> at lower trial counts for the Wine/target run.</li>
+<li>CI: new <code>host-pbt</code> step runs <strong>before</strong> the Wine suite (fail fast on logic bugs with minimal counterexamples).</li>
+</ul>
+<h3 id="critical-win32-quirks-to-design-around"><a class="header" href="#critical-win32-quirks-to-design-around">Critical Win32 quirks to design around</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>#</th><th>Quirk</th><th>Mitigation</th></tr></thead><tbody>
+<tr><td>Q1</td><td><code>WaitForSingleObject(hProcess)</code> returns immediately on Win32s 1.25a (KB Q125213)</td><td>Poll <code>GetExitCodeProcess</code> until <code>!= STILL_ACTIVE</code></td></tr>
+<tr><td>Q2</td><td>Pipe deadlock when child fills stdout buffer (default 4KB) and parent isn't reading</td><td>Pump pipes inside the wait loop, not after</td></tr>
+<tr><td>Q3</td><td><code>PeekNamedPipe</code> is the only single-threaded non-blocking pipe read on Win32</td><td>Use it before every <code>ReadFile</code></td></tr>
+<tr><td>Q4</td><td>Parent must <code>CloseHandle</code> on child's pipe ends after spawn or pipes never EOF</td><td>Close child ends in parent immediately after <code>CreateProcessA</code> returns</td></tr>
+<tr><td>Q5</td><td>Inherited handles on parent's read/write ends cause child to hang on read</td><td><code>SetHandleInformation(*, HANDLE_FLAG_INHERIT, 0)</code> on parent-only ends</td></tr>
+<tr><td>Q6</td><td>Console output uses <strong>OEM</strong> code page; pipes deliver raw bytes</td><td>Always base64; bridge decodes using <code>codepage</code> from ready message</td></tr>
+<tr><td>Q7</td><td><code>CreateProcessA</code> cmdline max 32767; via <code>cmd.exe</code> 8192</td><td>Cap at 8192 if <code>shell:true</code>, else 32767</td></tr>
+<tr><td>Q8</td><td><code>CommandLineToArgvW</code> quoting: <code>2N\</code> + <code>"</code> ⇒ <code>N\</code> + quote toggle; <code>2N+1\</code> + <code>"</code> ⇒ <code>N\</code> + literal <code>"</code></td><td><code>argv.c</code> implements reverse-rules; PBT roundtrip</td></tr>
+<tr><td>Q9</td><td>Win 3.x ships <code>COMMAND.COM</code>, NT/95+ ships <code>cmd.exe</code>; built-ins live in the shell, not as <code>.exe</code></td><td>Pick shell at runtime via <code>GetVersion</code>; catalog records both <code>shell_modern</code> and <code>shell_win32s</code></td></tr>
+<tr><td>Q10</td><td>Console flash on GUI Win32s when child is a console app</td><td><code>STARTF_USESHOWWINDOW</code> + <code>SW_HIDE</code> always</td></tr>
+<tr><td>Q11</td><td><code>CREATE_NO_WINDOW</code> is Win95+; ignored on Win32s</td><td>Use <code>STARTF_USESHOWWINDOW</code>+<code>SW_HIDE</code>, NOT <code>CREATE_NO_WINDOW</code></td></tr>
+<tr><td>Q12</td><td>16-bit DOS apps run in shared VDM — killing one VDM process can kill siblings</td><td>On 16-bit + timeout, drain pipes without <code>TerminateProcess</code>; mark <code>vdm-best-effort</code></td></tr>
+<tr><td>Q13</td><td><code>GetTickCount</code> not <code>QueryPerformanceCounter</code> (QPC is 95+ and may pull FP libs)</td><td>Use <code>GetTickCount</code></td></tr>
+<tr><td>Q14</td><td><code>lpApplicationName=NULL</code> + full cmdline lets Windows resolve via PATH</td><td>Pass <code>NULL</code> for app name</td></tr>
+<tr><td>Q15</td><td><code>cmd.exe</code> metacharacters <code>&amp; | &lt; &gt; ^ ( ) %</code> need <code>^</code>-escape inside <code>cmd /c</code></td><td>When <code>shell:true</code>, <code>argv.c</code> does cmd-aware double-escape after CmdLineToArgv-escape</td></tr>
+<tr><td>Q16</td><td><code>GetBinaryTypeA</code> resolves via path; not on Win32s</td><td><code>GetProcAddress</code>-detect; manual MZ/NE/PE classify on Win32s</td></tr>
+</tbody></table>
+</div>
+<p>Sources to cite in code comments: KB Q125213 (Win32s synchronous spawn), KB 131896 (Win32s general limitations), Old New Thing 2011-07-07 (pipe deadlock), MS Docs <em>Creating a Child Process with Redirected Input and Output</em>, Daniel Colascione <em>Everyone quotes command line arguments the wrong way</em>.</p>
+<h3 id="feature-detection--graceful-uplift"><a class="header" href="#feature-detection--graceful-uplift">Feature detection &amp; graceful uplift</a></h3>
+<p><strong>Principle.</strong> The binary's baseline target is Win32s 1.25a — every required path works there. But when running on NT 4.0+, Win 9x, XP, Win 10+, the binary detects available APIs at startup and <em>uplifts</em> to a better implementation. One binary, every Windows era from 1995 to 2026, best behavior the host can provide.</p>
+<p><strong>Mechanism.</strong> A new <code>src/feat.{c,h}</code> module probes APIs via <code>GetProcAddress(GetModuleHandleA("kernel32"))</code> (and <code>LoadLibraryA</code> for psapi/etc.) at startup. Results cached in a <code>Features</code> struct. <strong>Function pointers for delay-loaded APIs are stored in the struct</strong> so they're never linked at compile time — that would prevent the binary from loading on Win32s, where most of these symbols are absent from the import resolver.</p>
+<p><strong>Capability matrix:</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Capability</th><th>Detection</th><th>Min OS</th><th>Used For</th><th>Win32s/9x fallback</th></tr></thead><tbody>
+<tr><td>Threads</td><td><code>GetVersion</code> high bit + Win32s probe (kernel32 thunk pattern)</td><td>Win 95 / NT 3.1</td><td>Reader threads in capture loop — eliminates <code>Sleep(10)</code> polling latency</td><td><code>PeekNamedPipe</code> polling loop (Q3)</td></tr>
+<tr><td><code>CreateJobObjectA</code> + <code>AssignProcessToJobObject</code> + <code>SetInformationJobObject</code></td><td>kernel32 GetProcAddress</td><td>NT 4.0</td><td>Auto-kill child trees on server exit (<code>JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE</code>); per-process memory cap (<code>JOB_OBJECT_LIMIT_PROCESS_MEMORY</code>); per-process CPU-time cap (<code>JOB_OBJECT_LIMIT_PROCESS_TIME</code>)</td><td>Children survive server crash; no resource caps</td></tr>
+<tr><td><code>GetBinaryTypeA</code></td><td>kernel32 GetProcAddress</td><td>NT 3.51 / Win 95</td><td>Refines <code>binary_type</code> reporting; preferred over manual MZ/NE/PE classification when present (knows about WoW64)</td><td>Manual MZ/NE/PE header read (Q16)</td></tr>
+<tr><td><code>IsWow64Process</code></td><td>kernel32 GetProcAddress</td><td>XP SP2</td><td>Reports <code>binary_type:"pe32-wow64"</code> when applicable</td><td>Plain <code>pe32</code></td></tr>
+<tr><td><code>GenerateConsoleCtrlEvent</code></td><td>kernel32 GetProcAddress + child spawned with <code>CREATE_NEW_PROCESS_GROUP</code></td><td>NT 4.0</td><td>Graceful Ctrl-Break on timeout, give child 1 sec to clean up before falling through to <code>TerminateProcess</code></td><td>Direct <code>TerminateProcess</code> (Q12 still applies for VDM)</td></tr>
+<tr><td><code>QueryFullProcessImageNameA</code></td><td>kernel32 GetProcAddress</td><td>Vista</td><td>Resolves child's actual exe path (better than <code>GetModuleFileNameEx</code> from psapi)</td><td><code>SearchPathA</code> from cmdline first token</td></tr>
+<tr><td><code>CreatePseudoConsole</code>/<code>ClosePseudoConsole</code>/<code>ResizePseudoConsole</code></td><td>kernel32 GetProcAddress</td><td>Win 10 1809</td><td>New optional <code>ptyExec</code> command — spawn child with real PTY (interactive stdin, ANSI color, <code>cols</code>/<code>rows</code> resize); output <code>output_kind:"ansi"</code></td><td><code>ptyExec</code> returns <code>error:"pty not available on this Windows"</code>; regular <code>exec</code> still works</td></tr>
+<tr><td><code>InitializeProcThreadAttributeList</code> + extended <code>STARTUPINFOEX</code></td><td>kernel32 GetProcAddress</td><td>Vista</td><td>Required by <code>CreatePseudoConsole</code>; also enables <code>PROC_THREAD_ATTRIBUTE_HANDLE_LIST</code> to reduce inadvertent handle inheritance</td><td>Plain <code>STARTUPINFO</code>; relies on <code>SetHandleInformation</code> (Q5)</td></tr>
+<tr><td><code>SetProcessMitigationPolicy</code></td><td>kernel32 GetProcAddress</td><td>Win 7 (process); Win 8 (thread attr)</td><td>Defense-in-depth on spawned child (DEP, ASLR force, dynamic-code-disable)</td><td>None</td></tr>
+</tbody></table>
+</div>
+<p><strong><code>feat.h</code> shape:</strong></p>
+<pre><code class="language-c">typedef struct {
+    /* OS version */
+    int win_major, win_minor, win_build;
+    int is_win32s;       /* GetVersion high bit + major==3 */
+    int is_win9x;        /* GetVersion high bit + major==4 */
+    int is_nt;           /* GetVersion high bit clear */
+    int is_wow64;        /* IsWow64Process(GetCurrentProcess()) — defaults 0 */
+    /* Boolean capability flags (mirror function-pointer presence) */
+    int has_threads;
+    int has_create_job_object;
+    int has_get_binary_type;
+    int has_is_wow64_process;
+    int has_generate_ctrl_event;
+    int has_query_full_image_name;
+    int has_create_pseudo_console;
+    int has_proc_thread_attr_list;
+    int has_set_process_mitigation;
+    /* Function pointers — NULL when capability absent */
+    HANDLE  (WINAPI *pCreateJobObjectA)(LPSECURITY_ATTRIBUTES, LPCSTR);
+    BOOL    (WINAPI *pAssignProcessToJobObject)(HANDLE, HANDLE);
+    BOOL    (WINAPI *pSetInformationJobObject)(HANDLE, int, LPVOID, DWORD);
+    BOOL    (WINAPI *pGetBinaryTypeA)(LPCSTR, LPDWORD);
+    BOOL    (WINAPI *pIsWow64Process)(HANDLE, PBOOL);
+    BOOL    (WINAPI *pGenerateConsoleCtrlEvent)(DWORD, DWORD);
+    BOOL    (WINAPI *pQueryFullProcessImageNameA)(HANDLE, DWORD, LPSTR, PDWORD);
+    HRESULT (WINAPI *pCreatePseudoConsole)(COORD, HANDLE, HANDLE, DWORD, void**);
+    void    (WINAPI *pClosePseudoConsole)(void*);
+    BOOL    (WINAPI *pResizePseudoConsole)(void*, COORD);
+    BOOL    (WINAPI *pInitializeProcThreadAttributeList)(LPVOID, DWORD, DWORD, PSIZE_T);
+    BOOL    (WINAPI *pUpdateProcThreadAttribute)(LPVOID, DWORD, DWORD_PTR, PVOID, SIZE_T, PVOID, PSIZE_T);
+    void    (WINAPI *pDeleteProcThreadAttributeList)(LPVOID);
+    BOOL    (WINAPI *pSetProcessMitigationPolicy)(int, PVOID, SIZE_T);
+} Features;
+
+extern Features g_features;
+void        FeatInit(void);                /* call once at startup, before any exec */
+const char *FeatVersionString(void);       /* e.g. "Windows 10.0.19045 (NT)" */
+int         FeatForceFallback(int flags);  /* test-only: zero out selected flags + fnptrs */
+</code></pre>
+<p><strong>Win32s probe</strong> (the one tricky detection — Win32s reports <code>GetVersion</code> major==3 with high bit set, but so does plain Win 3.x without Win32s, which we can never run on anyway). Defensive secondary probe: try <code>GetCurrentDirectoryA</code> (works on Win32s) and <code>CreateThread</code> with a NOOP routine; if <code>CreateThread</code> returns NULL with <code>GetLastError()==ERROR_NOT_SUPPORTED</code> or similar, set <code>is_win32s=1</code> regardless of version DWORD. This double-check catches both Win32s and any future system where threads are explicitly disabled.</p>
+<p><strong>OS-detection sequence in <code>FeatInit</code>:</strong></p>
+<pre><code>1. ver = GetVersion();
+2. is_nt = !(ver &amp; 0x80000000);
+3. major = LOBYTE(LOWORD(ver)); minor = HIBYTE(LOWORD(ver));
+4. build = is_nt ? HIWORD(ver) : 0;
+5. if (!is_nt &amp;&amp; major == 4) is_win9x = 1;
+6. if (!is_nt &amp;&amp; major == 3) is_win32s = 1;          /* presumptive */
+7. Probe CreateThread; if it fails outright, is_win32s = 1, has_threads = 0.
+8. For each delay-loaded API, GetProcAddress; populate p* fields and has_* flags.
+9. If has_is_wow64_process, call IsWow64Process(GetCurrentProcess(), &amp;is_wow64).
+</code></pre>
+<p><strong>Where uplifts apply</strong> (cross-cuts the rest of Phase 4):</p>
+<ol>
+<li>
+<p><strong>Capture loop in <code>exec_ops.c</code></strong> — branch on <code>g_features.has_threads</code>:</p>
+<ul>
+<li><strong>Threaded path (Win 9x / NT+):</strong> spawn one reader thread per stdout/stderr pipe. Threads loop <code>ReadFile</code> into a shared buffer guarded by a <code>CRITICAL_SECTION</code>; main thread <code>WaitForSingleObject(hProc, timeoutMs)</code> (which works correctly outside Win32s — Q1 only affects Win32s). Threads exit naturally when their pipe EOFs after child exit. Far lower latency for chatty children.</li>
+<li><strong>Polling path (Win32s):</strong> the <code>PeekNamedPipe</code> loop already specified.</li>
+</ul>
+</li>
+<li>
+<p><strong>Process containment in <code>exec_ops.c</code></strong> — when <code>g_features.has_create_job_object</code>:</p>
+<ul>
+<li>Spawn child with <code>CREATE_SUSPENDED</code>.</li>
+<li>Create job object; set <code>JOBOBJECT_EXTENDED_LIMIT_INFORMATION</code> with <code>JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE</code> (always) plus <code>JOB_OBJECT_LIMIT_PROCESS_MEMORY</code> if request specifies <code>mem_cap_bytes</code>, plus <code>JOB_OBJECT_LIMIT_PROCESS_TIME</code> if request specifies <code>cpu_time_ms</code>.</li>
+<li><code>AssignProcessToJobObject(hJob, hProc)</code> before resuming.</li>
+<li><code>ResumeThread(hThread)</code>. Children now die automatically if mcp-w32s.exe crashes.</li>
+<li>Skip on Win32s/Win9x — children survive but no resource caps.</li>
+</ul>
+</li>
+<li>
+<p><strong>Graceful termination in <code>exec_ops.c</code></strong> — when <code>g_features.has_generate_ctrl_event</code> AND child was spawned with <code>CREATE_NEW_PROCESS_GROUP</code>:</p>
+<ul>
+<li>On timeout: send <code>CTRL_BREAK_EVENT</code> to child's process group. Wait up to 1000ms for clean exit (loop <code>GetExitCodeProcess</code>). If still alive, <code>TerminateProcess(hProc, 1)</code>.</li>
+<li>Win32s/Win9x path: direct <code>TerminateProcess</code> (Q12 still applies for VDM/16-bit).</li>
+</ul>
+</li>
+<li>
+<p><strong>Binary classification in <code>binfmt.c</code></strong> — when <code>g_features.has_get_binary_type</code>, prefer it (knows about WoW64). When <code>g_features.has_is_wow64_process</code>, refine <code>BIN_PE32</code> → emit <code>binary_type:"pe32-wow64"</code> if true. Otherwise manual MZ/NE/PE classification (Q16).</p>
+</li>
+<li>
+<p><strong>Image path resolution</strong> — when <code>g_features.has_query_full_image_name</code>, prefer it post-spawn for <code>binary_type</code> accuracy; otherwise <code>SearchPathA</code> on the first token.</p>
+</li>
+<li>
+<p><strong>PTY (<code>src/pty_exec.{c,h}</code>, new optional <code>ptyExec</code> JSON command)</strong> — gated on <code>g_features.has_create_pseudo_console</code>. Implementation:</p>
+<ul>
+<li>Two pipes (input, output — PTY merges stdout/stderr by design).</li>
+<li><code>CreatePseudoConsole({cols, rows}, hInputRd, hOutputWr, 0, &amp;hPC)</code>.</li>
+<li><code>InitializeProcThreadAttributeList</code> + <code>UpdateProcThreadAttribute(PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE, hPC)</code>.</li>
+<li><code>CreateProcessA</code> with <code>EXTENDED_STARTUPINFO_PRESENT</code> + <code>STARTUPINFOEX</code>.</li>
+<li>Output retains ANSI escape sequences. Response carries <code>output_kind:"ansi"</code> and a single <code>output_b64</code> (no separate stdout/stderr).</li>
+<li>When capability absent, dispatcher returns <code>error:"pty not available on this Windows"</code>; regular <code>exec</code> is unaffected.</li>
+</ul>
+</li>
+<li>
+<p><strong>Ready message extension</strong> — emitted by <code>mcp-w32s.c</code> after <code>FeatInit</code>:</p>
+<pre><code class="language-json">{
+  "status":   "ready",
+  "codepage": 437,
+  "version":  "Windows 10.0.19045 (NT)",
+  "transport": "tcp",
+  "features": {
+    "is_win32s": false,
+    "is_win9x":  false,
+    "is_nt":     true,
+    "is_wow64":  false,
+    "threads":   true,
+    "job_objects": true,
+    "ctrl_events": true,
+    "pty":       true,
+    "binary_classify": "GetBinaryTypeA",
+    "process_mitigation": false
+  }
+}
+</code></pre>
+<p>Bridge consumes <code>features</code> to surface capability-aware UI to MCP clients.</p>
+</li>
+</ol>
+<p><strong>The uplift architecture is intentionally additive:</strong> every new code path has a <code>if (g_features.has_X)</code> gate with a Win32s-correct fallback. Removing <code>feat.c</code> entirely would leave a working binary that runs at the lowest common denominator. Adding <code>feat.c</code> lets us claim Win 11 features without breaking Win 3.1 + Win32s 1.25a.</p>
+<h3 id="pre-decisions-non-negotiable-1"><a class="header" href="#pre-decisions-non-negotiable-1">Pre-decisions (non-negotiable)</a></h3>
+<ol>
+<li><strong><code>argv</code> and <code>line</code> both supported, <code>argv</code> preferred.</strong> Legacy <code>line</code> stays for back-compat. If both present, <code>argv</code> wins.</li>
+<li><strong>stdout/stderr always base64.</strong> No encoding interpretation in the binary.</li>
+<li><strong>Single concurrent exec.</strong> Second exec while one runs returns <code>error:"busy"</code>.</li>
+<li><strong>Catalog loaded at startup; whitelist on by default.</strong> <code>/UNSAFE</code> cmdline flag disables; per-request <code>unsafe:true</code> bypasses for one exec.</li>
+<li><strong>16-bit detected.</strong> <code>GetBinaryTypeA</code> when present, manual MZ/NE/PE classification on Win32s. Best-effort exec for 16-bit, no <code>TerminateProcess</code> on timeout.</li>
+<li><strong><code>GetExitCodeProcess</code> polling on Win32s; <code>WaitForSingleObject(hProc)</code> on threaded path.</strong> Branch on <code>g_features.has_threads</code>. The polling path is the Win32s baseline; uplift uses the better primitive.</li>
+<li><strong><code>MCP_MAX_RESPONSE</code> bumps 128KB → 256KB</strong> to fit two base64-encoded 64KB streams + envelope.</li>
+<li><strong>Feature detection at startup, not compile-time.</strong> All version-specific APIs are <code>GetProcAddress</code>-loaded into the <code>g_features</code> struct. The binary itself imports only Win32s 1.25a symbols. No <code>#ifdef _WIN32_WINNT</code> guards in source — branching is runtime via <code>g_features.has_*</code>.</li>
+<li><strong>One PTY uplift command, gated on Win 10 1809+.</strong> New <code>ptyExec</code> JSON command is the only protocol surface for interactive/ANSI exec; absent capability returns explicit error. Regular <code>exec</code> is unaffected on every Windows version.</li>
+<li><strong>Job-object containment is opt-on-by-default when available.</strong> Every spawned child is assigned to a job with <code>JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE</code> on NT 4.0+. No request flag needed; this is server hygiene, not a per-request choice. Per-request <code>mem_cap_bytes</code> and <code>cpu_time_ms</code> extend the job's limits.</li>
+</ol>
+<h3 id="protocol-extension"><a class="header" href="#protocol-extension">Protocol extension</a></h3>
+<p><strong><code>exec</code> request:</strong></p>
+<pre><code class="language-json">{
+  "cmd":         "exec",
+  "id":          "e1",
+  "argv":        ["cl","/c","test.c"],
+  "line":        "cl /c test.c",
+  "cwd":         "C:\\PROJECTS",
+  "shell":       false,
+  "timeout_ms":  30000,
+  "stdin_b64":   "",
+  "max_output":  65536,
+  "unsafe":      false,
+  "mem_cap_bytes": 0,                  // 0 = no cap; only honored when has_create_job_object
+  "cpu_time_ms":   0                   // 0 = no cap; only honored when has_create_job_object
+}
+</code></pre>
+<p><strong><code>exec</code> response (success):</strong></p>
+<pre><code class="language-json">{
+  "id":             "e1",
+  "status":         "ok",
+  "exit_code":      0,
+  "stdout_b64":     "aGVsbG8NCg==",
+  "stderr_b64":     "",
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "duration_ms":    47,
+  "exec_method":    "direct",
+  "binary_type":    "pe32",
+  "killed_by":      ""                 // "" | "timeout" | "ctrl_break" | "memory_cap" | "cpu_cap"
+}
+</code></pre>
+<p><strong><code>ptyExec</code> request</strong> (only available when <code>g_features.has_create_pseudo_console</code>):</p>
+<pre><code class="language-json">{
+  "cmd":         "ptyExec",
+  "id":          "p1",
+  "argv":        ["cmd"],
+  "cwd":         "C:\\",
+  "timeout_ms":  60000,
+  "stdin_b64":   "",
+  "cols":        80,
+  "rows":        25,
+  "max_output":  65536,
+  "unsafe":      false
+}
+</code></pre>
+<p><strong><code>ptyExec</code> response (success):</strong></p>
+<pre><code class="language-json">{
+  "id":            "p1",
+  "status":        "ok",
+  "exit_code":     0,
+  "output_b64":    "...",              // single merged stream — PTY does not separate stdout/stderr
+  "output_kind":   "ansi",             // contains ANSI escape sequences; bridge interprets/strips
+  "output_truncated": false,
+  "duration_ms":   123
+}
+</code></pre>
+<p><strong>Error reasons</strong> (both commands): <code>"spawn failed: &lt;code&gt;"</code>, <code>"timed out after &lt;N&gt;ms"</code>, <code>"busy"</code>, <code>"command line too long"</code>, <code>"invalid argv"</code>, <code>"invalid base64"</code>, <code>"command not in catalog"</code>, <code>"argument not allowed"</code>, <code>"pty not available on this Windows"</code> (ptyExec only), <code>"job object setup failed"</code> (only when has_create_job_object and assignment fails).</p>
+<p><code>exec_method</code> ∈ {<code>direct</code>, <code>shell</code>, <code>vdm-best-effort</code>}. <code>binary_type</code> ∈ {<code>pe32</code>, <code>pe32-wow64</code>, <code>ne16</code>, <code>mz</code>, <code>unknown</code>, <code>shell-builtin</code>}. <code>killed_by</code> ∈ {<code>""</code>, <code>"timeout"</code>, <code>"ctrl_break"</code>, <code>"memory_cap"</code>, <code>"cpu_cap"</code>}.</p>
+<p>README §1554 (current protocol doc using <code>output</code> key) is updated to <code>stdout_b64</code>/<code>stderr_b64</code> as part of Phase 4, and a new section documents <code>ptyExec</code>.</p>
+<h3 id="files-to-create"><a class="header" href="#files-to-create">Files to create</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Path</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><code>src/feat.{c,h}</code></td><td>OS detection + <code>GetProcAddress</code> probing for capability uplift; <code>g_features</code> global; <code>FeatInit</code>, <code>FeatVersionString</code>, <code>FeatForceFallback</code> (test-only)</td></tr>
+<tr><td><code>src/exec_ops.{c,h}</code></td><td>Pipe + spawn + capture loop with capability-gated branches (threaded vs polling, job-object containment, ctrl-event termination); <code>ExecOpRun</code>, <code>ExecResult</code></td></tr>
+<tr><td><code>src/pty_exec.{c,h}</code></td><td><code>CreatePseudoConsole</code>-based exec for <code>ptyExec</code> command; <code>PtyExecRun</code>; only operative when <code>g_features.has_create_pseudo_console</code></td></tr>
+<tr><td><code>src/argv.{c,h}</code></td><td>argv array → CreateProcess command line (CommandLineToArgvW reverse-rules + cmd metachar escape)</td></tr>
+<tr><td><code>src/binfmt.{c,h}</code></td><td>MZ/NE/PE classifier; uses <code>g_features.pGetBinaryTypeA</code>/<code>pIsWow64Process</code> when available</td></tr>
+<tr><td><code>src/catalog.{c,h}</code></td><td>JSON catalog loader (reuses <code>json_parser.c</code>); whitelist + arg-validation</td></tr>
+<tr><td><code>src/ready.{c,h}</code></td><td>Builds the extended JSON ready message including <code>version</code>, <code>codepage</code>, <code>features</code> object</td></tr>
+<tr><td><code>tests/test_feat.c</code></td><td>≥6 tests: probe results, version-string format, fallback consistency, mock-zeroed struct exec path</td></tr>
+<tr><td><code>tests/test_exec_ops.c</code></td><td>≥22 unit tests (18 baseline + 4 capability fallbacks via <code>FeatForceFallback</code>)</td></tr>
+<tr><td><code>tests/test_pty_exec.c</code></td><td>≥4 tests: PTY spawn (skip if absent), echo round-trip, resize, capability-absent error</td></tr>
+<tr><td><code>tests/test_argv.c</code></td><td>12 fixed + PBT 1000 trials for argv quoting roundtrip</td></tr>
+<tr><td><code>tests/test_binfmt.c</code></td><td>6 tests against fixture binaries (MZ, NE, PE32); plus uplift test using <code>pGetBinaryTypeA</code> when present</td></tr>
+<tr><td><code>tests/test_catalog.c</code></td><td>8 tests for load + lookup + validation</td></tr>
+<tr><td><code>tests/argv_echo.c</code></td><td>Helper: prints argc + each argv[i] base64-encoded for PBT roundtrip</td></tr>
+<tr><td><code>tests/fixtures/{tiny_mz.exe,tiny_ne.exe}</code></td><td>Minimal binary headers for <code>binfmt</code> classification tests</td></tr>
+<tr><td><code>specs/process-ops.allium</code></td><td><code>Process</code> + <code>ExecResult</code> + <code>Capabilities</code> entities, 8+ rules (incl. capability-gated rules), 3+ invariants — written via <code>/allium:tend</code></td></tr>
+<tr><td><code>specs/catalog.allium</code></td><td><code>Catalog</code> + <code>CatalogEntry</code> entities, lookup/validate rules — written via <code>/allium:tend</code></td></tr>
+<tr><td><code>specs/base64.allium</code></td><td>Distilled from <code>src/base64.c</code> via <code>/allium:distill</code> (Phase 1–2 spec debt)</td></tr>
+<tr><td><code>specs/json-parser.allium</code></td><td>Distilled from <code>src/json_parser.c</code> via <code>/allium:distill</code></td></tr>
+<tr><td><code>specs/serial.allium</code></td><td>Distilled from <code>src/serial.c</code> via <code>/allium:distill</code></td></tr>
+<tr><td><code>tests/host/theft_base64.c</code></td><td>theft host-native PBT: base64 properties with autoshrinking</td></tr>
+<tr><td><code>tests/host/theft_json.c</code></td><td>theft host-native PBT: JSON parser robustness + roundtrip</td></tr>
+<tr><td><code>tests/host/theft_argv.c</code></td><td>theft host-native PBT: argv quoting vs reference tokenizer</td></tr>
+<tr><td><code>tests/host/theft_catalog.c</code></td><td>theft host-native PBT: catalog validation properties</td></tr>
+<tr><td><code>catalog/win32-commands.json</code></td><td>≥30 entries (built-ins + externals + build tools)</td></tr>
+<tr><td><code>catalog/README.md</code></td><td>How to extend the catalog</td></tr>
+</tbody></table>
+</div>
+<h3 id="files-to-modify"><a class="header" href="#files-to-modify">Files to modify</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Path</th><th>Change</th></tr></thead><tbody>
+<tr><td><code>src/common.h</code></td><td><code>JsonCommand</code> adds <code>argv_count</code>, <code>argv[MCP_MAX_ARGV][MCP_MAX_ARG_LEN]</code>, <code>cwd</code>, <code>timeout_ms</code>, <code>shell_flag</code>, <code>stdin_b64</code>, <code>max_output</code>, <code>unsafe_flag</code>, <code>mem_cap_bytes</code>, <code>cpu_time_ms</code>, <code>cols</code>, <code>rows</code>. Constants: <code>MCP_MAX_ARGV=64</code>, <code>MCP_MAX_ARG_LEN=512</code>. Bump <code>MCP_MAX_RESPONSE</code> to <code>262144</code>.</td></tr>
+<tr><td><code>src/json_parser.{c,h}</code></td><td>Parse new fields. Array parsing for <code>argv</code>. Number parsing for ints. Boolean for <code>shell</code>/<code>unsafe</code>.</td></tr>
+<tr><td><code>src/mcp-w32s.c</code></td><td>Call <code>FeatInit()</code> first thing in <code>main</code> (before transport open). Replace stub at lines 171–174 with: catalog lookup → argv build → <code>ExecOpRun</code> → response. Add <code>ptyExec</code> dispatch (returns capability-error when absent). Track <code>g_exec_busy</code> flag. Load catalog at startup; honor <code>/UNSAFE</code> cmdline. Send extended ready message via <code>BuildReadyMessage</code> from <code>ready.c</code>. <strong>Builds on the transport abstraction (foundational work above): all dispatch/response I/O is via <code>Transport *</code>, never <code>HANDLE</code>.</strong></td></tr>
+<tr><td><code>src/serial.{c,h}</code></td><td>Parse <code>/UNSAFE</code> and <code>/CATALOG:path</code> cmdline flags into <code>TransportConfig</code>.</td></tr>
+<tr><td><code>specs/mcp-protocol.allium</code></td><td>Replace <code>rule ExecCommand</code> (lines 211–221) with rule that delegates to <code>process-ops.ExecResult</code> and gates on <code>CatalogLookup</code>. Add <code>rule PtyExecCommand</code> (gated on <code>Capabilities.has_pty</code>). Remove <code>deferred ExecCommand.implementation</code> (line 244). Add <code>Capabilities</code> reference.</td></tr>
+<tr><td><code>CMakeLists.txt</code> (single source of truth; <code>build.sh</code>/<code>build.bat</code> wrap the mingw/vc6 presets)</td><td>Add seven new <code>.c</code> files (<code>feat</code>, <code>exec_ops</code>, <code>pty_exec</code>, <code>argv</code>, <code>binfmt</code>, <code>catalog</code>, <code>ready</code>). Add six test targets + <code>argv_echo</code> helper. Copy <code>catalog/win32-commands.json</code> next to test binaries.</td></tr>
+<tr><td><code>.github/workflows/build-and-test.yml</code></td><td>Run new test binaries under Wine: <code>test_feat</code>, <code>test_exec_ops</code>, <code>test_pty_exec</code>, <code>test_argv</code>, <code>test_binfmt</code>, <code>test_catalog</code>. Add catalog file to artifact upload. <strong>Verify uplift on Wine:</strong> Wine reports as NT — assert <code>is_nt=true</code> and <code>has_threads=true</code> in <code>test_feat.exe</code> output, but skip <code>test_pty_exec</code> if Wine version doesn't expose <code>CreatePseudoConsole</code> (probe-and-skip pattern).</td></tr>
+<tr><td><code>README.md</code></td><td>§1554: protocol shape (<code>stdout_b64</code>/<code>stderr_b64</code>); Implementation Phases: Phase 4 → Complete; new "Command Execution: Win32s caveats" referencing Q1, Q9, Q12; new "Command Catalog" section; new "Feature Detection &amp; Graceful Uplift" section with capability matrix; new "PTY Execution (<code>ptyExec</code>)" section.</td></tr>
+<tr><td><code>CLAUDE.md</code></td><td>Phase 4 → Complete; bump test count to ≥152; document <code>g_features</code> global and the runtime-detection convention (no <code>#ifdef _WIN32_WINNT</code>).</td></tr>
+</tbody></table>
+</div>
+<h3 id="public-apis-1"><a class="header" href="#public-apis-1">Public APIs</a></h3>
+<pre><code class="language-c">/* exec_ops.h */
+typedef struct {
+    int  exit_code;          /* 0 = success; -1 if spawn failed */
+    int  duration_ms;
+    int  stdout_len;
+    int  stderr_len;
+    int  stdout_truncated;
+    int  stderr_truncated;
+    int  timed_out;
+    int  binary_type;        /* see binfmt.h */
+} ExecResult;
+
+int ExecOpRun(
+    const char *cmdLine,
+    const char *cwd,                    /* NULL = inherit */
+    int  timeoutMs,                     /* 0 = no timeout */
+    int  hideWindow,
+    const unsigned char *stdinBytes,    /* NULL ok */
+    int  stdinLen,
+    unsigned char *stdoutBuf, int stdoutBufSize,
+    unsigned char *stderrBuf, int stderrBufSize,
+    ExecResult *result,
+    char *errMsg, int errSize
+);
+
+/* argv.h */
+int ArgvEscapeArg(const char *arg, char *out, int outSize);
+int ArgvJoin(const char **argv, int argc, char *out, int outSize);
+int ArgvCmdEscape(const char *line, char *out, int outSize);
+
+/* binfmt.h */
+typedef enum {
+    BIN_UNKNOWN = 0, BIN_PE32 = 1, BIN_NE16 = 2, BIN_MZ = 3, BIN_SHELL = 4
+} BinaryType;
+int BinFmtClassify(const char *exePath, BinaryType *outType, char *errMsg, int errSize);
+
+/* catalog.h */
+typedef struct CatalogEntry CatalogEntry;
+typedef struct Catalog      Catalog;
+
+int  CatalogLoad(const char *path, Catalog **outCat, char *errMsg, int errSize);
+void CatalogFree(Catalog *cat);
+const CatalogEntry *CatalogLookup(const Catalog *cat, const char *cmdName);
+int  CatalogValidateArgs(const CatalogEntry *entry, const char **argv, int argc, char *errMsg, int errSize);
+
+/* feat.h — see "Feature detection &amp; graceful uplift" above for full Features struct */
+extern Features g_features;
+void        FeatInit(void);
+const char *FeatVersionString(void);
+int         FeatForceFallback(int flagsMask);   /* test-only: zero out selected flags + fnptrs */
+
+/* pty_exec.h */
+typedef struct {
+    int  exit_code;
+    int  duration_ms;
+    int  output_len;
+    int  output_truncated;
+    int  timed_out;
+} PtyExecResult;
+
+int PtyExecRun(
+    const char *cmdLine,
+    const char *cwd,
+    int  cols, int rows,
+    int  timeoutMs,
+    const unsigned char *stdinBytes, int stdinLen,
+    unsigned char *outputBuf, int outputBufSize,
+    PtyExecResult *result,
+    char *errMsg, int errSize
+);
+
+/* ready.h */
+int BuildReadyMessage(char *json, int jsonSize);   /* uses g_features + GetACP() */
+</code></pre>
+<p><code>ExecOpRun</code> extended signature (over the baseline above) takes <code>int memCapBytes</code> and <code>int cpuTimeMs</code> for job-object limits — silently ignored on non-NT-4-or-later. Plus <code>int *killedBy</code> out-param: 0 normal, 1 timeout, 2 ctrl_break, 3 memory_cap, 4 cpu_cap. Implementations that elide these args may pass 0/NULL — they no-op on Win32s/9x.</p>
+<h3 id="implementation-checklist"><a class="header" href="#implementation-checklist">Implementation checklist</a></h3>
+<p><strong>Startup (<code>mcp-w32s.c main</code>):</strong></p>
+<ol>
+<li><code>FeatInit()</code> first — populates <code>g_features</code>. Must complete before any spawn / catalog load / ready message.</li>
+<li>Parse cmdline (<code>/SERIAL</code>, <code>/UNSAFE</code>, <code>/CATALOG:path</code>, etc.).</li>
+<li>Catalog load (<code>CatalogLoad</code>); on failure record <code>warning:"catalog not loaded"</code> for ready message.</li>
+<li>Open transport.</li>
+<li><code>BuildReadyMessage</code> + <code>WriteFile</code> — extended ready message with <code>version</code>/<code>codepage</code>/<code>features</code>.</li>
+<li>Enter main loop.</li>
+</ol>
+<p><strong>Pipe + spawn (common to <code>exec_ops.c</code> and <code>pty_exec.c</code>):</strong></p>
+<ol>
+<li>Three pipes (stdin, stdout, stderr) — or two (input, output) for PTY. <code>SECURITY_ATTRIBUTES.bInheritHandle=TRUE</code>. <code>SetHandleInformation</code> on parent-only ends with <code>HANDLE_FLAG_INHERIT=0</code> (Q5).</li>
+<li><code>STARTUPINFO</code>: <code>dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW</code>, <code>wShowWindow = SW_HIDE</code> (Q10/Q11). For PTY path use <code>STARTUPINFOEX</code> with <code>PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE</code>.</li>
+<li><code>CreateProcessA</code>:
+<ul>
+<li><code>bInheritHandles=TRUE</code>, <code>lpApplicationName=NULL</code> (Q14), full cmdline in <code>lpCommandLine</code>.</li>
+<li><code>dwCreationFlags = 0</code> baseline; OR <code>CREATE_NEW_PROCESS_GROUP</code> if <code>g_features.has_generate_ctrl_event</code> (enables <code>GenerateConsoleCtrlEvent</code> later); OR <code>EXTENDED_STARTUPINFO_PRESENT</code> for PTY path.</li>
+<li><strong>NOT</strong> <code>CREATE_NO_WINDOW</code> (Q11).</li>
+<li>If <code>g_features.has_create_job_object</code>, also OR in <code>CREATE_SUSPENDED</code> so we can assign to job before the child's first instruction runs.</li>
+</ul>
+</li>
+<li><strong>Job-object setup (when <code>g_features.has_create_job_object</code>):</strong>
+<ul>
+<li><code>g_features.pCreateJobObjectA(NULL, NULL)</code> → <code>hJob</code>.</li>
+<li>Build <code>JOBOBJECT_EXTENDED_LIMIT_INFORMATION</code>: always set <code>JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE</code>. If <code>memCapBytes&gt;0</code>, set <code>JOB_OBJECT_LIMIT_PROCESS_MEMORY</code> + <code>ProcessMemoryLimit</code>. If <code>cpuTimeMs&gt;0</code>, set <code>JOB_OBJECT_LIMIT_PROCESS_TIME</code> + <code>PerProcessUserTimeLimit</code> (in 100ns ticks: <code>cpuTimeMs * 10000</code>).</li>
+<li><code>pSetInformationJobObject(hJob, JobObjectExtendedLimitInformation, &amp;limits, sizeof(limits))</code>.</li>
+<li><code>pAssignProcessToJobObject(hJob, pi.hProcess)</code>.</li>
+<li><code>ResumeThread(pi.hThread)</code>.</li>
+<li>On any failure: <code>TerminateProcess</code> + <code>CloseHandle(hJob)</code> + return <code>"job object setup failed"</code>. Don't silently degrade — the user explicitly opted in via <code>mem_cap_bytes</code>/<code>cpu_time_ms</code>.</li>
+</ul>
+</li>
+<li>After spawn (and after job assignment if applicable): close child ends in parent (Q4). Write stdin if any, then close <code>parentInWr</code>.</li>
+</ol>
+<p><strong>Capture loop — Win32s/Win9x polling path</strong> (<code>g_features.has_threads == 0</code>):</p>
+<pre><code>start = GetTickCount();
+loop {
+    PumpPipe(parentOutRd, stdoutBuf, &amp;stdoutLen, stdoutBufSize, &amp;stdoutTruncated);
+    PumpPipe(parentErrRd, stderrBuf, &amp;stderrLen, stderrBufSize, &amp;stderrTruncated);
+    GetExitCodeProcess(hProc, &amp;exitCode);
+    if (exitCode != STILL_ACTIVE) break;        /* Q1 */
+    if (timeoutMs &gt; 0 &amp;&amp; GetTickCount() - start &gt;= timeoutMs) {
+        TimeoutTerminate(hProc, binaryType, &amp;killedBy);   /* see below */
+        break;
+    }
+    Sleep(10);
+}
+PumpPipe(parentOutRd, ...);  /* final drain */
+PumpPipe(parentErrRd, ...);
+GetExitCodeProcess(hProc, &amp;exitCode);
+</code></pre>
+<p><strong>Capture loop — threaded path</strong> (<code>g_features.has_threads == 1</code>):</p>
+<pre><code>start = GetTickCount();
+hOutThread = CreateThread(NULL, 0, ReaderThread, &amp;outCtx, 0, NULL);
+hErrThread = CreateThread(NULL, 0, ReaderThread, &amp;errCtx, 0, NULL);
+HANDLE waitObj[1] = { hProc };
+DWORD wait = WaitForSingleObject(hProc, timeoutMs &gt; 0 ? timeoutMs : INFINITE);
+if (wait == WAIT_TIMEOUT) {
+    TimeoutTerminate(hProc, binaryType, &amp;killedBy);
+    WaitForSingleObject(hProc, INFINITE);   /* await actual exit */
+}
+WaitForSingleObject(hOutThread, INFINITE);
+WaitForSingleObject(hErrThread, INFINITE);
+GetExitCodeProcess(hProc, &amp;exitCode);
+</code></pre>
+<p><code>ReaderThread</code>: loops <code>ReadFile(pipe, buf, ...)</code> until 0 bytes or error; appends to caller's buffer guarded by a <code>CRITICAL_SECTION</code>. Marks <code>truncated=1</code> if buffer fills.</p>
+<p><strong><code>TimeoutTerminate(hProc, binaryType, &amp;killedBy)</code>:</strong></p>
+<pre><code>if (binaryType == BIN_NE16 || binaryType == BIN_MZ) {
+    /* Q12: do not kill VDM */
+    killedBy = 1;  /* "timeout" — but TerminateProcess skipped */
+    return;
+}
+if (g_features.has_generate_ctrl_event) {
+    g_features.pGenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, processGroupId);
+    /* Wait up to 1 sec for graceful exit */
+    if (WaitForSingleObject(hProc, 1000) == WAIT_OBJECT_0) {
+        killedBy = 2;  /* "ctrl_break" */
+        return;
+    }
+}
+TerminateProcess(hProc, 1);
+killedBy = 1;  /* "timeout" */
+</code></pre>
+<p>When job-object containment kills the child via <code>JOB_OBJECT_LIMIT_PROCESS_MEMORY</code> or <code>JOB_OBJECT_LIMIT_PROCESS_TIME</code>, <code>GetExitCodeProcess</code> returns the special exit codes set by the kernel (memory cap: per Win32 docs the child gets terminated and exit code is 1 or implementation-defined; CPU cap: similar). Detect by also calling <code>pQueryInformationJobObject(hJob, JobObjectBasicAccountingInformation, ...)</code> to read termination flag; or simpler: track via <code>JOBOBJECT_ASSOCIATE_COMPLETION_PORT</code> (NT 4.0+) — use a completion port on the job and read messages to know precisely which limit killed the child. Set <code>killedBy=3</code> (memory_cap) or <code>4</code> (cpu_cap) accordingly.</p>
+<p><strong><code>PumpPipe</code> (polling path only):</strong> <code>PeekNamedPipe</code> → <code>dwAvail</code>. If 0 return. Else <code>ReadFile</code> for <code>min(dwAvail, bufRemaining)</code>. If <code>bufRemaining==0</code> and <code>dwAvail&gt;0</code>, set <code>truncated=1</code>.</p>
+<p><strong>PTY path (<code>pty_exec.c</code>):</strong> when <code>g_features.has_create_pseudo_console</code>:</p>
+<ol>
+<li>Create input + output pipes.</li>
+<li><code>g_features.pCreatePseudoConsole({cols,rows}, hInputRd, hOutputWr, 0, &amp;hPC)</code>.</li>
+<li>Allocate <code>STARTUPINFOEX</code>; size attribute list via <code>pInitializeProcThreadAttributeList(NULL, 1, 0, &amp;size)</code>; allocate; init.</li>
+<li><code>pUpdateProcThreadAttribute(attrList, 0, PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE, hPC, sizeof(hPC), NULL, NULL)</code>.</li>
+<li><code>CreateProcessA</code> with <code>EXTENDED_STARTUPINFO_PRESENT</code>.</li>
+<li>Capture via threaded reader (PTY only meaningful on systems with <code>has_threads</code>, which is implied by Win 10).</li>
+<li>Cleanup: <code>pClosePseudoConsole(hPC)</code>; <code>pDeleteProcThreadAttributeList(attrList)</code>; close handles.</li>
+</ol>
+<p><strong>Cleanup (universal):</strong> <code>CloseHandle(hProc)</code>, <code>CloseHandle(hThread)</code>, remaining pipe ends, job handle if any, attr list if any — always, including every early-return path.</p>
+<h3 id="argvc-quoting-algorithm"><a class="header" href="#argvc-quoting-algorithm"><code>argv.c</code> quoting algorithm</a></h3>
+<p>For each arg (Q8):</p>
+<ul>
+<li>Empty → <code>""</code>.</li>
+<li>No <code>[ \t\n\v"]</code> → emit verbatim.</li>
+<li>Else: emit <code>"</code>; for each char with backslash run accumulation:
+<ul>
+<li>On <code>\</code>: increment count.</li>
+<li>On <code>"</code>: emit <code>2N+1</code> backslashes, then <code>\"</code>. Reset count.</li>
+<li>On other: emit <code>N</code> backslashes, then char. Reset count.</li>
+<li>At end: emit <code>2N</code> backslashes (closing quote unescaped). Emit <code>"</code>.</li>
+</ul>
+</li>
+</ul>
+<p>Join with single spaces. When <code>shell=true</code>, run <code>ArgvCmdEscape</code> after to <code>^</code>-escape cmd metacharacters outside double-quoted regions (Q15).</p>
+<p>PBT property: random argv (printable + space + tab + <code>\</code> + <code>"</code> + control, length 0–32, count 1–8) → <code>argvJoin → CreateProcessA → tests/argv_echo.exe → child argv[i]</code> matches input byte-for-byte.</p>
+<h3 id="binfmtc-classification"><a class="header" href="#binfmtc-classification"><code>binfmt.c</code> classification</a></h3>
+<p>Resolve via <code>SearchPathA</code> (Q16). Read first 512 bytes:</p>
+<ul>
+<li><code>MZ</code> magic at 0 + valid <code>e_lfanew</code> → check magic at <code>e_lfanew</code>: <code>PE\0\0</code> = <code>BIN_PE32</code>, <code>NE</code> = <code>BIN_NE16</code>, else <code>BIN_MZ</code>.</li>
+<li><code>MZ</code> magic + invalid <code>e_lfanew</code> → <code>BIN_MZ</code>.</li>
+<li>No <code>MZ</code> → <code>BIN_UNKNOWN</code>.</li>
+<li>Shell built-in (no resolvable .exe) → <code>BIN_SHELL</code>.</li>
+</ul>
+<p><code>GetBinaryTypeA</code> via <code>GetProcAddress(GetModuleHandleA("kernel32"), "GetBinaryTypeA")</code> on NT/95+; prefer its result when present (knows about WoW64).</p>
+<h3 id="catalog-catalogwin32-commandsjson"><a class="header" href="#catalog-catalogwin32-commandsjson">Catalog (<code>catalog/win32-commands.json</code>)</a></h3>
+<pre><code class="language-json">{
+  "version": 1,
+  "commands": {
+    "dir": {
+      "kind":            "shell-builtin",
+      "shell_modern":    "cmd.exe /c dir",
+      "shell_win32s":    "command.com /c dir",
+      "supports_win32s": true,
+      "description":     "List directory contents.",
+      "options": [
+        {"flag":"/A","arg":"attrs","desc":"Filter by attribute (D R H S A; negate with -)."},
+        {"flag":"/B","desc":"Bare format (filenames only)."},
+        {"flag":"/S","desc":"Recurse into subdirectories."},
+        {"flag":"/O","arg":"order","desc":"Sort by N E S D; negate with -."}
+      ],
+      "positional": [{"name":"path","optional":true,"type":"path"}],
+      "examples": ["dir","dir /B","dir C:\\PROJECTS /S /B"]
+    }
+  }
+}
+</code></pre>
+<p><strong>Validation</strong> (<code>CatalogValidateArgs</code>):</p>
+<ul>
+<li>Flags must appear in <code>options</code> list (case-insensitive on flag name).</li>
+<li>Unknown flags → <code>"argument not allowed"</code>.</li>
+<li>Flag-with-arg consumes next token if it doesn't start with <code>/</code> or <code>-</code>, OR accepts glued <code>/A:value</code>.</li>
+<li>Positional <code>type</code> is advisory only (no path-validity check).</li>
+</ul>
+<p><strong>Initial entries (≥30):</strong></p>
+<ul>
+<li><em>Shell built-ins (13):</em> <code>dir</code>, <code>copy</code>, <code>del</code>, <code>type</code>, <code>echo</code>, <code>cd</code>, <code>mkdir</code>, <code>rmdir</code>, <code>ren</code>, <code>set</code>, <code>path</code>, <code>ver</code>, <code>cls</code></li>
+<li><em>Externals (5):</em> <code>attrib</code>, <code>xcopy</code>, <code>find</code>, <code>more</code>, <code>sort</code></li>
+<li><em>Build tools (10):</em> <code>cl</code>, <code>link</code>, <code>lib</code>, <code>nmake</code>, <code>ml</code>, <code>rc</code>, <code>mt</code>, <code>mc</code>, <code>gcc</code>, <code>make</code></li>
+<li><em>Diagnostics (2):</em> <code>mem</code>, <code>chkdsk</code></li>
+</ul>
+<p>Each: <code>description</code>, <code>options</code> (descriptions sourced from official MS docs), <code>positional</code>, ≥2 <code>examples</code>, <code>supports_win32s</code>.</p>
+<p><strong>Server-side enforcement:</strong></p>
+<ul>
+<li>Default load location: <code>catalog/win32-commands.json</code> next to <code>mcp-w32s.exe</code>. Missing → ready message includes <code>"warning":"catalog not loaded"</code>.</li>
+<li><code>/CATALOG:&lt;path&gt;</code> cmdline overrides location.</li>
+<li><code>/UNSAFE</code> disables whitelist (catalog still consulted for <code>binary_type</code>).</li>
+<li>Per-request <code>unsafe:true</code> bypasses whitelist for that exec; logged in stderr buffer.</li>
+</ul>
+<h3 id="allium-specs"><a class="header" href="#allium-specs">Allium specs</a></h3>
+<p><code>specs/process-ops.allium</code>:</p>
+<pre><code>entity Capabilities {
+    is_win32s, is_win9x, is_nt, is_wow64: Boolean
+    has_threads, has_job_objects, has_ctrl_events: Boolean
+    has_pty, has_get_binary_type, has_query_full_image_name: Boolean
+}
+
+entity Process {
+    cmd_line: String
+    cwd: String
+    binary_type: pe32 | pe32_wow64 | ne16 | mz | shell | unknown
+    capabilities: Capabilities
+    status: not_started | running | exited | timed_out | spawn_failed
+    killed_by: none | timeout | ctrl_break | memory_cap | cpu_cap
+    transitions status {
+        not_started -&gt; running
+        not_started -&gt; spawn_failed
+        running     -&gt; exited
+        running     -&gt; timed_out
+        terminal: exited, timed_out, spawn_failed
+    }
+}
+
+entity ExecResult {
+    process: Process
+    exit_code: Integer
+    stdout_b64, stderr_b64: String
+    stdout_truncated, stderr_truncated: Boolean
+    duration_ms: Integer
+    request_id: String
+    status: ok | error
+    error_reason: String when status = error
+    transitions status { terminal: ok, error }
+}
+
+entity PtyExecResult {
+    process: Process
+    exit_code: Integer
+    output_b64: String
+    output_kind: ansi | text
+    output_truncated: Boolean
+    duration_ms: Integer
+    request_id: String
+    status: ok | error
+    error_reason: String when status = error
+    transitions status { terminal: ok, error }
+}
+
+rule ExecSpawnSuccess { ... }
+rule ExecSpawnFailed  { ... }
+rule ExecCompleted    { ... }
+rule ExecTimedOut     { ... }
+rule ExecOutputTruncated { ... }
+rule ExecBusyRejected { ... }
+rule ExecCtrlBreakKilled    { ... }   -- requires capabilities.has_ctrl_events
+rule ExecMemoryCapKilled    { ... }   -- requires capabilities.has_job_objects
+rule ExecCpuCapKilled       { ... }   -- requires capabilities.has_job_objects
+rule PtyExecSpawnSuccess    { ... }   -- requires capabilities.has_pty
+rule PtyExecCapabilityAbsent { ... }  -- emits "pty not available on this Windows" when !capabilities.has_pty
+
+invariant ExitCodeOnSuccess { ... }
+invariant TimedOutHasReason { ... }
+invariant PtyOnlyWhenCapable { for r in PtyExecResults: r.status = ok implies r.process.capabilities.has_pty = true }
+invariant Win32sNoJobObjects { for p in Processes: p.capabilities.is_win32s = true implies p.capabilities.has_job_objects = false }
+</code></pre>
+<p><code>specs/catalog.allium</code>:</p>
+<pre><code>entity Catalog { path: String; loaded: Boolean; entry_count: Integer }
+entity CatalogEntry { name: String; kind: shell_builtin | external; supports_win32s: Boolean }
+rule CatalogLookupHit  { ... }
+rule CatalogLookupMiss { ... }     -- emits "command not in catalog"
+rule CatalogArgValid   { ... }
+rule CatalogArgInvalid { ... }     -- emits "argument not allowed"
+invariant LoadedCatalogHasEntries { for c in Catalogs: c.loaded implies c.entry_count &gt; 0 }
+</code></pre>
+<p><code>specs/mcp-protocol.allium</code>: rewrite <code>rule ExecCommand</code> to gate on <code>CatalogLookup</code> then delegate to <code>process-ops/ExecResult</code>. Remove <code>deferred ExecCommand.implementation</code> line.</p>
+<h3 id="tests"><a class="header" href="#tests">Tests</a></h3>
+<p><code>tests/test_feat.c</code> (≥6):</p>
+<ol>
+<li><code>FeatInit</code> populates struct without crashing.</li>
+<li>Win-version parses correctly under Wine (<code>is_nt=true</code> typically; <code>win_major&gt;=4</code>).</li>
+<li><code>FeatVersionString</code> returns non-empty starting with "Windows ".</li>
+<li>Each <code>has_*</code> flag is consistent with corresponding <code>p*</code> function pointer (TRUE iff non-NULL).</li>
+<li><code>has_create_pseudo_console</code> reflects host accurately (test guards subsequent calls with skip-if-absent).</li>
+<li><code>FeatForceFallback(FORCE_NO_THREADS | FORCE_NO_JOB_OBJECTS | FORCE_NO_CTRL_EVENTS)</code> zeroes flags+fnptrs and exec_ops still succeeds via polling/no-job/Terminate path (verifies fallback equivalence).</li>
+</ol>
+<p><code>tests/test_exec_ops.c</code> (≥22 — 18 baseline + 4 capability-fallback):</p>
+<ol>
+<li><code>cmd /c echo hello</code> → exit=0, stdout = <code>"hello\r\n"</code> (b64 <code>"aGVsbG8NCg=="</code>)</li>
+<li><code>cmd /c exit 7</code> → exit=7</li>
+<li>nonexistent exe → spawn_failed, errMsg has Win32 error code</li>
+<li>80KB stdout → <code>stdout_truncated=1</code></li>
+<li>Timeout (<code>cmd /c "ping -n 30 127.0.0.1"</code>, 200ms) → <code>timed_out=1</code>, <code>killed_by</code> ∈ {<code>timeout</code>,<code>ctrl_break</code>}</li>
+<li>Stdin pass-through (<code>cmd /c findstr foo</code> with <code>"foo\nbar\nfoo\n"</code>) → 2 lines</li>
+<li>cwd respected (<code>cmd /c cd</code> cwd=<code>C:\</code>) → stdout starts with <code>C:\</code></li>
+<li>Stderr capture (<code>cmd /c dir nonexistent_xyz</code>) → stderr non-empty, exit≠0</li>
+<li>Empty cmdline → spawn_failed</li>
+<li>Cmdline &gt; 32767 → <code>"command line too long"</code></li>
+<li>Cmdline &gt; 8192 with shell → <code>"command line too long"</code></li>
+<li>Nonexistent cwd → spawn_failed</li>
+<li>timeout=0 + quick command → completes</li>
+<li>stdin_b64 invalid → <code>"invalid base64"</code></li>
+<li>shell=true vs shell=false: <code>dir</code> works only with shell=true</li>
+<li>exit_code=-1 sentinel for spawn-failed</li>
+<li>Two concurrent execs → second returns <code>"busy"</code> until first finishes</li>
+<li>Final drain: child writes 1KB then exits — all 1KB captured</li>
+<li><strong>Capability fallback — polling path:</strong> <code>FeatForceFallback(FORCE_NO_THREADS)</code> then run test #1 → identical result via <code>PeekNamedPipe</code> loop (verifies Win32s code path on Wine/NT).</li>
+<li><strong>Capability fallback — no job objects:</strong> <code>FeatForceFallback(FORCE_NO_JOB_OBJECTS)</code> then run test #1 → succeeds; no Win32 error from missing call.</li>
+<li><strong>Capability fallback — no ctrl events:</strong> force off, run test #5 → falls through to direct <code>TerminateProcess</code>, <code>killed_by:"timeout"</code>.</li>
+<li><strong>Job-object memory cap (skip if <code>!has_create_job_object</code>):</strong> run <code>cmd /c "for /L %i in (1,1,9999999) do @set X=%X%blah"</code> with <code>mem_cap_bytes=8388608</code> → child killed, <code>killed_by:"memory_cap"</code>.</li>
+</ol>
+<p><code>tests/test_pty_exec.c</code> (≥4 — skipped if <code>!has_create_pseudo_console</code>):</p>
+<ol>
+<li>PTY echo: spawn <code>cmd</code> with stdin <code>"echo hi\r\nexit\r\n"</code>, cols=80 rows=25 → <code>output_b64</code> decodes to text containing <code>"hi"</code> and ANSI escape sequences (output_kind="ansi").</li>
+<li>PTY exit code: <code>cmd /c "exit 5"</code> via PTY → exit=5.</li>
+<li>PTY resize: spawn <code>cmd</code>, send sized to 132×43 → no error from resize call.</li>
+<li>PTY capability absent: <code>FeatForceFallback(FORCE_NO_PTY)</code> then <code>PtyExecRun</code> → returns error <code>"pty not available on this Windows"</code>.</li>
+</ol>
+<p><code>tests/test_argv.c</code> (12 fixed + PBT 1000 trials):</p>
+<ul>
+<li><code>["a","b"]</code> → <code>"a b"</code></li>
+<li><code>["hello world"]</code> → <code>"\"hello world\""</code></li>
+<li><code>["a\"b"]</code> → <code>"\"a\\\"b\""</code></li>
+<li><code>["a\\"]</code> → <code>"\"a\\\\\""</code></li>
+<li><code>["a\\b"]</code> → <code>"a\\b"</code></li>
+<li><code>["a\\\""]</code> → trailing-backslash-before-quote</li>
+<li><code>[""]</code> → <code>"\"\""</code></li>
+<li><code>["x","",""]</code> → <code>"x \"\" \"\""</code></li>
+<li>shell=false <code>["a&amp;b"]</code> → <code>"\"a&amp;b\""</code></li>
+<li>shell=true <code>[..., "a&amp;b"]</code> → <code>^&amp;</code> inside escape</li>
+<li>All ASCII printable</li>
+<li>DBCS lead bytes (0x81–0x9F, 0xE0–0xFC) — verify no mid-character split</li>
+<li>PBT roundtrip via <code>argv_echo.exe</code></li>
+</ul>
+<p><code>tests/test_binfmt.c</code> (6):</p>
+<ul>
+<li><code>mcp-w32s.exe</code> → <code>BIN_PE32</code></li>
+<li>Fixture NE16 → <code>BIN_NE16</code></li>
+<li>Fixture MZ → <code>BIN_MZ</code></li>
+<li>Text file → <code>BIN_UNKNOWN</code></li>
+<li>Missing file → error</li>
+<li>Shell built-in name (<code>"dir"</code>) → <code>BIN_SHELL</code> without file read</li>
+</ul>
+<p><code>tests/test_catalog.c</code> (8):</p>
+<ul>
+<li>Load valid file → entry_count ≥ 30</li>
+<li>Missing file → error</li>
+<li>Malformed JSON → error</li>
+<li>Lookup <code>"dir"</code> → entry; <code>kind=shell_builtin</code></li>
+<li>Lookup <code>"unknown_xyz"</code> → NULL</li>
+<li>Validate <code>dir /B</code> → ok</li>
+<li>Validate <code>dir /UNKNOWN</code> → <code>"argument not allowed"</code></li>
+<li>Validate <code>cl /TC file.c</code> → ok</li>
+</ul>
+<p>Integration (extending <code>tests/test_serial.c</code>):</p>
+<ul>
+<li>Full exec JSON → <code>ProcessCommand</code> → response shape with all new keys</li>
+<li><code>unsafe:true</code> bypasses catalog</li>
+<li><code>unsafe:false</code> + uncatalogued cmd → <code>"command not in catalog"</code></li>
+</ul>
+<h3 id="buildci-integration-1"><a class="header" href="#buildci-integration-1">Build/CI integration</a></h3>
+<ul>
+<li><code>CMakeLists.txt</code> (single source of truth; <code>build.sh</code>/<code>build.bat</code> wrap the mingw/vc6 presets): append seven new modules — <code>src/feat.c src/exec_ops.c src/pty_exec.c src/argv.c src/binfmt.c src/catalog.c src/ready.c</code> — to main link. Add six test targets (<code>test_feat</code>, <code>test_exec_ops</code>, <code>test_pty_exec</code>, <code>test_argv</code>, <code>test_binfmt</code>, <code>test_catalog</code>) + <code>argv_echo</code> helper. Copy <code>catalog/win32-commands.json</code> next to test binaries. <strong>Linker note:</strong> none of the delay-loaded APIs (<code>CreateJobObjectA</code>, <code>CreatePseudoConsole</code>, <code>IsWow64Process</code>, etc.) may be referenced by name at link time — they are only called via <code>g_features.p*</code> function pointers. If the linker pulls them in, <code>mcp-w32s.exe</code> will fail to load on Win32s 1.25a.</li>
+<li><code>.github/workflows/build-and-test.yml</code>: add Wine runs for all six new test binaries. Existing FPU/486 grep auto-applies to all new <code>.o</code> files. <strong>Critical checks:</strong>
+<ul>
+<li><code>objdump -d {feat,exec_ops,pty_exec,argv,binfmt,catalog,ready}.o | grep -E 'fld|fst[^r]|cpuid|cmpxchg|bswap|chkstk'</code> must be empty. If <code>__chkstk</code> appears, shrink stack frames (move large <code>STARTUPINFO</code>/<code>PROCESS_INFORMATION</code>/buffers to <code>static</code>).</li>
+<li><code>objdump -p mcp-w32s.exe | grep -E 'CreateJobObject|CreatePseudoConsole|IsWow64Process|GenerateConsoleCtrlEvent|QueryFullProcessImageName'</code> must be empty (these must NOT appear in the import table — they are runtime-loaded only).</li>
+<li><code>test_feat.exe</code> output asserts host capabilities under Wine: <code>is_nt=1</code>, <code>has_threads=1</code>. PTY tests skip if Wine version doesn't expose <code>CreatePseudoConsole</code>.</li>
+</ul>
+</li>
+<li><code>build.sh</code>: new <code>host-pbt</code> target — native <code>gcc -std=c99</code> build of <code>vendor/theft</code> (<code>src/theft*.c</code>) + <code>tests/host/*.c</code> against the C89 modules under test (<code>base64.c</code>, <code>json_parser.c</code>, <code>argv.c</code>, <code>catalog.c</code>); runs without Wine.</li>
+<li><code>.github/workflows/build-and-test.yml</code>: <code>host-pbt</code> step runs before the MinGW/Wine suite (fail fast with shrunk counterexamples).</li>
+<li>The seven new <code>.c</code> files build under the <code>vc6</code> preset too (CMake's NMake Makefiles generator); the theft harness is NOT added — host-side only.</li>
+<li>Artifact upload: <code>catalog/win32-commands.json</code> alongside <code>mcp-w32s.exe</code>.</li>
+</ul>
+<h3 id="out-of-scope-for-phase-4-architectural-reasons"><a class="header" href="#out-of-scope-for-phase-4-architectural-reasons">Out of scope for Phase 4 (architectural reasons)</a></h3>
+<ul>
+<li><strong>Streaming chunked output.</strong> Current MCP-Win32s protocol is one JSON line in, one out. Streaming requires multi-frame response handling on the bridge side. Phase 5+.</li>
+<li><strong>Async exec (job-id, poll-later).</strong> Conflicts with single-threaded request/response. Phase 5+ if needed.</li>
+</ul>
+<p>(Items previously listed as out-of-scope — interactive stdin/TTY, process signals, resource limits — are now <strong>in scope</strong> via the feature-detection uplift. They function on Windows versions that support them and gracefully degrade on Win32s.)</p>
+<h3 id="verification-sub-agent-acceptance-criteria-1"><a class="header" href="#verification-sub-agent-acceptance-criteria-1">Verification (sub-agent acceptance criteria)</a></h3>
+<ol>
+<li><code>./build.sh test</code> clean on Linux/MinGW with strict flags.</li>
+<li>All new test binaries pass under Wine: <code>test_feat</code>, <code>test_exec_ops</code>, <code>test_pty_exec</code> (or skipped with reason), <code>test_argv</code>, <code>test_binfmt</code>, <code>test_catalog</code>, plus extended <code>test_serial</code>.</li>
+<li>CI FPU/486 grep stays empty for new <code>.o</code> files.</li>
+<li><strong>Import-table check:</strong> <code>objdump -p mcp-w32s.exe | grep CreatePseudoConsole</code> (and the other delay-loaded APIs) returns empty — confirms binary still loads on Win32s 1.25a.</li>
+<li>End-to-end: <code>printf '{"cmd":"exec","id":"e1","argv":["cmd","/c","echo","hi"]}\n' | wine mcp-w32s.exe …</code> returns <code>exit_code:0</code>, <code>stdout_b64:"aGkNCg=="</code>, <code>binary_type:"pe32"</code>, <code>exec_method:"direct"</code>, <code>killed_by:""</code>.</li>
+<li>End-to-end (catalog miss): <code>argv:["nonexistent_xyz"]</code> without <code>unsafe</code> → <code>"command not in catalog"</code>.</li>
+<li>End-to-end (timeout, modern host with ctrl-events): <code>argv:["cmd","/c","ping","-n","30","127.0.0.1"]</code> with <code>timeout_ms:200</code> → <code>timed_out:true</code>, <code>killed_by:"ctrl_break"</code> or <code>"timeout"</code>.</li>
+<li>End-to-end (PTY, host with <code>has_create_pseudo_console</code>): <code>{"cmd":"ptyExec","argv":["cmd"],"stdin_b64":"&lt;echo+exit&gt;","cols":80,"rows":25}</code> → <code>output_kind:"ansi"</code>, output contains echoed text.</li>
+<li>End-to-end (PTY absent): same request with <code>FeatForceFallback(FORCE_NO_PTY)</code> (debug build) or on a Win 7 host → <code>error:"pty not available on this Windows"</code>.</li>
+<li><strong>Ready-message capability assertion</strong> under Wine:
+<pre><code>printf '\n' | wine mcp-w32s.exe /STDIO | head -1
+</code></pre>
+First line parses as JSON with <code>status:"ready"</code>, <code>version</code> non-empty, <code>features.is_nt:true</code>, <code>features.threads:true</code>. (Field set varies by Wine version — must always include the documented keys.)</li>
+<li><code>specs/process-ops.allium</code> (with <code>Capabilities</code> entity) and <code>specs/catalog.allium</code> follow <code>specs/file-ops.allium</code> lexical conventions.</li>
+<li>README §1554 updated; new "Feature Detection &amp; Graceful Uplift" + "PTY Execution" sections; CLAUDE.md test count bumped to ≥152; <code>PLAN.md</code> Phase 4 marked Complete.</li>
+<li>Total tests: 87 + ≥6 (feat) + ≥22 (exec_ops, incl. 4 capability fallbacks) + ≥4 (pty_exec) + ≥12 fixed + 1000 PBT trials (argv) + ≥6 (binfmt) + ≥8 (catalog) + ≥3 integration = <strong>≥152 tests</strong>.</li>
+<li>Catalog file ships with binary in CI artifact; loads without warning on startup.</li>
+<li><strong>Manual smoke (optional, documented):</strong> load <code>mcp-w32s.exe</code> on a real Windows 3.1 + Win32s 1.25a system; ready message advertises <code>is_win32s:true</code>, <code>threads:false</code>, <code>pty:false</code>, <code>job_objects:false</code>; <code>exec</code> with simple <code>command.com /c dir</code> returns expected output through the polling/Terminate fallback path.</li>
+<li><strong>Allium lifecycle complete:</strong> all six skills exercised as per "Required workflow" — elicit notes recorded, all specs tend-written/<code>allium check</code> clean (including the three distilled backfill specs), test files reference their propagated obligations, and a final <code>/allium:weed</code> audit reports zero spec↔code drift.</li>
+<li><strong>theft harness green:</strong> <code>./build.sh host-pbt</code> builds <code>vendor/theft</code> + <code>tests/host/*</code> natively and passes ≥50k trials per property; CI runs it before the Wine suite.</li>
+<li>Every theft property has a mirrored <code>prop.h</code> equivalent running on the target binary under Wine.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="phase-5-mcp-integration--not-started"><a class="header" href="#phase-5-mcp-integration--not-started">Phase 5: MCP Integration — Not Started</a></h1>
+<ul>
+<li>Python bridge: map MCP tool calls to serial/TCP protocol</li>
+<li>Test with Claude Code / Claude Desktop</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="phase-6-cross-platform-testing--not-started"><a class="header" href="#phase-6-cross-platform-testing--not-started">Phase 6: Cross-Platform Testing — Not Started</a></h1>
+<ul>
+<li>Verify on Windows 3.1 + Win32s 1.25a</li>
+<li>Verify on Windows 11</li>
+<li>Test across Win9x, NT, XP, modern Windows</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="phase-7-documentation--polish--not-started"><a class="header" href="#phase-7-documentation--polish--not-started">Phase 7: Documentation &amp; Polish — Not Started</a></h1>
+<ul>
+<li>Final README, usage examples, troubleshooting</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>
