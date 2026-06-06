@@ -41,6 +41,21 @@ Behaviour of the software under development is specified in [Allium](https://jux
 
 This applies to *every* PR, not just phase-completion PRs. CI green is necessary but **not sufficient** — the weed audit must also be clean. Running the lifecycle is part of preparing a PR for merge, the same way tests are.
 
+### Review gate (independent sub-agent, before every merge)
+
+After the Allium lifecycle is clean and CI passes, every PR in the software submodule gets an **independent adversarial review by a fresh sub-agent** before merge. Established 2026-06-06 on PR #9, where this process caught a spec defect (`FileWriteResult.data` phantom field, finding #7) that `allium check`, the lifecycle pass, and CI all missed.
+
+Rules for the review:
+
+1. **Fresh context.** The reviewer is a sub-agent that did not write the change. It receives the repo path, branch, base, and the PR's claims — and is instructed to verify them, not trust them.
+2. **Precise, per-dimension instructions.** The prompt enumerates review dimensions specific to the diff: code correctness against the project's hard constraints (C89/i386/Win32s), test quality (does the pinning test actually pin?), spec semantics checked against the *implementation read directly* (no double-fire rules, faithful modelling of the code paths), tool re-runs (`allium check`/`analyse`, build, test suite), and scope discipline (every changed line traces to a stated finding).
+3. **Adversarial framing.** The reviewer is told to refute the PR's claims and to look for adjacent defects of the same class as those being fixed — that is what catches what the tools cannot (the checker does not validate `.created()` args against entity fields; only a reader comparing spec to entity declarations finds that).
+4. **Structured output.** Findings ordered by severity (blocker / should-fix / nit / observation) with file:line and quoted evidence; explicit "none" per empty level; a merge verdict (approve / approve-with-nits / request-changes).
+5. **Findings are addressed within the same PR** — never deferred out of it — and recorded as numbered findings in the open phase file (host repo) in the same pass.
+6. **Read-only reviewer.** The sub-agent must not modify files or comment on the PR; the main session applies fixes and documents them.
+
+These per-phase process rules (planning pause, lifecycle, merge gate, review gate) are accreting toward a fully worked `/goal` skill per phase.
+
 ## Guidelines
 
 @andrej-karpathy-skills/CLAUDE.md
