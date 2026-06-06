@@ -1,6 +1,6 @@
 # Implementation Plan: MCP-Win32s
 
-Phase plans for the software under development (`MCP-Win32s/` submodule). Each phase lives in its own `PHASE<N>.md` file in this directory.
+Phase plans for the software under development (`mcp-win32s/` submodule). Each phase lives in its own `PHASE<N>.md` file in this directory.
 
 ## Phase Index
 
@@ -20,4 +20,4 @@ Phase plans for the software under development (`MCP-Win32s/` submodule). Each p
 2. **Closed phases are immutable.** Once a phase is marked **Complete** in its file and in the index above, its `PHASE<N>.md` MUST NOT be edited again — no rewording, no retroactive scope changes, no status flips. The git history of each phase file is the audit trail.
 3. **Corrections go forward.** If a completed phase turns out to be wrong or incomplete, do not reopen it. Record the correction as scope in the next (or a new) phase file, referencing the closed phase.
 4. **One status transition path.** `Not started → Spec'd → In progress → Complete`. Status changes are recorded in both the phase file heading and the index table, in the same commit.
-5. **Completion gate.** A phase may only be marked Complete after the Allium lifecycle gate passes (specs tended, obligations propagated, weed audit clean) in the `MCP-Win32s/` submodule.
+5. **Completion gate.** A phase may only be marked Complete after the Allium lifecycle gate passes (specs tended, obligations propagated, weed audit clean) in the `mcp-win32s/` submodule.

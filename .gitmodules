@@ -1,6 +1,6 @@
 [submodule "andrej-karpathy-skills"]
 	path = andrej-karpathy-skills
 	url = https://github.com/connollydavid/andrej-karpathy-skills.git
-[submodule "MCP-Win32s"]
-	path = MCP-Win32s
+[submodule "mcp-win32s"]
+	path = mcp-win32s
 	url = git@github.com:connollydavid/MCP-Win32s.git

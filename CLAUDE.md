@@ -4,7 +4,7 @@ Agentic host repository. Agentic software-development assets (skills, plans, pha
 
 ## Layout
 
-- `MCP-Win32s/` — submodule: the software under development (MCP server for Win32s). Its own `CLAUDE.md` carries the project-specific constraints (C89, i386, Win32s API subset) and build instructions.
+- `mcp-win32s/` — submodule: the software under development (MCP server for Win32s). Its own `CLAUDE.md` carries the project-specific constraints (C89, i386, Win32s API subset) and build instructions.
 - `andrej-karpathy-skills/` — submodule: behavioral guidelines and skills for agentic development.
 - `plan/` — committed, auditable phase plans. `plan/PLAN.md` is the index and defines the strict phase-file rules (sequential `PHASE<N>.md` naming, closed phases immutable).
 - `AGENTS.md` — condensed agent guide for the software under development.
@@ -12,12 +12,12 @@ Agentic host repository. Agentic software-development assets (skills, plans, pha
 ## Working in this repository
 
 - All planning artifacts (phase plans, status changes) are committed here, in the host repo — never inside the software submodule.
-- Code changes happen inside `MCP-Win32s/` on a branch, are merged via PR in that repo, and the submodule pointer is then bumped here in a separate commit.
+- Code changes happen inside `mcp-win32s/` on a branch, are merged via PR in that repo, and the submodule pointer is then bumped here in a separate commit.
 - Follow the phase-file rules in `plan/PLAN.md` strictly: phases are append-only and closed phases are never revisited.
 
 ## Specification & Test Workflow (Allium + theft)
 
-Behaviour of the software under development is specified in [Allium](https://juxt.github.io/allium/) (`MCP-Win32s/specs/*.allium`, language version 3) **before** it is implemented. The Allium plugin (`allium@juxt-plugins`, enabled via `.claude/settings.json`) provides six skills. Every phase passes through this lifecycle:
+Behaviour of the software under development is specified in [Allium](https://juxt.github.io/allium/) (`mcp-win32s/specs/*.allium`, language version 3) **before** it is implemented. The Allium plugin (`allium@juxt-plugins`, enabled via `.claude/settings.json`) provides six skills. Every phase passes through this lifecycle:
 
 | Stage | Skill | When | Output |
 |-------|-------|------|--------|
