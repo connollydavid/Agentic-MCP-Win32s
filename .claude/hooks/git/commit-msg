@@ -1,0 +1,27 @@
+#!/bin/sh
+# commit-msg - git hook: lint the commit subject for phase-slop.
+#
+# Install into the software submodule (where its sibling pre-commit lints
+# staged comments):
+#   git -C mcp-win32s config core.hooksPath ../.claude/hooks/git
+#
+# Catches human commits; the agent is caught earlier by the Claude Code
+# PreToolUse hook. Both call the same shared linter.
+#
+# This is free and unencumbered software released into the public domain.
+
+# Resolve the shared linter relative to this hook (../lib/ from .claude/hooks/git/).
+HOOK_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+LINT="$HOOK_DIR/../lib/phase-slop-lint.sh"
+[ -x "$LINT" ] || exit 0
+
+# $1 is the path to the commit message file; the first line is the subject.
+subject="$(head -n 1 "$1")"
+
+if ! "$LINT" --subject "$subject" >/dev/null 2>&1; then
+    echo "commit-msg: phase-slop in the subject line:" >&2
+    "$LINT" --subject "$subject" >&2
+    echo "Numbered phase-synonyms are an agentic tell; rewrite to Conventional-Commits style. (The sanctioned 'Phase N' phase-work form is allowed.)" >&2
+    exit 1
+fi
+exit 0

@@ -1,0 +1,27 @@
+#!/bin/sh
+# pre-commit - git hook: lint staged source comments for phase-slop.
+#
+# Install into the software submodule (its sibling commit-msg lints the
+# subject):
+#   git -C mcp-win32s config core.hooksPath ../.claude/hooks/git
+#
+# Catches human commits; the agent is caught earlier by the Claude Code
+# PreToolUse hook. Both call the same shared linter.
+#
+# This is free and unencumbered software released into the public domain.
+
+HOOK_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+LINT="$HOOK_DIR/../lib/phase-slop-lint.sh"
+[ -x "$LINT" ] || exit 0
+
+# Lint the staged comments of the repo this hook is running in.
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+[ -n "$REPO_ROOT" ] || exit 0
+
+if ! "$LINT" --staged "$REPO_ROOT" >/dev/null 2>&1; then
+    echo "pre-commit: phase-slop in staged source comments:" >&2
+    "$LINT" --staged "$REPO_ROOT" >&2
+    echo "Numbered phase-synonyms (Step 1, Pass 2, ...) in code comments are an agentic tell; rewrite them." >&2
+    exit 1
+fi
+exit 0
