@@ -85,7 +85,9 @@ fi
 
 # --- Cost control: skip the build/test tier when nothing under the verified
 # source set changed since the last full-green run. -------------------------
-curhash="$(find src tests specs CMakeLists.txt CMakePresets.json -type f 2>/dev/null \
+curhash="$(find src tests specs CMakeLists.txt CMakePresets.json \
+                bridge/src bridge/tests bridge/examples bridge/Cargo.toml \
+                -type f 2>/dev/null \
            | LC_ALL=C sort | xargs cat 2>/dev/null | cksum | awk '{print $1}')"
 if [ -f "$HASHFILE" ] && [ "$(cat "$HASHFILE" 2>/dev/null)" = "$curhash" ]; then
     exit 0   # verified green and unchanged -> allow the stop
@@ -143,6 +145,22 @@ if [ -f build/mingw/mcp-w32s.exe ] && [ -f build/mingw/wire_client.exe ]; then
     rm -f /tmp/phase-gate-srv.pid
     if [ "$wire_rc" != "0" ]; then
         block "phase-gate: wire-contract smoke failed (client rc=$wire_rc): $(tail -n 3 /tmp/phase-gate-wire.log)"
+    fi
+fi
+
+# --- Gate 7: Rust bridge (Phase 5) - cargo test (compiles lib+bin+tests). ---
+# `cargo test` builds and runs the bridge's integration + proptest suites; a
+# compile error or a failing test blocks. A missing cargo is infrastructure,
+# not drift (warn, do not block), matching the allium gate above. The Inspector
+# CLI conformance run is a model-judged gate, not a deterministic one, so it
+# lives in the review gate, not here.
+if [ -f bridge/Cargo.toml ]; then
+    if command -v cargo >/dev/null 2>&1; then
+        if ! ( cd bridge && cargo test --quiet ) >/tmp/phase-gate-bridge.log 2>&1; then
+            block "phase-gate: bridge cargo test failed: $(grep -iE 'error|test result: FAILED|panicked' /tmp/phase-gate-bridge.log | tail -n 4)"
+        fi
+    else
+        echo "phase-gate: cargo not found; bridge gate skipped (install Rust to enforce it)." >&2
     fi
 fi
 
