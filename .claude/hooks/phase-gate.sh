@@ -115,6 +115,37 @@ if [ -n "$OBJDUMP" ] && ls build/mingw/CMakeFiles/mcp-w32s.dir/src/*.obj >/dev/n
     fi
 fi
 
+# --- Gate 5: theft host-native property suite (CI runs this first). ---------
+# This is the layer that found the base64 signed-shift UB; omitting it would
+# let a 'green' gate pass while a property is violated. A missing target is
+# infrastructure (warn); a real property failure blocks.
+if grep -q 'host-pbt' build.sh 2>/dev/null; then
+    if ! ./build.sh host-pbt >/tmp/phase-gate-hostpbt.log 2>&1; then
+        block "phase-gate: host-pbt (theft property suite) failed: $(grep -iE 'fail|runtime error' /tmp/phase-gate-hostpbt.log | grep -v theft_random.c | tail -n 3)"
+    fi
+fi
+
+# --- Gate 6: wire-contract smoke (server over TCP + spec-driven client). ----
+# The client is designed to exit 0 iff every check passes (and nonzero if it
+# cannot even get a valid ready message), so its EXIT CODE is the truth - we
+# do not grep its output (the success summary contains the word "failed" as
+# in "0 failed"). A hard 30s client timeout prevents any hang.
+if [ -f build/mingw/mcp-w32s.exe ] && [ -f build/mingw/wire_client.exe ]; then
+    taskkill.exe /F /IM mcp-w32s.exe >/dev/null 2>&1 || true   # clear strays
+    ( cd build/mingw && cp -r ../../catalog . >/dev/null 2>&1; \
+      ./mcp-w32s.exe /TCP:31798 >/dev/null 2>&1 & echo $! > /tmp/phase-gate-srv.pid )
+    sleep 3
+    wire_rc=0
+    ( cd build/mingw && timeout 30 ./wire_client.exe 127.0.0.1 31798 \
+        >/tmp/phase-gate-wire.log 2>&1 ) || wire_rc=$?
+    kill "$(cat /tmp/phase-gate-srv.pid 2>/dev/null)" 2>/dev/null || true
+    taskkill.exe /F /IM mcp-w32s.exe >/dev/null 2>&1 || true
+    rm -f /tmp/phase-gate-srv.pid
+    if [ "$wire_rc" != "0" ]; then
+        block "phase-gate: wire-contract smoke failed (client rc=$wire_rc): $(tail -n 3 /tmp/phase-gate-wire.log)"
+    fi
+fi
+
 # --- All deterministic local gates green. ----------------------------------
 echo "$curhash" > "$HASHFILE"
 exit 0
