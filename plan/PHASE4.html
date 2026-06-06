@@ -219,12 +219,12 @@
 <li><strong><code>max_output</code> sentinel + clamp:</strong> <code>config output_cap = 65536</code> per stream; <code>0</code>/omitted = cap; larger values clamp silently (truncation flags already report); 2×65536×4/3 + envelope fits <code>MCP_MAX_RESPONSE</code> 256 KB.</li>
 <li><strong>Capabilities is a <code>given</code> singleton</strong> (ambient context like the transport in mcp-protocol.allium) — probed once at startup, immutable; rules guard on <code>capabilities.has_*</code>. Not an entity with creation rules; not a per-Process snapshot.</li>
 </ol>
-<p>Open questions to carry into the specs (tend records them as <code>open question</code> declarations):</p>
-<ul>
-<li>Should a later request be able to query/reap a <code>still_active</code> child (e.g. a <code>status</code> command), or is it invisible until process exit?</li>
-<li>Does <code>ptyExec</code> share the busy semantics with <code>exec</code> while a <code>still_active</code> child holds the VDM?</li>
-<li>Is the catalog reloadable at runtime, or fixed for the server session?</li>
-</ul>
+<p>Open questions — <strong>settled 2026-06-06</strong> (no open questions remain for tend):</p>
+<ol start="9">
+<li><strong>Implicit reap with informative busy.</strong> The server retains the <code>still_active</code> child's handle; every exec/ptyExec request first re-polls <code>GetExitCodeProcess</code>: exited → handle closed, request proceeds; still running → <code>"busy"</code>, and the busy error response carries detail — the still_active child's <code>cmd_line</code> and elapsed ms — so the client can see what is blocking. No new protocol command.</li>
+<li><strong>Shared busy domain.</strong> Any <code>still_active</code> child blocks both <code>exec</code> and <code>ptyExec</code> (one rule; PTY exists only on Win10+ where 16-bit VDM children barely occur, but the spec stays uniform).</li>
+<li><strong>Catalog fixed per session.</strong> Loaded once at startup (<code>/CATALOG:</code> path); changing it requires a server restart — matches the probe-once Capabilities model. Runtime reload is a Phase 5+ question if the bridge ever needs it.</li>
+</ol>
 <h3 id="required-workflow-allium-lifecycle--order-is-mandatory"><a class="header" href="#required-workflow-allium-lifecycle--order-is-mandatory">Required workflow (Allium lifecycle — order is mandatory)</a></h3>
 <p>Phase 4 runs spec-first using the Allium plugin skills (see CLAUDE.md "Specification &amp; Test Workflow"):</p>
 <ol>
