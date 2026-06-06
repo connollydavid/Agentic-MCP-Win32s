@@ -10,7 +10,9 @@ Phase 4 is fully self-contained — argv quoting, timeouts, stdin pass-through, 
 
 ### 4.0 — Weed remediation (corrections carried forward from Phases 2–3)
 
-A `/allium:weed` audit on 2026-06-06 (allium CLI 3.2.4, specs at MCP-Win32s@e143fef) found 6 divergences in work from closed Phases 2–3. Per PLAN.md rule 3 they are corrected here, as Phase 4's first work item. **4.0 runs the full Allium lifecycle on its own branch and its weed re-run must report zero unrecorded drift before any 4.1+ (exec) work starts.**
+**Status: ✅ Complete 2026-06-06** — MCP-Win32s PR #9 merged (`4bdff83`); findings 1–6 plus review-found #7 resolved/recorded; `allium check` zero-error, `transport.allium` analyse-clean; 116 tests green incl. the pinning test; adversarial review sub-agent verdict: approve.
+
+A `/allium:weed` audit on 2026-06-06 (allium CLI 3.2.4, specs at MCP-Win32s@e143fef) found 6 divergences in work from closed Phases 2–3 (a 7th was found in PR review). Per PLAN.md rule 3 they are corrected here, as Phase 4's first work item. **4.0 runs the full Allium lifecycle on its own branch and its weed re-run must report zero unrecorded drift before any 4.1+ (exec) work starts.**
 
 | # | Finding | Classification | Resolution |
 |---|---------|----------------|------------|
