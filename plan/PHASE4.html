@@ -190,6 +190,7 @@
 <tr><td>4</td><td>Code error vocabulary richer than spec ("read error", "invalid base64", "incomplete write", …)</td><td>Intentional gap</td><td>tend: recorded-gap note in <code>file-ops.allium</code></td></tr>
 <tr><td>5</td><td>Pre-parse "invalid JSON" reject path unspecified (<code>src/mcp-w32s.c:93-101</code>)</td><td>Spec gap</td><td>tend: rule/prose note in <code>mcp-protocol.allium</code></td></tr>
 <tr><td>6</td><td>No surfaces/actors in <code>transport.allium</code>; all 7 external triggers unprovided per <code>allium analyse</code></td><td>Maturity gap — <strong>in 4.0 scope</strong> (decided 2026-06-06)</td><td>tend: add OS/Winsock/operator surfaces providing all 7 triggers</td></tr>
+<tr><td>7</td><td><code>WriteCommand</code> passes <code>data: cmd.data</code> into <code>FileWriteResult.created</code> but <code>FileWriteResult</code> declares no <code>data</code> field (<code>mcp-protocol.allium:118-122</code>) — same class as #3; found by PR #9 review sub-agent, not by <code>allium check</code></td><td>Spec bug</td><td>tend: drop the phantom field (addressed within PR #9)</td></tr>
 </tbody></table>
 </div>
 <h3 id="40b--wire-contract-smoke-harness-c--pbt-allium-specified"><a class="header" href="#40b--wire-contract-smoke-harness-c--pbt-allium-specified">4.0b — Wire-contract smoke harness (C + PBT, Allium-specified)</a></h3>
