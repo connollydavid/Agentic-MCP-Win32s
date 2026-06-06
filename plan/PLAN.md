@@ -9,7 +9,7 @@ Phase plans for the software under development (`mcp-win32s/` submodule). Each p
 | 1 | [PHASE1.md](PHASE1.md) | Foundation: test framework, JSON parser, serial init, main loop, CI | **Complete** |
 | 2 | [PHASE2.md](PHASE2.md) | File operations + base64 + PBT | **Complete** |
 | 3 | [PHASE3.md](PHASE3.md) | Network & transport: vtable backends, serial refactor, TCP/Winsock | **Complete** |
-| 4 | [PHASE4.md](PHASE4.md) | Command execution + catalog + feature uplift + theft harness + spec backfill | Spec'd |
+| 4 | [PHASE4.md](PHASE4.md) | Command execution + catalog + feature uplift + theft harness + spec backfill + weed remediation (4.0) + wire-contract smoke harness | **In progress** |
 | 5 | [PHASE5.md](PHASE5.md) | MCP integration | Not started |
 | 6 | [PHASE6.md](PHASE6.md) | Cross-platform testing | Not started |
 | 7 | [PHASE7.md](PHASE7.md) | Documentation & polish | Not started |
@@ -21,3 +21,4 @@ Phase plans for the software under development (`mcp-win32s/` submodule). Each p
 3. **Corrections go forward.** If a completed phase turns out to be wrong or incomplete, do not reopen it. Record the correction as scope in the next (or a new) phase file, referencing the closed phase.
 4. **One status transition path.** `Not started → Spec'd → In progress → Complete`. Status changes are recorded in both the phase file heading and the index table, in the same commit.
 5. **Completion gate.** A phase may only be marked Complete after the Allium lifecycle gate passes (specs tended, obligations propagated, weed audit clean) in the `mcp-win32s/` submodule.
+6. **Opening a phase requires an explicit planning pause.** Before any code or spec work for a phase begins, the phase file is reviewed and amended to current reality — stale references fixed, corrections carried forward from closed phases scoped in, open decisions resolved via Q&A and recorded — its status moves to **In progress** in the same commit, and that commit is pushed. Execution may never start from an unreviewed plan.
