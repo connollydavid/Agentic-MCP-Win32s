@@ -38,6 +38,24 @@ Phase 4 ships the server side of the MCP bridge contract; the bridge itself is P
 - **Catalog ↔ MCP tools:** each catalog entry's `description` + `options`/`positional` typing MUST convert mechanically to an MCP tool definition (`name`, `description`, `inputSchema` with typed properties). The mapping is documented in `catalog/MCP-MAPPING.md` (documentation only — no mapping code in Phase 4). This is an acceptance criterion; it prevents a catalog v2 in Phase 5.
 - **Deferred to Phase 5:** MCP SDK choice (Python `mcp` vs TypeScript) and the bridge implementation itself. Accepted risk: the JSON schemas frozen here may need a vNext if the SDK choice pushes back.
 
+### 4.1 Elicit outcomes (2026-06-06) — domain-model decisions binding on tend
+
+Discovery session against the spec sketches below; these decisions **override** the sketches where they conflict:
+
+1. **`busy` = live `still_active` child only.** The server is single-threaded and exec is synchronous, so the sketched general ExecBusyRejected is unreachable; a second request queues in the transport. `"busy"` is returned only while a deliberately-unkilled child (see 2) still runs. Drop the general rule.
+2. **New terminal state `still_active`** (Win32-recognizable: `GetExitCodeProcess`'s `STILL_ACTIVE`, the very sentinel the Q1 poll loop checks): a timed-out 16-bit child is NOT terminated (Q12, shared VDM) and transitions `running -> still_active` (terminal; `killed_by: none`). `timed_out` now strictly means *killed on timeout*. Rejected names: abandoned (Win32 mutex/debugger collision), detached (DETACHED_PROCESS collision), zombie (opposite meaning), disowned (not Win32 vocabulary).
+3. **Shell built-ins auto-route via catalog.** kind=shell-builtin wraps in the era-correct shell regardless of the request's `shell` flag; `exec_method:"shell"` reports it. The `shell` flag matters only for uncatalogued/external commands.
+4. **stdin capped:** `config stdin_max = 4096` (one pipe buffer — a full write can never block the single-threaded server); larger → error `"stdin too large"`. Threaded uplift may raise it later.
+5. **Timeouts are MCP-idiomatic and never unbounded:** `config default_timeout_ms = 55000` (inside the MCP TS SDK's 60 s `DEFAULT_REQUEST_TIMEOUT_MSEC`, with margin to deliver the in-band timed_out response), `config max_timeout_ms = 600000` hard ceiling; `timeout_ms: 0`/omitted is the documented sentinel for "server default" (supersedes pre-decision "0 = no timeout").
+6. **Unsafe audit is a response field**, `"unsafe_used": true` — never injected into `stderr_b64` (supersedes the "logged in stderr buffer" sketch).
+7. **`max_output` sentinel + clamp:** `config output_cap = 65536` per stream; `0`/omitted = cap; larger values clamp silently (truncation flags already report); 2×65536×4/3 + envelope fits `MCP_MAX_RESPONSE` 256 KB.
+8. **Capabilities is a `given` singleton** (ambient context like the transport in mcp-protocol.allium) — probed once at startup, immutable; rules guard on `capabilities.has_*`. Not an entity with creation rules; not a per-Process snapshot.
+
+Open questions to carry into the specs (tend records them as `open question` declarations):
+- Should a later request be able to query/reap a `still_active` child (e.g. a `status` command), or is it invisible until process exit?
+- Does `ptyExec` share the busy semantics with `exec` while a `still_active` child holds the VDM?
+- Is the catalog reloadable at runtime, or fixed for the server session?
+
 ### Required workflow (Allium lifecycle — order is mandatory)
 
 Phase 4 runs spec-first using the Allium plugin skills (see CLAUDE.md "Specification & Test Workflow"):
