@@ -82,7 +82,9 @@ Minimal deps: `rmcp` (`server,macros,transport-io`) + `tokio` (current-thread) +
     - **R4 (nit)** — removed dead `Response::field_str`. **R5 (obs)** — corrected the G2 wording (rmcp down-negotiates any string; it never rejects on version).
     Re-verified after fixes: `cargo fmt --check`/`clippy -D warnings` clean, `cargo test` **9 green**, `allium check`/`analyse` clean, all 7 local gates green, gate re-armed.
 
-  **Paused before the merge gate** — **observed CI** (the new `bridge` job runs on push) → squash-merge → submodule-pointer bump remain (the human-gated close-out).
+  **observed CI ✅** — run `27078962527` on `b835626`: both jobs green (C `build-and-test` + the new `bridge` job: fmt/clippy/release-build/test). The actual CI run on the pushed commit, observed.
+
+  **Merge-ready — paused before the human-gated close-out.** All checkable merge-gate criteria are satisfied: deterministic (7 local gates, armed) · spec lifecycle (tend/propagate/implement/weed, zero unrecorded drift) · judgment (adversarial review, findings resolved in-branch) · parity (observed CI green). Remaining and **awaiting explicit authorization**: squash-merge `claude/phase5-bridge` → `main` (submodule), then the separate submodule-pointer bump in the host repo.
 - **5.1** — API-first file-ops + **device expansion** (Copy/Move/MakeDir/RemoveDir in the C server).
 - **5.2** — compositional build steps + cl/link diagnostic parsing.
 - **5.3** — **memory** peek/poke (device, tiered/user-mode; tools; the gating/safety model).
