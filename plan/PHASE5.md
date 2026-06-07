@@ -84,7 +84,7 @@ Minimal deps: `rmcp` (`server,macros,transport-io`) + `tokio` (current-thread) +
 
   **observed CI ✅** — run `27078962527` on `b835626`: both jobs green (C `build-and-test` + the new `bridge` job: fmt/clippy/release-build/test). The actual CI run on the pushed commit, observed.
 
-  **Merge-ready — paused before the human-gated close-out.** All checkable merge-gate criteria are satisfied: deterministic (7 local gates, armed) · spec lifecycle (tend/propagate/implement/weed, zero unrecorded drift) · judgment (adversarial review, findings resolved in-branch) · parity (observed CI green). Remaining and **awaiting explicit authorization**: squash-merge `claude/phase5-bridge` → `main` (submodule), then the separate submodule-pointer bump in the host repo.
+  **5.0 Complete ✅** — squash-merged as `connollydavid/MCP-Win32s#11` (submodule `main` `805cdc3` → `5a3d0a5`); host submodule-pointer bumped (`9f5df63`). All merge-gate criteria satisfied: deterministic (7 local gates) · spec lifecycle (tend/propagate/implement/weed, zero unrecorded drift) · judgment (adversarial review, R1–R5 resolved in-branch) · parity (CI observed green on the merge head — both the C `build-and-test` and the new `bridge` job). `/phase-gate` cleared. **Next:** work-item **5.1** (API-first file-ops + device expansion), its own tend→propagate→implement→weed→review cycle from a fresh-session boundary.
 - **5.1** — API-first file-ops + **device expansion** (Copy/Move/MakeDir/RemoveDir in the C server).
 - **5.2** — compositional build steps + cl/link diagnostic parsing.
 - **5.3** — **memory** peek/poke (device, tiered/user-mode; tools; the gating/safety model).
