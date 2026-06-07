@@ -73,9 +73,16 @@ Minimal deps: `rmcp` (`server,macros,transport-io`) + `tokio` (current-thread) +
     - Re-verified: `allium check`/`analyse` clean; `cargo test` **9 green** (6 integration + 3 proptest).
     Recorded intentional gaps (rmcp-delegated / deferred — zero *unrecorded* drift):
     - **G1** capability-prune enforcement (`remove_route`→absence from `tools/list`) unexercised in 5.0 (`GATED_TOOLS` empty) — **hard precondition on 5.3** (first gated tool `win32_peek`/`poke`).
-    - **G2** `initializing→failed` — delegated to `device::connect` bail / rmcp version rejection (no bridge session object). **G3** `ready→closed` — rmcp's `waiting()` on disconnect. **G4** `ReadySessionHasVersion` — rmcp guarantees a non-empty version (now also asserted). **G5** `rejected`/`ProtocolError` — rmcp's router raises the JSON-RPC error before bridge code. **G6** non-`ok` device status → recoverable-error branch (faithful conservative realization).
+    - **G2** `initializing→failed` — delegated to the pre-session `device::connect` bail (rmcp never *rejects* on version — it down-negotiates any string; no bridge session object). **G3** `ready→closed` — rmcp's `waiting()` on disconnect. **G4** `ReadySessionHasVersion` — rmcp guarantees a non-empty version (now also asserted). **G5** `rejected`/`ProtocolError` — rmcp's router raises the JSON-RPC error before bridge code. **G6** non-`ok` device status → recoverable-error branch (faithful conservative realization).
 
-  **Paused before the merge gate** — adversarial review → observed CI → squash-merge → submodule-pointer bump remain (the human-gated close-out).
+  **review ✅** — independent fresh-context adversarial reviewer (read-only); verdict **request-changes** on two *process-gate* defects, **no artifact blocker**. It independently re-verified: additive-only scope (0 deleted lines, no C/CMake touched), `allium` clean, `cargo test` 9 green, fail-closed capability gate (no bypass), stderr-only logging, the **release binary is server-only/current-thread** (rmcp `client` + tokio `rt-multi-thread` absent from the resolved release features), and down-negotiation faithful to rmcp source. Findings resolved in-branch:
+    - **R1 (should-fix)** — the bridge crate had **no CI**, so "observed CI" was unsatisfiable. Added a `bridge` job to `.github/workflows/build-and-test.yml` (`cargo fmt --check` · `clippy -D warnings` · `build --release` · `test`); green locally.
+    - **R2 (should-fix)** — `Cargo.lock` was git-ignored on a binary crate (non-reproducible builds; the rmcp-pinned negotiation test could drift). Now **tracked** (removed from `bridge/.gitignore`, force-added).
+    - **R3 (nit)** — `device_error_maps_to_iserror` didn't pin the reason text (spec `text: reason`); added a content assertion for `"unknown command"`.
+    - **R4 (nit)** — removed dead `Response::field_str`. **R5 (obs)** — corrected the G2 wording (rmcp down-negotiates any string; it never rejects on version).
+    Re-verified after fixes: `cargo fmt --check`/`clippy -D warnings` clean, `cargo test` **9 green**, `allium check`/`analyse` clean, all 7 local gates green, gate re-armed.
+
+  **Paused before the merge gate** — **observed CI** (the new `bridge` job runs on push) → squash-merge → submodule-pointer bump remain (the human-gated close-out).
 - **5.1** — API-first file-ops + **device expansion** (Copy/Move/MakeDir/RemoveDir in the C server).
 - **5.2** — compositional build steps + cl/link diagnostic parsing.
 - **5.3** — **memory** peek/poke (device, tiered/user-mode; tools; the gating/safety model).
