@@ -1510,7 +1510,8 @@ Recorded intentional gaps (rmcp-delegated / deferred — zero <em>unrecorded</em
 <li><strong>R4 (nit)</strong> — removed dead <code>Response::field_str</code>. <strong>R5 (obs)</strong> — corrected the G2 wording (rmcp down-negotiates any string; it never rejects on version).
 Re-verified after fixes: <code>cargo fmt --check</code>/<code>clippy -D warnings</code> clean, <code>cargo test</code> <strong>9 green</strong>, <code>allium check</code>/<code>analyse</code> clean, all 7 local gates green, gate re-armed.</li>
 </ul>
-<p><strong>Paused before the merge gate</strong> — <strong>observed CI</strong> (the new <code>bridge</code> job runs on push) → squash-merge → submodule-pointer bump remain (the human-gated close-out).</p>
+<p><strong>observed CI ✅</strong> — run <code>27078962527</code> on <code>b835626</code>: both jobs green (C <code>build-and-test</code> + the new <code>bridge</code> job: fmt/clippy/release-build/test). The actual CI run on the pushed commit, observed.</p>
+<p><strong>Merge-ready — paused before the human-gated close-out.</strong> All checkable merge-gate criteria are satisfied: deterministic (7 local gates, armed) · spec lifecycle (tend/propagate/implement/weed, zero unrecorded drift) · judgment (adversarial review, findings resolved in-branch) · parity (observed CI green). Remaining and <strong>awaiting explicit authorization</strong>: squash-merge <code>claude/phase5-bridge</code> → <code>main</code> (submodule), then the separate submodule-pointer bump in the host repo.</p>
 </li>
 <li>
 <p><strong>5.1</strong> — API-first file-ops + <strong>device expansion</strong> (Copy/Move/MakeDir/RemoveDir in the C server).</p>
