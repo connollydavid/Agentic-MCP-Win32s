@@ -417,6 +417,24 @@ encoding provenance.)
   decision.** To resume after a fixed device build: `run-win.bat hdd`, insert the deploy
   floppy, run the device, connect the wire harness at `127.0.0.1:31800` (the driving tooling
   — `run-win.bat`/`mon-win.sh` — is committed and proven).
+
+  **🟢 FINDING #1 FIXED at the source (branch `claude/win32s-mini-crt`, 2026-06-11).** Root
+  cause: MinGW links the C runtime to `msvcrt.dll`; Win32s has none. Fix = a freestanding
+  **C89 minimal CRT** (`src/mini_crt.c`): custom `mainCRTStartup` = `ExitProcess(main())`
+  (main() is `int main(void)`, reads `GetCommandLineA()` itself), `__main` stub, and thin
+  Win32-backed shims (`malloc/calloc/free`→HeapAlloc; `memset/memcpy/memmove/memcmp`;
+  `strcmp/strncmp/strlen`; `exit/abort`→ExitProcess). MinGW build links `-nostdlib` + libgcc;
+  **imports collapse to `{kernel32,user32}`** (ImageBase 0x10000, .reloc kept, i386-clean).
+  The device's whole CRT surface was tiny (no stdio — formatting is `wsprintfA`/`lstr*`).
+  Tests + VC6 path untouched. Also added: the **exhaustive import-allowlist CI assertion**
+  (catches this class statically on the Ubuntu runner, where Wine can't) and a **real-Windows
+  CI job** (MSYS2; runs exec/Winsock/ConPTY without Wine — currently non-blocking, stuck on
+  an MSYS2 windres quirk). **Gates passed:** observed CI green on the required jobs
+  (build-and-test/bridge/conformance); independent adversarial **review = APPROVE** (the
+  reviewer rebuilt + brute-tested every shim against libc semantics — no defect). Remaining
+  to fully close: (1) on-Win32s re-deploy — confirm the fixed device *loads* on the pinned
+  guest (needs the VM relaunched); (2) merge the branch (submodule bump) once the on-target
+  confirmation is in hand; (3) stabilise or shelve the real-Windows CI job.
 - **6.3 Win98 SE (real hardware, serial)**: matrix assert (arena/threads/manual);
   threaded capture; **16-bit VDM child best-effort live test** (.COM/.EXE, timeout →
   no Terminate, orphan reap); file ops; codepage tier; on-target suite; SetErrorMode
