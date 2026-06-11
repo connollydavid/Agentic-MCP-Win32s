@@ -46,20 +46,60 @@ From the closed phases (quotes live in PHASE4.md / PHASE5.md / MEMORY.md):
    2026-06-11): the guest images live in a **gitignored `vendor/` directory** at the
    host-repo root. Replication is documented *in this file* (provenance + hashes
    below; local sha256 recorded at vendor time); the binaries stay out of git.
-6. **The OVA's contents must be verified to contain nothing unofficial** before use:
-   it is a third-party prebuilt VM, so its guest filesystem is inventoried and
-   diffed against the **original-floppies baseline** (item below). Anything not
-   traceable to official Microsoft Windows 3.11 / Win32s 1.25a distribution files
-   (or inert VM scaffolding) is removed or the image is rebuilt from the floppies.
-7. **Win32s 1.25a** still has to be sourced/applied separately if the OVA does not
-   already carry it — recorded during verification.
+6. **The OVA's contents must be verified to contain nothing unofficial** before use.
+   **Verification result (2026-06-11): the OVA is REJECTED as the base image.** All
+   hashes verified (archive md5/sha256, internal `.mf` sha1 — see below), and the
+   61 MB second disk is benign (the standard VirtualBox Guest Additions ISO). But the
+   primary VMDK's guest filesystem is **contaminated with preloaded third-party /
+   non-base software** — a `COBOL\` toolchain and an `F32\` tree (Microsoft FORTRAN
+   PowerStation 32), matching the OVF's own "Programmer's Edition … preloaded with
+   Microsoft FORTRAN PowerStation and QBASIC" annotation and a third-party EULA
+   (© A. Scott Fulkerson). It is not an official-only baseline, so it fails the bar.
+7. **Pivot (operator directive 2026-06-11): build a fresh, scripted install** under
+   QEMU from **verified, official-only Microsoft media**. DOS substrate settled as
+   **MS-DOS 6.22** (operator directive — bundle item below). Win32s 1.25a (the actual
+   device target) still to source + verify the same way. Edition (plain 3.11 vs WfW
+   for the TCP/IP-32 stretch) left open; plain 3.11 is sufficient for the serial
+   baseline.
+
+### Authenticity note — Microsoft never shipped these as ISOs
+
+Windows 3.1 / 3.11 / WfW 3.11 / MS-DOS 6.22 were distributed by Microsoft on **floppy
+disks** (1993–94), not CD-ROM. Every "Windows 3.11 ISO" in circulation is a **community
+repackaging** of the original floppy install files onto a CD image — the *file payloads*
+can be genuine Microsoft files, but the ISO container is not an official Microsoft
+product. Confirmed empirically: two "Windows 3.11" sources here disagree — the
+`win311_202602` floppies are a 6-disk `MSWIN3111` set (`SETUP.EXE` 436,560 B, Dec 1993)
+while the `windows-3.11_Dos_6.22_ISO` bundle is an 8-disk set (`SETUP.EXE` 244,255 B,
+Nov 1993): **different official builds**, not a clean byte-match. Consequence for the
+"nothing unofficial" bar: trust is anchored on the **floppy file set** (the authentic
+original distribution form, hash-verified against archive metadata); ISOs are treated as
+convenience transports whose payloads are inspected for foreign content (both bundle
+ISOs scanned clean — only classic MS-DOS 6.22 / Windows 3.1x files, no foreign
+executables) but are not assumed identical to the floppies.
+
+**Preferred sourcing strategy — MSDN (operator directive 2026-06-11).** The one form
+in which Microsoft *did* officially ship these on CD-ROM is **MSDN** (and the
+Win32 SDK / TechNet). MSDN Operating-Systems subscription discs carried MS-DOS,
+Windows 3.1 / 3.11 / WfW 3.11, **and Win32s** as genuine Microsoft developer
+distributions — a single coherent, license-clean provenance, and the authoritative
+home for **Win32s 1.25a** (which Microsoft distributed through the developer channel,
+not retail). The plan therefore prefers a verified MSDN OS disc as the source of
+record for Win32s 1.25a (and WfW 3.11 for the TCP stretch), with the floppy/ISO sets
+above as already-verified fallbacks for the DOS+Windows substrate.
 
 ## Environment provenance (6.2 base images)
 
-| Artifact | archive.org item | File | Size | md5 (archive) | sha1 (archive) |
+| Artifact | archive.org item | File | Size | md5 (archive) | verified |
 |---|---|---|---|---|---|
-| Prebuilt VM | `CE55E93BC43C767067BD371EFB97259FE20BC97FB09055AF7BCFD3BA374B1824` ("Windows 3.11 Virtual Machine for Virtual Box", uploaded 2021-07-31) | `Windows 3.11.ova` | 83,561,472 | `81c7335681347d16b42ffeaea4546a88` | `6c0e0ff277ee4b0e99922a6747195ba48b4d58f7` |
-| Original floppies | `win311_202602` ("Microsoft Windows 3.11", real-media dump, uploaded 2026-02-17) | `disk1.img` … `disk6.img` (6 × 1,474,560) | see md5 list | `fec70046…`, `807403c3…`, `0986d880…`, `f8e92a83…`, `b2846c30…`, `1281a806…` | per-item metadata |
+| ~~Prebuilt VM~~ **REJECTED** | `CE55E93B…` ("Windows 3.11 VM for VirtualBox", 2021-07-31) | `Windows 3.11.ova` | 83,561,472 | `81c7335681347d16b42ffeaea4546a88` | hashes ✓ (md5+sha256+internal .mf sha1); **contents contaminated → rejected** |
+| **Original floppies** (trust anchor) | `win311_202602` ("Microsoft Windows 3.11", real-media dump, 2026-02-17) | `disk1.img`…`disk6.img` (6 × 1,474,560) | see md5 list below | md5 ✓ all six |
+| **MS-DOS 6.22** (substrate) | `windows-3.11_Dos_6.22_ISO` ("Windows 3.11 and Dos 6.22 bootable CDROM", 2022-02-02) | `MS-Dos 6.22.iso` | 6,473,728 | `0b805cfca48fddfb6c1f106083df36f5` | md5 ✓; contents = standard MS-DOS 6.22 (1994-05-31), clean |
+| Windows 3.11 (alt, 8-disk) | same bundle | `Windows 3.11.iso` | 11,948,032 | `a9e5ebc8219ddf800ad427d644ac8cfc` | md5 ✓; classic Win 3.1x files (1993-11), clean; different build from the floppies |
+| Greek 16-bit collection (candidate, not yet pulled) | `1998-01-01-ms-doswindows3.1windows3.11andwfw3.11` (2019-09-25) | `16-BIT.ISO` | 547,946,496 | `d1aac83b8febbb8b80bf5ea41f0506b0` | metadata tags **Greek**; includes WfW 3.11; full language enumeration needs a 522 MB pull |
+
+Local sha256 of every vendored file recorded at `vendor/win311/SHA256SUMS` at vendor
+time (gitignored with the binaries; the hashes are mirrored into the verification report).
 
 Full per-disk hashes: disk1 `fec70046eaa9b774035fad6cfd7f7fa0`, disk2
 `807403c3bbb0c5b6d0c26f4cbdb6e239`, disk3 `0986d880b621d8f0cc895008c9880009`,
@@ -111,13 +151,18 @@ encoding provenance.)
   assert fully — live `GetACP()==65001` manifest effect, ConPTY `ptyExec` for real,
   full on-target suite, job/ctrl tests, bridge end-to-end (TCP loopback) + an MCP
   client. Folds in the 5.5 VS Code demo artifacts if convenient.
-- **6.2 Windows 3.11 + Win32s 1.25a (QEMU)**: vendor + verify the base images (see
-  Environment provenance), convert the OVA disk to qcow2, boot under QEMU with
-  `-serial tcp:…` redirect; apply Win32s 1.25a if the image lacks it; deploy the 8.3
-  bundle; device on `/SERIAL:COM1`; matrix assert; `exec` `command.com /c dir` through
-  the **polling/GetExitCodeProcess path**; on-target tests where runnable. **Stretch**:
-  TCP/IP-32 add-on for the Winsock transport (needs WfW media if the image is plain
-  3.11).
+- **6.2 Windows 3.11 + Win32s 1.25a (QEMU, fresh scripted install)**: build a clean,
+  reproducible guest from verified official media (no prebuilt VM — the OVA was
+  rejected). Steps: install QEMU; create a blank qcow2; **scripted install of MS-DOS
+  6.22** (boot the verified DOS media, partition/format/`sys` C:, copy the DOS tree);
+  **unattended Windows 3.11 install** driving `SETUP /B` with a `SETUP.SHH` answer
+  file; **apply Win32s 1.25a** (source + verify first); boot headless under QEMU with
+  `-serial tcp:…` redirect; deploy the 8.3 bundle; device on `/SERIAL:COM1`; matrix
+  assert; `exec` `command.com /c dir` through the **polling/GetExitCodeProcess path**;
+  on-target tests where runnable. The whole build is captured as a committed,
+  re-runnable script (the harness's "make the 6.2 guest" target). **Stretch**:
+  TCP/IP-32 add-on for the Winsock transport (needs WfW 3.11 media — the Greek
+  collection or another WfW source, verified).
 - **6.3 Win98 SE (real hardware, serial)**: matrix assert (arena/threads/manual);
   threaded capture; **16-bit VDM child best-effort live test** (.COM/.EXE, timeout →
   no Terminate, orphan reap); file ops; codepage tier; on-target suite; SetErrorMode
