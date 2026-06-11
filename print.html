@@ -1888,9 +1888,21 @@ primary-sourced; the <strong>specific</strong> gap-disc identities still require
 redump.org set entry (BetaArchive's MSDN wiki + the contemporaneous Usenet disc-list posts
 on <code>microsoft.public.win98</code>/<code>alt.windows98</code> corroborate but are Cloudflare/JS-walled to
 automated fetch — read them in a browser to finish the confirmation).</p>
-<p>The separate MSDN <strong>Library</strong> (docs, X03-53436) and <strong>NT Server 4.0</strong> disc are a different
-product line, out of scope unless wanted. Every fetched ISO is md5-checked against this
-table on download; local sha256 appended to <code>SHA256SUMS</code>.</p>
+<p>The separate MSDN <strong>Library</strong> (docs) and <strong>NT Server 4.0</strong> disc are a different
+product line, out of scope for the <em>run</em> tiers — but the <strong>Library disc 1 carries the
+"MSDN CD Index"</strong>, the authoritative set catalog that would resolve the gap discs (6/7/8/15)
+with certainty. <strong>1998 MSDN Library (English) — official-hash manifest</strong> (operator-supplied; the <code>SW_CD_…</code>
+names are Microsoft's official download-repository form, so these are clean primary-source
+hash anchors). The Library's <strong>disc 1 carries the MSDN CD Index</strong> — the authoritative set
+catalog that resolves the gap discs. Fetching these needs the source-catalog download URL
+(SW_CD EXEs live on the MS CDN); recorded here as the verification anchor regardless:</p>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Part</th><th>Size (B)</th><th>md5</th><th>sha256</th></tr></thead><tbody>
+<tr><td><code>…Library_98_English_1…X03-86022.EXE</code></td><td>X03-86022</td><td>254,724,304</td><td><code>3645f702458e0e9de95257787c08a774</code></td><td><code>b5eb4983dd1d41c577655e21fee8367d8e0903fdfee3057b69de988fd65c5762</code></td></tr>
+<tr><td><code>…Library_98_English_2…X03-86026.EXE</code></td><td>X03-86026</td><td>563,864,648</td><td><code>13da56d41d7a4b5441693723fe2b092e</code></td><td><code>b2379d624324938b945f3ae042ea3f2e474d06aa95e0d3ec6759be70ba4e1e94</code></td></tr>
+</tbody></table>
+</div>
+<p>Every fetched Platform-Archive ISO is md5-checked against the disc table above on download;
+local sha256 appended to <code>SHA256SUMS</code>.</p>
 <p><strong>NT as a peer of Win32s (operator observation).</strong> Correct — Win32 originated on
 <strong>Windows NT</strong> (NT 3.1, 1993); <strong>Win32s is the <em>subset</em> back-ported onto 16-bit Windows
 3.1</strong>, so "the first Win32" is NT's native Win32 and Win32s is the stand-in below it. The
