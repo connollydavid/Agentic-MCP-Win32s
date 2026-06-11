@@ -545,6 +545,25 @@ proceeded; FreeCell ran anyway) — add genuine <code>SHARE.EXE</code> to <code>
 device runtime test (Win32s file-locking). Next: clean-shutdown + pin <code>hdd.img</code> sha256 +
 capture the installed <code>C:</code> tree (repeatable rebuild), then deploy <code>mcp-w32s.exe</code> and run
 the wire harness against COM1 (<code>127.0.0.1:31800</code>).</p>
+<p><strong>🔴 6.2 FINDING #1 — the device does not load on bare Win32s 1.25a (<code>MSVCRT.DLL</code>
+missing).</strong> Deployed <code>mcp-w32s.exe</code> (CI's MinGW-w64 build) to the verified guest and ran
+it from Program Manager; Windows refused it with <strong>"Cannot find MSVCRT.DLL"</strong>. Confirmed
+by <code>objdump -p</code>: the device imports <code>KERNEL32.dll</code>, <code>USER32.dll</code>, <strong><code>msvcrt.dll</code></strong> — but
+<strong>Win32s 1.25a ships <code>CRTDLL.DLL</code>, not <code>msvcrt.dll</code></strong> (it's in the Win32s redist as
+<code>Setup/CRTDLL.DL_</code>). The MinGW toolchain links the C runtime to <code>msvcrt.dll</code> implicitly
+(the device's own <code>target_link_libraries</code> is just <code>kernel32 user32</code>, but the CRT pulls
+<code>msvcrt</code>). <strong>This is a CI-parity blind spot of exactly the class Phase 6 exists to catch:</strong>
+CI runs the PEs under <strong>Wine, which provides <code>msvcrt.dll</code></strong>, so every prior green run
+masked it; real Win32s 1.25a does not. The device's "single .exe runs on bare Win32s
+1.25a" premise is therefore <strong>not yet met as built</strong>. Resolution needs a decision
+(deferred to instructions): (a) build the device against <strong><code>CRTDLL.DLL</code></strong> (the Win32-SDK
+CRT that Win32s provides — a <code>vc6-nmake</code> toolchain already exists in <code>toolchains/</code> but VC6
+also links <code>msvcrt</code>, so this needs the older Win32 SDK CRT or an <code>-lcrtdll</code>-style MinGW
+variant); (b) <strong>statically link</strong> the CRT so no external runtime is needed; (c) <strong>bundle</strong>
+a Win32s-compatible (period ~1995) <code>MSVCRT.DLL</code> redistributable (2-file deploy, and its
+own Win32s compatibility is unverified). The environment + Win32s are proven good
+(FreeCell ran); this is purely the device's runtime-link target. The baseline guest is
+pinned regardless so re-testing a fixed build is one deploy away.</p>
 </li>
 <li>
 <p><strong>6.3 Win98 SE (real hardware, serial)</strong>: matrix assert (arena/threads/manual);
