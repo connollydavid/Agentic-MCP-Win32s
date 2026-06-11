@@ -36,6 +36,20 @@ From the closed phases (quotes live in PHASE4.md / PHASE5.md / MEMORY.md):
    natively (not WSL-interop, so the interop skips assert fully).
 2. **All four tiers mandatory** for phase completion: WfW 3.11+Win32s 1.25a, Win98 SE,
    XP, Win11.
+2a. **Two compatibility floors to baseline against** (operator directive 2026-06-11):
+   the **Win16/Win32s floor** = Windows 3.x + **Win32s 1.25a**, and the
+   **native-Win32/NT floor** = **Windows NT 3.1** (July 1993, the first Windows NT and
+   the first Win32 platform — https://en.wikipedia.org/wiki/Windows_NT_3.1). These are
+   the *earliest/hardest* targets in each family: if the device loads and runs on NT 3.1,
+   every later NT (3.51/4.0/2000/XP/…/11) is covered by superset; if it runs on Win32s
+   1.25a, every later Win32s is covered. NT 3.1 exercises the device's delay-load floor
+   hardest — only the base Win32 of 1993 is present, so every API we resolve via
+   `GetProcAddress` and guard must correctly read as absent. Practical sourcing note: the
+   MSDN Jan-1998 set carries **NT 3.51**, not 3.1; **NT 3.1 needs separate sourcing**, and
+   **NT 3.51** (already in-hand) is the nearest *runnable* early-NT representative if NT
+   3.1 proves too hardware-picky under QEMU. Status: NT 3.1 is a **declared baseline
+   target**; whether it becomes a *run* tier in Phase 6 depends on sourcing + QEMU boot
+   (recorded as a work item, not yet a hard gate).
 3. **DBCS deferred**: a Japanese (cp932) Win98 will be made available later — the live
    DBCS-safe path-scan / strict-narrow verification is an explicit deferred item, not
    a Phase-6 blocker. The exhaustive per-codepage unit tests stand as current evidence.
@@ -163,26 +177,39 @@ The complete MSDN Platform Archive **January 1998** set is being mirrored locall
 | 3 | X03-54209 | `1_WIN31_DDKS.iso` (585 MB) | `f9f4432860352367182059e6d652cc30` | fetching |
 | 4 | X03-54210 | `1_WINNT351_WKS.iso` (612 MB) | `aaa7d6d32076a8bd4be5e208c74bf461` | fetching |
 | 5 | X03-54211 | `1_WIN32_SDK.iso` (614 MB) | `3fbe9711c7d7d5f6afb588e84cd5a519` | fetching |
-| **6** | **X03-54212** | — | — | **GAP — not on archive.org; source elsewhere** |
-| **7** | **X03-54213** | — | — | **GAP — not on archive.org; source elsewhere** |
-| **8** | **X03-54214** | — | — | **GAP — not on archive.org; source elsewhere** |
+| **6** | **unconfirmed** | — | — | **GAP — not on archive.org; part # NOT known (see caution)** |
+| **7** | **unconfirmed** | — | — | **GAP — not on archive.org; part # NOT known (see caution)** |
+| **8** | **unconfirmed** | — | — | **GAP — not on archive.org; part # NOT known (see caution)** |
 | 9 | X03-54215 | `1_NT351WKS_ES_IT.iso` (603 MB) | `0c6c18c3dae6192a57420a898ecafdc2` | fetching |
 | 10 | X03-54216 | `1_NT351WKS_NL_SV.iso` (588 MB) | `828cd2b6ee51dae90e406b3e932c42ac` | fetching |
 | 11 | X03-54217 | `1_NT351WKS_FI_NO.iso` (577 MB) | `7f3604fca7e1887cb9ed0b0d45852b7b` | fetching |
 | 12 | X03-54218 | `1_NT351WKS_DA_PT.iso` (592 MB) | `3f6f02d7733fde5ad1e28eb93f565814` | fetching |
 | 13 | X03-54219 | `1_NT351WKS_DE_KO.iso` (597 MB) | `501e9a9be10f6b3d4958d918198d2953` | fetching |
 | 14 | X03-54220 | `1_NT351WKS_JA_SP5.iso` (561 MB) | `4519a4ca19d0b10158a985220180d76f` | fetching (**Japanese NT — DBCS-on-NT**) |
-| **15** | **X03-54221** | — | — | **GAP — not on archive.org; source elsewhere** |
+| **15** | **unconfirmed** | — | — | **GAP — not on archive.org; part # NOT known (see caution)** |
 | 16 | X03-54222 | `1_NT351WKS_FR_SP5.iso` (609 MB) | `e0fb9815b233a4374c46dd6aedc314fb` | fetching |
 
 Notes: discs **9–16** are NT 3.51 Workstation language localisations (only **14/Japanese** is
-Phase-6-relevant, for DBCS-on-NT; the European ones are archival completeness). The four
-**gaps (6/7/8/15)** sit between the Win32 SDK (disc 5) and the NT-language block (disc 9) and
-in the CJK NT band (disc 15, between Japanese-14 and French-16) — by series position likely
-Win95/additional-SDK media (6–8) and a CJK NT 3.51 localisation (15); contents unconfirmed
-until sourced. The separate MSDN **Library** (docs, X03-53436) and **NT Server 4.0** disc are a
-different product line, out of scope unless wanted. Every fetched ISO is md5-checked against
-this table on download; local sha256 appended to `SHA256SUMS`.
+Phase-6-relevant, for DBCS-on-NT; the European ones are archival completeness).
+
+**CAUTION — the gap discs (6/7/8/15) part numbers are NOT known.** Earlier this file
+extrapolated them from the rule `part = X03-(54206 + disc#)`, which fits all **11**
+confirmed discs exactly. That was a plausible-but-unverified inference and is **retracted**:
+the operator found **X03-54212** (the rule's predicted disc-6) referencing a **1996**
+product, and an archive.org search for the four predicted numbers returns only unrelated
+noise. The most likely reconciliation (operator hypothesis): MSDN Platform Archive shipped
+**quarterly**, and discs **unchanged** since an earlier release were re-pressed **as-is**,
+keeping their **original older part number and date** — so the Jan-1998 set physically
+includes discs stamped 1996/97, and the gap discs' real numbers are not in the contiguous
+Jan-1998 block. This stays **unresolved**: confirm the gap discs' true part numbers *and*
+contents from a primary source (the set's own index/disc-1 catalog, a redump.org set
+manifest, or the physical disc labels) — do not record extrapolated numbers as fact. (A
+small instance of the project's cornerstone: a rule that fits every visible data point is
+still a claim, not a verified artifact, the moment it is extended past its evidence.)
+
+The separate MSDN **Library** (docs, X03-53436) and **NT Server 4.0** disc are a different
+product line, out of scope unless wanted. Every fetched ISO is md5-checked against this
+table on download; local sha256 appended to `SHA256SUMS`.
 
 **NT as a peer of Win32s (operator observation).** Correct — Win32 originated on
 **Windows NT** (NT 3.1, 1993); **Win32s is the *subset* back-ported onto 16-bit Windows
