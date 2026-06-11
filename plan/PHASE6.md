@@ -28,8 +28,9 @@ From the closed phases (quotes live in PHASE4.md / PHASE5.md / MEMORY.md):
 
 ## Settled decisions (planning-pause Q&A, 2026-06-11)
 
-1. **Environments — mixed.** WfW 3.11 + Win32s 1.25a **emulated** (86Box or DOSBox-X;
-   emulator serial→TCP redirect so host tooling drives the guest's real COM-port code
+1. **Environments — mixed.** Windows 3.11 + Win32s 1.25a **emulated under QEMU**
+   (operator directive 2026-06-11, superseding the 86Box/DOSBox-X candidates; QEMU's
+   `-serial tcp:…` redirect lets host tooling drive the guest's real COM-port code
    path). Win98 SE and Windows XP on the **real dual-boot machine over the existing
    serial (null-modem) connection** to the dev host. Windows 11 = the dev host itself,
    natively (not WSL-interop, so the interop skips assert fully).
@@ -41,6 +42,36 @@ From the closed phases (quotes live in PHASE4.md / PHASE5.md / MEMORY.md):
 4. **Deliverable = scripted harness**: a committed per-tier acceptance harness
    (on-target runner + host-side wire/matrix checker) + committed per-tier
    verification reports with captured output. Human-triggered, repeatable.
+5. **Win 3.11 base image is vendored, never committed** (operator directive
+   2026-06-11): the guest images live in a **gitignored `vendor/` directory** at the
+   host-repo root. Replication is documented *in this file* (provenance + hashes
+   below; local sha256 recorded at vendor time); the binaries stay out of git.
+6. **The OVA's contents must be verified to contain nothing unofficial** before use:
+   it is a third-party prebuilt VM, so its guest filesystem is inventoried and
+   diffed against the **original-floppies baseline** (item below). Anything not
+   traceable to official Microsoft Windows 3.11 / Win32s 1.25a distribution files
+   (or inert VM scaffolding) is removed or the image is rebuilt from the floppies.
+7. **Win32s 1.25a** still has to be sourced/applied separately if the OVA does not
+   already carry it — recorded during verification.
+
+## Environment provenance (6.2 base images)
+
+| Artifact | archive.org item | File | Size | md5 (archive) | sha1 (archive) |
+|---|---|---|---|---|---|
+| Prebuilt VM | `CE55E93BC43C767067BD371EFB97259FE20BC97FB09055AF7BCFD3BA374B1824` ("Windows 3.11 Virtual Machine for Virtual Box", uploaded 2021-07-31) | `Windows 3.11.ova` | 83,561,472 | `81c7335681347d16b42ffeaea4546a88` | `6c0e0ff277ee4b0e99922a6747195ba48b4d58f7` |
+| Original floppies | `win311_202602` ("Microsoft Windows 3.11", real-media dump, uploaded 2026-02-17) | `disk1.img` … `disk6.img` (6 × 1,474,560) | see md5 list | `fec70046…`, `807403c3…`, `0986d880…`, `f8e92a83…`, `b2846c30…`, `1281a806…` | per-item metadata |
+
+Full per-disk hashes: disk1 `fec70046eaa9b774035fad6cfd7f7fa0`, disk2
+`807403c3bbb0c5b6d0c26f4cbdb6e239`, disk3 `0986d880b621d8f0cc895008c9880009`,
+disk4 `f8e92a836acfe2ea3313d3d4c55d19c1`, disk5 `b2846c309097edd7c5b2fa77cb957776`,
+disk6 `1281a806b8bd1fe43844ef501803b907` (md5; sha1 in the item metadata; local
+sha256 of every vendored file recorded here at vendor time).
+
+Notes: the six-disk set titles as plain **Windows 3.11**, not Windows *for
+Workgroups* 3.11 — to be confirmed from the disk contents during verification. If
+plain, the TCP/IP-32 Winsock **stretch** goal needs WfW media later; the serial
+baseline for the Win32s tier is unaffected. For QEMU the OVA's disk is extracted
+(an OVA is a tar of OVF + VMDK) and converted via `qemu-img convert` to qcow2.
 
 ## Per-tier expected capability matrix (the acceptance spine)
 
@@ -80,11 +111,13 @@ encoding provenance.)
   assert fully — live `GetACP()==65001` manifest effect, ConPTY `ptyExec` for real,
   full on-target suite, job/ctrl tests, bridge end-to-end (TCP loopback) + an MCP
   client. Folds in the 5.5 VS Code demo artifacts if convenient.
-- **6.2 WfW 3.11 + Win32s 1.25a (emulated)**: boot WfW 3.11 + Win32s 1.25a in
-  86Box/DOSBox-X; deploy the 8.3 bundle; device on `/SERIAL:COM1` with the emulator's
-  serial redirected to host TCP; matrix assert; `exec` `command.com /c dir` through
+- **6.2 Windows 3.11 + Win32s 1.25a (QEMU)**: vendor + verify the base images (see
+  Environment provenance), convert the OVA disk to qcow2, boot under QEMU with
+  `-serial tcp:…` redirect; apply Win32s 1.25a if the image lacks it; deploy the 8.3
+  bundle; device on `/SERIAL:COM1`; matrix assert; `exec` `command.com /c dir` through
   the **polling/GetExitCodeProcess path**; on-target tests where runnable. **Stretch**:
-  TCP/IP-32 add-on for the Winsock transport on Win32s.
+  TCP/IP-32 add-on for the Winsock transport (needs WfW media if the image is plain
+  3.11).
 - **6.3 Win98 SE (real hardware, serial)**: matrix assert (arena/threads/manual);
   threaded capture; **16-bit VDM child best-effort live test** (.COM/.EXE, timeout →
   no Terminate, orphan reap); file ops; codepage tier; on-target suite; SetErrorMode
