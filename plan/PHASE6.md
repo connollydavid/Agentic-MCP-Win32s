@@ -369,6 +369,24 @@ encoding provenance.)
   in `tools/phase6-qemu/README.md`: `FORMAT C: /S` → `D:\WIN311\SETUP` (Express) →
   `D:\W32S\SETUP.EXE` (FreeCell = Win32s smoke). After install, this side verifies the
   `device=*w32s.386` line in `SYSTEM.INI` and pins the image.
+
+  **✅ GUEST BUILT + Win32s VERIFIED (2026-06-11).** The Win32s/Win16 baseline tier guest
+  is installed and Win32s 1.25a is **confirmed working**. Driven end-to-end **from the
+  agent side** via the QEMU monitor (`sendkey`/`screendump`) over the host's *mirrored*
+  localhost (operator only launched `run-win.bat`; no per-step mousing). Sequence executed
+  and screenshotted: boot genuine MS-DOS 6.22 → `FORMAT C: /S` → `FDISK /MBR` (sfdisk
+  writes the partition table but no MBR bootstrap — added to the procedure) → boot C: =
+  genuine **MS-DOS 6.22** → `D:\WIN311\SETUP` Express → genuine **Windows 3.11** → reboot →
+  `WIN` → Program Manager → `D:\W32S\SETUP.EXE` → genuine **Win32s 1.25a** installed
+  (`C:\WINDOWS\SYSTEM` + `WIN32S`, FreeCell to `C:\WIN32APP\FREECELL`) → restart → **FreeCell
+  launches and renders** = the official Win32s smoke test **PASSES**. All media genuine
+  Microsoft (the unofficial "Looka" boot floppy was replaced with WinWorld MS-DOS 6.22;
+  its `COMMAND.COM` is byte-identical to the bundle's, confirming the bundle binaries were
+  genuine). Known follow-up: `SHARE.EXE` is not yet loaded (Win32s setup warned but
+  proceeded; FreeCell ran anyway) — add genuine `SHARE.EXE` to `AUTOEXEC.BAT` before the
+  device runtime test (Win32s file-locking). Next: clean-shutdown + pin `hdd.img` sha256 +
+  capture the installed `C:` tree (repeatable rebuild), then deploy `mcp-w32s.exe` and run
+  the wire harness against COM1 (`127.0.0.1:31800`).
 - **6.3 Win98 SE (real hardware, serial)**: matrix assert (arena/threads/manual);
   threaded capture; **16-bit VDM child best-effort live test** (.COM/.EXE, timeout →
   no Terminate, orphan reap); file ops; codepage tier; on-target suite; SetErrorMode
