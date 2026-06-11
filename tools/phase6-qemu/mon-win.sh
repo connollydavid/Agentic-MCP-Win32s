@@ -2,10 +2,12 @@
 # mon-win.sh — drive/observe the QEMU guest that is running on the WINDOWS host
 # (run-win.bat), from here in WSL2, over the QEMU monitor's TCP socket.
 #
-#   HOST  Windows host as seen from WSL2 (default: the WSL2 default gateway;
-#         in WSL2 *mirrored* networking use HOST=127.0.0.1)
-#   MON_PORT  monitor port (default 55555; must match run-win.bat's BIND/MON_PORT,
-#         and run-win.bat must use BIND=0.0.0.0 in NAT mode + a firewall allow)
+#   HOST  Windows host as seen from WSL2. Default 127.0.0.1, which works because
+#         this WSL2 instance runs *mirrored* networking (localhost shared with
+#         Windows — verified: Windows 127.0.0.1:135 is reachable). So run-win.bat
+#         can keep its secure default BIND=127.0.0.1 (no LAN exposure, no firewall
+#         hole). Override HOST only if mirrored networking is later turned off.
+#   MON_PORT  monitor port (default 55555; must match run-win.bat's MON_PORT)
 #
 # Usage:
 #   mon-win.sh ping                 check the monitor is reachable
@@ -19,7 +21,7 @@
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 B="$HERE/../../vendor/win311/build"; SHOTS="$B/shots"; mkdir -p "$SHOTS"
-HOST="${HOST:-$(ip route show default 2>/dev/null | awk '{print $3; exit}')}"
+HOST="${HOST:-127.0.0.1}"   # mirrored networking: Windows localhost is shared
 PORT="${MON_PORT:-55555}"
 
 mon() { printf '%s\r\n' "$1" | timeout 10 nc -w3 "$HOST" "$PORT" 2>/dev/null; }
