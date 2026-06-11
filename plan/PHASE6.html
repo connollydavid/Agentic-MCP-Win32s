@@ -528,6 +528,23 @@ capture the installed <code>C:</code> tree (mtools) so rebuilds are scripted. Op
 in <code>tools/phase6-qemu/README.md</code>: <code>FORMAT C: /S</code> → <code>D:\WIN311\SETUP</code> (Express) →
 <code>D:\W32S\SETUP.EXE</code> (FreeCell = Win32s smoke). After install, this side verifies the
 <code>device=*w32s.386</code> line in <code>SYSTEM.INI</code> and pins the image.</p>
+<p><strong>✅ GUEST BUILT + Win32s VERIFIED (2026-06-11).</strong> The Win32s/Win16 baseline tier guest
+is installed and Win32s 1.25a is <strong>confirmed working</strong>. Driven end-to-end <strong>from the
+agent side</strong> via the QEMU monitor (<code>sendkey</code>/<code>screendump</code>) over the host's <em>mirrored</em>
+localhost (operator only launched <code>run-win.bat</code>; no per-step mousing). Sequence executed
+and screenshotted: boot genuine MS-DOS 6.22 → <code>FORMAT C: /S</code> → <code>FDISK /MBR</code> (sfdisk
+writes the partition table but no MBR bootstrap — added to the procedure) → boot C: =
+genuine <strong>MS-DOS 6.22</strong> → <code>D:\WIN311\SETUP</code> Express → genuine <strong>Windows 3.11</strong> → reboot →
+<code>WIN</code> → Program Manager → <code>D:\W32S\SETUP.EXE</code> → genuine <strong>Win32s 1.25a</strong> installed
+(<code>C:\WINDOWS\SYSTEM</code> + <code>WIN32S</code>, FreeCell to <code>C:\WIN32APP\FREECELL</code>) → restart → <strong>FreeCell
+launches and renders</strong> = the official Win32s smoke test <strong>PASSES</strong>. All media genuine
+Microsoft (the unofficial "Looka" boot floppy was replaced with WinWorld MS-DOS 6.22;
+its <code>COMMAND.COM</code> is byte-identical to the bundle's, confirming the bundle binaries were
+genuine). Known follow-up: <code>SHARE.EXE</code> is not yet loaded (Win32s setup warned but
+proceeded; FreeCell ran anyway) — add genuine <code>SHARE.EXE</code> to <code>AUTOEXEC.BAT</code> before the
+device runtime test (Win32s file-locking). Next: clean-shutdown + pin <code>hdd.img</code> sha256 +
+capture the installed <code>C:</code> tree (repeatable rebuild), then deploy <code>mcp-w32s.exe</code> and run
+the wire harness against COM1 (<code>127.0.0.1:31800</code>).</p>
 </li>
 <li>
 <p><strong>6.3 Win98 SE (real hardware, serial)</strong>: matrix assert (arena/threads/manual);
