@@ -104,6 +104,24 @@ above as already-verified fallbacks for the DOS+Windows substrate.
 
 ## Environment provenance (6.2 base images)
 
+> **Verification status — what `md5 ✓` here does and does NOT prove (read first).**
+> Throughout this file, `md5 ✓` means **the local copy matches the hash published by the
+> *same* archive.org item** — i.e. it confirms **transit integrity / reproducibility only**
+> (the download wasn't truncated or corrupted, and anyone re-pulling the item gets the same
+> bytes). It does **NOT** establish **authenticity** — that the disc image is genuine,
+> complete, unmodified **official Microsoft** media — because these are **community uploads
+> with no independent authority** behind them (an uploader's modified image would still
+> match its own md5). Authenticity is only as strong as a second, independent check:
+> against-the-floppy-set cross-reference, an official Microsoft hash, a redump.org match, or
+> the MSDN **CD Index**. Where we have such a check it is noted; where we do not, the
+> artifact is **integrity-confirmed but authenticity-TBC**.
+>
+> **The MSDN Platform Archive Jan-1998 set is therefore `TBC`, not "clean/verified".** It is
+> (a) **incomplete** — discs 6/7/8/15 are missing — and (b) only **integrity-confirmed**
+> against archive.org's own metadata, never cross-checked against an authoritative Microsoft
+> reference. Treat "we have a clean MSDN set" as **unproven**. Upgrade TBC→confirmed requires
+> an independent authority (official hashes / CD Index / redump set match).
+
 | Artifact | archive.org item | File | Size | md5 (archive) | verified |
 |---|---|---|---|---|---|
 | ~~Prebuilt VM~~ **REJECTED** | `CE55E93B…` ("Windows 3.11 VM for VirtualBox", 2021-07-31) | `Windows 3.11.ova` | 83,561,472 | `81c7335681347d16b42ffeaea4546a88` | hashes ✓ (md5+sha256+internal .mf sha1); **contents contaminated → rejected** |
@@ -139,17 +157,20 @@ foreign-content scan of the USA trees we actually use).
 Local sha256 of every vendored file recorded at `vendor/win311/SHA256SUMS` at vendor
 time (gitignored with the binaries; the hashes are mirrored into the verification report).
 
-### MSDN January 1998 disc set — the authoritative source (survey)
+### MSDN January 1998 disc set — candidate source (survey) — **status: TBC**
 
-The "MSDN is our best hope" strategy resolved to the **MSDN January 1998** subscription
-disc set (official Microsoft CD-ROM media). Surveyed cheaply via ISO9660 path-table
-range-reads before downloading; the operator is acquiring the **full set locally (not
-git)**. Discs relevant to Phase 6:
+The "MSDN is our best hope" strategy pointed at the **MSDN January 1998** subscription
+disc set (in principle official Microsoft CD-ROM media). **But the set we have is `TBC`,
+not confirmed clean** (see the Verification-status banner above): it is **incomplete**
+(discs 6/7/8/15 missing) and only **integrity-confirmed** against archive.org's own
+metadata, never authenticated against an independent Microsoft reference. Surveyed cheaply
+via ISO9660 path-table range-reads before downloading; the operator is acquiring the full
+set locally (not git). Discs relevant to Phase 6:
 
 | Disc (part #) | Title | Holds | Relevance |
 |---|---|---|---|
-| 1 (the "Greek" item) | International 16-bit OS collection | MS-DOS 6.0/6.22/5, Win 3.1, **Win 3.11**, **WfW 3.11** across ~20 locales (incl. **Japanese/Korean/SimpChin DBCS**) | OS media + DBCS substrates; **vendored + md5 ✓** |
-| 2 (X03-54208) | 16-bit SDKs and Tools | **Win32s** (`/WIN32S`, 3-disk installer) + **Far East DBCS Win32s** (`/WIN32S/FAREAST`, JPN/KOR/CHN/TWN); OLE, ODBC, TAPI16, VFW; WfW311/Win31; NT 3.51 SP5 (Danish) | **the Win32s source**; **vendored + md5 ✓** |
+| 1 (the "Greek" item) | International 16-bit OS collection | MS-DOS 6.0/6.22/5, Win 3.1, **Win 3.11**, **WfW 3.11** across ~20 locales (incl. **Japanese/Korean/SimpChin DBCS**) | OS media + DBCS substrates; vendored, integrity ✓ / **auth-TBC** |
+| 2 (X03-54208) | 16-bit SDKs and Tools | **Win32s** (`/WIN32S`, 3-disk installer) + **Far East DBCS Win32s** (`/WIN32S/FAREAST`, JPN/KOR/CHN/TWN); OLE, ODBC, TAPI16, VFW; WfW311/Win31; NT 3.51 SP5 (Danish) | **the Win32s source**; vendored, integrity ✓ / **auth-TBC** |
 | 3 (X03-54209) | 16-bit DDKs | VISUALC (16-bit) + WIN31 driver kits | not needed (we don't build drivers) |
 | 4 (X03-54210) | Windows NT Workstation 3.51 (U.S.) + SP5 | NT 3.51 CHECKED/FREE builds, hotfixes | optional — NT 3.51 peer tier (earliest native Win32) |
 | 5 (X03-54211) | Win32 SDK (Win95 + NT 3.51) + NT 3.51 ResKit | the Win32 SDK; **another Win32s** (`…/WIN32S/DISKS/RETAIL/{WIN32S,OLE32S}`) | NT 3.51 dev refs; second Win32s copy |
@@ -180,12 +201,14 @@ floor, if wanted, must come from an official source.)
 
 The complete MSDN Platform Archive **January 1998** set is being mirrored locally (gitignored
 `vendor/win311/msdn_jan1998/`; **never committed**). Disc 1 was confirmed identical
-(md5 `d1aac83b…`) to the earlier `16-BIT.ISO` pull, so it is already local. Status:
+(md5 `d1aac83b…`) to the earlier `16-BIT.ISO` pull, so it is already local. **All "local"
+rows below are integrity-confirmed only (md5 = archive metadata) — authenticity is `TBC`**
+(community uploads, no independent authority; set incomplete). Status:
 
 | Disc | Part | ISO | md5 | Status |
 |---|---|---|---|---|
-| 1 | X03-54207 | `1_16-BIT.iso` (523 MB) | `d1aac83b8febbb8b80bf5ea41f0506b0` | **local ✓** (= `msdn_intl/16-BIT.ISO`) |
-| 2 | X03-54208 | `1_16-BIT_TOOLS.iso` (545 MB) | `75f36f715055f52671dfa426ec5a9481` | **local ✓** (`msdn_disc2/`) |
+| 1 | X03-54207 | `1_16-BIT.iso` (523 MB) | `d1aac83b8febbb8b80bf5ea41f0506b0` | local (integrity ✓, **auth-TBC**) (= `msdn_intl/16-BIT.ISO`) |
+| 2 | X03-54208 | `1_16-BIT_TOOLS.iso` (545 MB) | `75f36f715055f52671dfa426ec5a9481` | local (integrity ✓, **auth-TBC**) (`msdn_disc2/`) |
 | 3 | X03-54209 | `1_WIN31_DDKS.iso` (585 MB) | `f9f4432860352367182059e6d652cc30` | fetching |
 | 4 | X03-54210 | `1_WINNT351_WKS.iso` (612 MB) | `aaa7d6d32076a8bd4be5e208c74bf461` | fetching |
 | 5 | X03-54211 | `1_WIN32_SDK.iso` (614 MB) | `3fbe9711c7d7d5f6afb588e84cd5a519` | fetching |
