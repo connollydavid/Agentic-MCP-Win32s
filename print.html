@@ -2099,6 +2099,54 @@ reviewer rebuilt + brute-tested every shim against libc semantics — no defect)
 to fully close: (1) on-Win32s re-deploy — confirm the fixed device <em>loads</em> on the pinned
 guest (needs the VM relaunched); (2) merge the branch (submodule bump) once the on-target
 confirmation is in hand; (3) stabilise or shelve the real-Windows CI job.</p>
+<p><strong>🟢 FINDING #2 FIXED + DEVICE LOADS &amp; RUNS ON Win32s (branch <code>claude/win32s-mini-crt</code>,
+2026-06-11).</strong> With Finding #1 fixed, the re-deployed device cleared the MSVCRT error and
+surfaced <strong>Finding #2: <code>GetFileSizeEx</code> is absent from the Win32s 1.25a thunk</strong>
+(<code>w32scomb.dll</code>) — the loader reported "the procedure entry point GetFileSizeEx could not be
+located in w32scomb.dll". Same CI-parity blind spot class: <code>GetFileSizeEx</code> lives <em>in</em>
+<code>kernel32.dll</code> (so the DLL-level import allowlist passed it) and Wine provides it, so CI was
+green. Root cause: one use in <code>FileOpRead</code> (<code>src/file_ops.c:137</code>). <strong>Fix:</strong> swap to
+<code>GetFileSize</code> (exported by the thunk; sufficient — reads are buffer-bounded, far under the
+16 MB cap), error-checked per its <code>INVALID_FILE_SIZE</code> + <code>GetLastError()!=NO_ERROR</code> contract.
+Behaviour-preserving (only <code>fileSize.LowPart</code> was ever used); <code>test_file_ops</code> 26/26 green
+under Wine (commit <code>c1ba1ef</code>).</p>
+<p><strong>Deeper audit (operator request "do a deeper audit for missing APIs").</strong> Extracted all three
+Win32s 1.25a thunk DLLs (<code>W32SCOMB</code>/<code>W32SKRNL</code>/<code>W32SYS</code>, <strong>2221</strong> exported functions) from the
+pinned baseline and diffed the device's <strong>58</strong> static imports against them — after the
+<code>GetFileSize</code> swap, <strong>every one of the 58 is in the Win32s 1.25a export set (zero missing).</strong>
+Institutionalised as a <strong>function-level CI guard</strong> (commit <code>a791b73</code>):
+<code>tools/win32s-import-allowlist.txt</code> (the exhaustive 58 the device may import, each verified
+against the thunk) + a CI step asserting the binary's actual imports equal it exactly. Any new
+static import now fails CI until added — i.e. forces the per-symbol Win32s check that
+<code>GetFileSizeEx</code> slipped past. (The DLL-level kernel32+user32 allowlist was necessary but not
+sufficient — this is its function-level twin.)</p>
+<p><strong>ON-Win32s CONFIRMATION ✅ (2026-06-11, pinned guest via <code>run-win.bat hdd</code> + QEMU monitor):</strong>
+the fixed device <strong>loads and runs on real Win32s 1.25a</strong> — no missing-entry-point, no MSVCRT,
+no <code>GetFileSizeEx</code> dialog. It executes the full device startup (<code>FeatInit</code> → catalog load →
+exec gate → toolchain probe → backend register) and reaches <code>TransportOpen</code>, where it emits
+its <em>own</em> diagnostic <strong>"failed to open serial port"</strong> (MessageBoxA) — proof real device code
+is running, not just loading. <strong>Both loadability findings (#1 msvcrt, #2 GetFileSizeEx) are
+closed and verified live.</strong> Screenshot: <code>vendor/win311/build/shots/redeploy-02-launched.png</code>.</p>
+<p><strong>OPEN — serial transport on Win32s (next step; possible Finding #3).</strong> The device defaults to
+serial COM1 (<code>CreateFileA("COM1", GENERIC_READ|GENERIC_WRITE, …)</code>, <code>serial.c:63</code>; default set
+in <code>transport.c:163</code>) and the open fails on the guest. Win32s 1.25a <em>exports</em>
+<code>CreateFileA</code>/<code>SetCommState</code>/<code>SetCommTimeouts</code> (all allowlisted), so it intends to support
+Win32 serial — the failure is a fresh boundary, <strong>not</strong> a loadability defect: either
+environmental (guest COM1 config / QEMU <code>-serial tcp:…,server,nowait</code> with no client) or a
+genuine Win32s serial limitation needing a different open path (the 16-bit <code>COM1:</code> device-name
+form, or <code>OpenComm</code>). Bare Win 3.11 has no Winsock, so <code>/TCP</code> is out until the TCP/IP-32
+stretch — serial is the only wire transport on this tier, so this gates full wire conformance.
+<strong>This is the session pause point:</strong> the loadability goal ("device loads + runs on Win32s") is
+met; whether to chase the serial transport now (full conformance) or merge the loadability
+fixes first is the operator's call.</p>
+<p><strong>Merge readiness.</strong> Branch <code>claude/win32s-mini-crt</code> = Finding #1 (mini CRT, reviewed APPROVE)</p>
+<ul>
+<li>Finding #2 (<code>GetFileSize</code>) + the function-allowlist CI guard. Before merge: the GetFileSize
+change is behaviour-preserving (no spec change; weed re-run trivial); observed CI on the new
+commits must be green (run <code>27363257401</code> on <code>a791b73</code>); the <strong>review gate must re-run over the
+new commits</strong> (the prior APPROVE covered only the mini-CRT commits); merge needs explicit
+authorization (irreversible) + the submodule bump. Held here per the pause directive.</li>
+</ul>
 </li>
 <li>
 <p><strong>6.3 Win98 SE (real hardware, serial)</strong>: matrix assert (arena/threads/manual);
@@ -2155,6 +2203,7 @@ checklist.</li>
 </ul>
 <h2 id="stage-markers"><a class="header" href="#stage-markers">Stage markers</a></h2>
 <p>✅ 0 planning pause — 2026-06-11 (Q&amp;A settled environments/tiers/DBCS/deliverable; PHASE6.md expanded from stub; status In progress; commit 18ddde9)</p>
+<p>✅ 6.2 device LOADS + RUNS on Win32s 1.25a — 2026-06-11 (Findings #1 msvcrt + #2 GetFileSizeEx both fixed &amp; confirmed live on the pinned guest; deeper-audit clean — all 58 imports in the 2221-fn thunk export set; function-allowlist CI guard added. Branch claude/win32s-mini-crt @ a791b73 pushed. OPEN: serial transport on Win32s — pause point.)</p>
 <h2 id="out-of-scope-recorded-gaps"><a class="header" href="#out-of-scope-recorded-gaps">Out of scope (recorded gaps)</a></h2>
 <ul>
 <li>cp932/DBCS live verification (deferred — Japanese Win98 hardware forthcoming).</li>
