@@ -201,11 +201,30 @@ noise. The most likely reconciliation (operator hypothesis): MSDN Platform Archi
 **quarterly**, and discs **unchanged** since an earlier release were re-pressed **as-is**,
 keeping their **original older part number and date** — so the Jan-1998 set physically
 includes discs stamped 1996/97, and the gap discs' real numbers are not in the contiguous
-Jan-1998 block. This stays **unresolved**: confirm the gap discs' true part numbers *and*
+Jan-1998 block. Confirm the gap discs' true part numbers *and*
 contents from a primary source (the set's own index/disc-1 catalog, a redump.org set
 manifest, or the physical disc labels) — do not record extrapolated numbers as fact. (A
 small instance of the project's cornerstone: a rule that fits every visible data point is
 still a claim, not a verified artifact, the moment it is extended past its evidence.)
+
+**Primary-source evidence (2026-06-11 research — the hypothesis is confirmed).** The
+Computer History Museum catalog record for an MSDN 1998 subscription
+([CHM 102788150](https://www.computerhistory.org/collections/catalog/102788150)) lists a
+single set's DDK discs with their actual part numbers *and* dates, and they are
+**mixed-vintage**: Win95 Far East DDK **X03-54113 / July 1996**, Windows NT DDK
+**X03-54115 / January 1997**, Windows NT 4.0 HCT **X03-54121 / August 1996**, NT WKS 4.0
+HCT (Japanese) **X03-54123 / January 1998** — i.e. one MSDN set **bundles discs pressed
+across 1996–1998, each retaining its own original SKU and date**. This is direct
+confirmation of the carried-over-disc hypothesis, and **X03-54113 = a July-1996 disc** in
+the same X03-541xx band proves an X03-54xxx number here can map to 1996 (mirroring the
+operator's X03-54212→1996 finding). Conclusion: the Platform-Archive SKUs are
+**per-disc-when-pressed, not contiguous-by-position**, so the `54206+N` extrapolation is
+definitively unsafe; the gap discs (likely the Win95/OSR2/Win95-DDK-era media carried
+over from 1996–97) keep their own older numbers. The *general practice* is now
+primary-sourced; the **specific** gap-disc identities still require the actual discs or a
+redump.org set entry (BetaArchive's MSDN wiki + the contemporaneous Usenet disc-list posts
+on `microsoft.public.win98`/`alt.windows98` corroborate but are Cloudflare/JS-walled to
+automated fetch — read them in a browser to finish the confirmation).
 
 The separate MSDN **Library** (docs, X03-53436) and **NT Server 4.0** disc are a different
 product line, out of scope unless wanted. Every fetched ISO is md5-checked against this
