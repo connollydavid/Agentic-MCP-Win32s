@@ -1817,6 +1817,37 @@ verifies the <em>upper</em> end); (b) <strong>also</strong> source <strong>1.25a
 (c) make 1.25a primary. The device only <em>uses</em> the 1.25a API subset, so 1.30c (a
 superset) is a valid run — but a strict floor check wants 1.25a. <strong>Left open for a
 focused decision; not a blocker.</strong></p>
+<h3 id="full-set-acquisition-manifest-replication-record"><a class="header" href="#full-set-acquisition-manifest-replication-record">Full-set acquisition manifest (replication record)</a></h3>
+<p>The complete MSDN Platform Archive <strong>January 1998</strong> set is being mirrored locally (gitignored
+<code>vendor/win311/msdn_jan1998/</code>; <strong>never committed</strong>). Disc 1 was confirmed identical
+(md5 <code>d1aac83b…</code>) to the earlier <code>16-BIT.ISO</code> pull, so it is already local. Status:</p>
+<div class="table-wrapper"><table><thead><tr><th>Disc</th><th>Part</th><th>ISO</th><th>md5</th><th>Status</th></tr></thead><tbody>
+<tr><td>1</td><td>X03-54207</td><td><code>1_16-BIT.iso</code> (523 MB)</td><td><code>d1aac83b8febbb8b80bf5ea41f0506b0</code></td><td><strong>local ✓</strong> (= <code>msdn_intl/16-BIT.ISO</code>)</td></tr>
+<tr><td>2</td><td>X03-54208</td><td><code>1_16-BIT_TOOLS.iso</code> (545 MB)</td><td><code>75f36f715055f52671dfa426ec5a9481</code></td><td><strong>local ✓</strong> (<code>msdn_disc2/</code>)</td></tr>
+<tr><td>3</td><td>X03-54209</td><td><code>1_WIN31_DDKS.iso</code> (585 MB)</td><td><code>f9f4432860352367182059e6d652cc30</code></td><td>fetching</td></tr>
+<tr><td>4</td><td>X03-54210</td><td><code>1_WINNT351_WKS.iso</code> (612 MB)</td><td><code>aaa7d6d32076a8bd4be5e208c74bf461</code></td><td>fetching</td></tr>
+<tr><td>5</td><td>X03-54211</td><td><code>1_WIN32_SDK.iso</code> (614 MB)</td><td><code>3fbe9711c7d7d5f6afb588e84cd5a519</code></td><td>fetching</td></tr>
+<tr><td><strong>6</strong></td><td><strong>X03-54212</strong></td><td>—</td><td>—</td><td><strong>GAP — not on archive.org; source elsewhere</strong></td></tr>
+<tr><td><strong>7</strong></td><td><strong>X03-54213</strong></td><td>—</td><td>—</td><td><strong>GAP — not on archive.org; source elsewhere</strong></td></tr>
+<tr><td><strong>8</strong></td><td><strong>X03-54214</strong></td><td>—</td><td>—</td><td><strong>GAP — not on archive.org; source elsewhere</strong></td></tr>
+<tr><td>9</td><td>X03-54215</td><td><code>1_NT351WKS_ES_IT.iso</code> (603 MB)</td><td><code>0c6c18c3dae6192a57420a898ecafdc2</code></td><td>fetching</td></tr>
+<tr><td>10</td><td>X03-54216</td><td><code>1_NT351WKS_NL_SV.iso</code> (588 MB)</td><td><code>828cd2b6ee51dae90e406b3e932c42ac</code></td><td>fetching</td></tr>
+<tr><td>11</td><td>X03-54217</td><td><code>1_NT351WKS_FI_NO.iso</code> (577 MB)</td><td><code>7f3604fca7e1887cb9ed0b0d45852b7b</code></td><td>fetching</td></tr>
+<tr><td>12</td><td>X03-54218</td><td><code>1_NT351WKS_DA_PT.iso</code> (592 MB)</td><td><code>3f6f02d7733fde5ad1e28eb93f565814</code></td><td>fetching</td></tr>
+<tr><td>13</td><td>X03-54219</td><td><code>1_NT351WKS_DE_KO.iso</code> (597 MB)</td><td><code>501e9a9be10f6b3d4958d918198d2953</code></td><td>fetching</td></tr>
+<tr><td>14</td><td>X03-54220</td><td><code>1_NT351WKS_JA_SP5.iso</code> (561 MB)</td><td><code>4519a4ca19d0b10158a985220180d76f</code></td><td>fetching (<strong>Japanese NT — DBCS-on-NT</strong>)</td></tr>
+<tr><td><strong>15</strong></td><td><strong>X03-54221</strong></td><td>—</td><td>—</td><td><strong>GAP — not on archive.org; source elsewhere</strong></td></tr>
+<tr><td>16</td><td>X03-54222</td><td><code>1_NT351WKS_FR_SP5.iso</code> (609 MB)</td><td><code>e0fb9815b233a4374c46dd6aedc314fb</code></td><td>fetching</td></tr>
+</tbody></table>
+</div>
+<p>Notes: discs <strong>9–16</strong> are NT 3.51 Workstation language localisations (only <strong>14/Japanese</strong> is
+Phase-6-relevant, for DBCS-on-NT; the European ones are archival completeness). The four
+<strong>gaps (6/7/8/15)</strong> sit between the Win32 SDK (disc 5) and the NT-language block (disc 9) and
+in the CJK NT band (disc 15, between Japanese-14 and French-16) — by series position likely
+Win95/additional-SDK media (6–8) and a CJK NT 3.51 localisation (15); contents unconfirmed
+until sourced. The separate MSDN <strong>Library</strong> (docs, X03-53436) and <strong>NT Server 4.0</strong> disc are a
+different product line, out of scope unless wanted. Every fetched ISO is md5-checked against
+this table on download; local sha256 appended to <code>SHA256SUMS</code>.</p>
 <p><strong>NT as a peer of Win32s (operator observation).</strong> Correct — Win32 originated on
 <strong>Windows NT</strong> (NT 3.1, 1993); <strong>Win32s is the <em>subset</em> back-ported onto 16-bit Windows
 3.1</strong>, so "the first Win32" is NT's native Win32 and Win32s is the stand-in below it. The
