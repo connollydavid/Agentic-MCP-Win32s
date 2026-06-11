@@ -90,7 +90,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="CLAUDE.html">Agentic Host Guide</a></li><li class="chapter-item expanded "><a href="AGENTS.html"><strong aria-hidden="true">1.</strong> Agent Guide</a></li><li class="chapter-item expanded "><a href="MEMORY.html"><strong aria-hidden="true">2.</strong> Memory</a></li><li class="chapter-item expanded "><a href="plan/PLAN.html"><strong aria-hidden="true">3.</strong> Plan</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="plan/PHASE1.html"><strong aria-hidden="true">3.1.</strong> Phase 1: Foundation</a></li><li class="chapter-item expanded "><a href="plan/PHASE2.html"><strong aria-hidden="true">3.2.</strong> Phase 2: File Operations + Base64</a></li><li class="chapter-item expanded "><a href="plan/PHASE3.html"><strong aria-hidden="true">3.3.</strong> Phase 3: Network & Transport</a></li><li class="chapter-item expanded "><a href="plan/PHASE4.html"><strong aria-hidden="true">3.4.</strong> Phase 4: Command Execution</a></li><li class="chapter-item expanded "><a href="plan/PHASE5.html"><strong aria-hidden="true">3.5.</strong> Phase 5: MCP Integration</a></li><li class="chapter-item expanded "><a href="plan/PHASE6.html"><strong aria-hidden="true">3.6.</strong> Phase 6: Cross-Platform Testing</a></li><li class="chapter-item expanded "><a href="plan/PHASE7.html"><strong aria-hidden="true">3.7.</strong> Phase 7: Documentation & Polish</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="CLAUDE.html">Agentic Host Guide</a></li><li class="chapter-item expanded "><a href="AGENTS.html"><strong aria-hidden="true">1.</strong> Agent Guide</a></li><li class="chapter-item expanded "><a href="MEMORY.html"><strong aria-hidden="true">2.</strong> Memory</a></li><li class="chapter-item expanded "><a href="plan/PLAN.html"><strong aria-hidden="true">3.</strong> Plan</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="plan/PHASE1.html"><strong aria-hidden="true">3.1.</strong> Phase 1: Foundation</a></li><li class="chapter-item expanded "><a href="plan/PHASE2.html"><strong aria-hidden="true">3.2.</strong> Phase 2: File Operations + Base64</a></li><li class="chapter-item expanded "><a href="plan/PHASE3.html"><strong aria-hidden="true">3.3.</strong> Phase 3: Network & Transport</a></li><li class="chapter-item expanded "><a href="plan/PHASE4.html"><strong aria-hidden="true">3.4.</strong> Phase 4: Command Execution</a></li><li class="chapter-item expanded "><a href="plan/PHASE5.html"><strong aria-hidden="true">3.5.</strong> Phase 5: MCP Integration</a></li><li class="chapter-item expanded "><a href="plan/PHASE6.html"><strong aria-hidden="true">3.6.</strong> Phase 6: Cross-Platform Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="plan/uart-backend-design-foundation.html"><strong aria-hidden="true">3.6.1.</strong> UART backend design foundation</a></li></ol></li><li class="chapter-item expanded "><a href="plan/PHASE7.html"><strong aria-hidden="true">3.7.</strong> Phase 7: Documentation & Polish</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -2229,6 +2229,140 @@ the NT-era and modern representatives).</li>
 <li>CI-automated emulator boots.</li>
 <li>Full OpenAI agent-loop demo (unchanged from 5.5 — optional, user-run, needs a key).</li>
 </ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="direct-uart-backend--design-foundation-research-synthesis"><a class="header" href="#direct-uart-backend--design-foundation-research-synthesis">Direct-UART backend — design foundation (research synthesis)</a></h1>
+<p>Foundation for the Win32s direct-UART transport backend (work item <strong>6.2 / task #37</strong>),
+proven viable by the <code>tools/phase6-qemu/uart-probe.c</code> spike (ring-3 <code>IN</code>/<code>OUT</code> to the
+16550 works on real Win32s; full duplex confirmed). This note consolidates two
+primary-source research passes (2026-06-11) into the design spine the <code>tend</code>/spec stage
+will pin. <strong>It is research input, not yet a spec.</strong></p>
+<p>Provenance: National Semiconductor <strong>AN-493</strong> (<em>Comparison of the INS8250, NS16450 and
+NS16550AF</em>, Apr 1989) and <strong>AN-491</strong> (<em>NS16550A Design Considerations</em>); the <strong>PC16550D</strong>
+datasheet; the <strong>Linux <code>8250</code></strong> driver (<code>drivers/tty/serial/8250/8250_port.c</code>,
+<code>include/uapi/linux/serial_reg.h</code>); the <strong>FreeBSD <code>uart</code></strong> ns8250 driver
+(<code>sys/dev/uart/uart_dev_ns8250.c</code>); <strong>OSDev Serial Ports</strong>; the <strong>Serial Programming</strong>
+Wikibook; <strong>helppc</strong>; <strong>Lammert Bies</strong>. Both passes cross-corroborated — where a
+secondary source disagreed with a datasheet it is flagged below.</p>
+<h2 id="the-governing-principle"><a class="header" href="#the-governing-principle">The governing principle</a></h2>
+<p><strong>Detect, never assume; degrade to correct single-byte polling.</strong> The worst-case chip is
+the original <strong>INS8250</strong> (the 1986 Compaq DeskPro 386 is AT-compatible ISA → single-byte
+8250/16450 baseline; a FIFO is a bonus you must <em>prove</em>). A polled, single-byte, 8N1
+driver is correct on <strong>every</strong> chip from the 8250 up; every optimisation above that
+(FIFO bursts) must be positively detected first.</p>
+<p><strong>The one load-bearing rule (AN-493 §5.0, primary):</strong> enable the FIFO <strong>iff
+<code>IIR &amp; 0xC0 == 0xC0</code></strong>. A <code>0x80</code> readback is the original NS16550 (non-A) whose RX FIFO
+<em>"will sometimes transfer extra characters … should NOT be used in the FIFO mode."</em> A
+<em>false positive</em> for "16550A" is the only dangerous direction, so require <strong>both</strong> IIR
+bits 7 and 6.</p>
+<h2 id="register-map-base--offset-com1-base-0x3f8"><a class="header" href="#register-map-base--offset-com1-base-0x3f8">Register map (<code>base + offset</code>; COM1 base <code>0x3F8</code>)</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Off</th><th>Read (DLAB=0)</th><th>Write (DLAB=0)</th><th>DLAB=1</th></tr></thead><tbody>
+<tr><td>+0</td><td>RBR</td><td>THR</td><td>DLL</td></tr>
+<tr><td>+1</td><td>IER</td><td>IER</td><td>DLM</td></tr>
+<tr><td>+2</td><td>IIR</td><td>FCR</td><td>—</td></tr>
+<tr><td>+3</td><td>LCR (bit7=DLAB)</td><td>LCR</td><td>LCR</td></tr>
+<tr><td>+4</td><td>MCR (bit4=LOOP)</td><td>MCR</td><td>MCR</td></tr>
+<tr><td>+5</td><td>LSR (bit0 DR, bit5 THRE, bit6 TEMT, bits1-4 OE/PE/FE/BI)</td><td>—</td><td>LSR</td></tr>
+<tr><td>+6</td><td>MSR (bit4 CTS, bit5 DSR, bit7 DCD)</td><td>—</td><td>MSR</td></tr>
+<tr><td>+7</td><td>SCR (absent on INS8250/-B)</td><td>SCR</td><td>SCR</td></tr>
+</tbody></table>
+</div>
+<p>Standard bases/IRQs: COM1 <code>0x3F8</code>/IRQ4, COM2 <code>0x2F8</code>/IRQ3, COM3 <code>0x3E8</code>/IRQ4,
+COM4 <code>0x2E8</code>/IRQ3 (COM3/4 "semistandard"). <strong>IRQs are moot — we poll.</strong></p>
+<h2 id="detection-ladder-concrete-ops"><a class="header" href="#detection-ladder-concrete-ops">Detection ladder (concrete ops)</a></h2>
+<ol>
+<li><strong>Presence (IER store-test)</strong> — save IER; write <code>0x00</code>→+1, read <code>&amp;0x0F</code> expect <code>0x00</code>;
+write <code>0x0F</code>→+1, read <code>&amp;0x0F</code> expect <code>0x0F</code>; mismatch → <strong>no port</strong> (a floating ISA
+bus reads <code>0xFF</code>). (Linux <code>autoconfig</code> step 1.)</li>
+<li><strong>FIFO probe</strong> — write <code>FCR = 0xE7</code> (enable+clear+64-byte bit), read <code>IIR &amp; 0xC0</code>:
+<code>0xC0</code> → <strong>16550A</strong> (FIFO usable; <code>0xE0</code> with bit5 → 16750); <code>0x80</code> → <strong>16550 non-A</strong>
+(FIFO <strong>broken → treat as no-FIFO</strong>); <code>0x00</code> → no FIFO → step 3.</li>
+<li><strong>Scratch test (8250 vs 16450)</strong> — only to split the no-FIFO group; write <strong>two</strong>
+patterns (<code>0x55</code>, then <code>0xAA</code>) to +7 with an intervening read of a <em>different</em> register
+to defeat bus-float aliasing on clones. <strong>Do not branch behaviour on the result</strong> —
+both are driven identically (single-byte). (Contested: AN-493 says the scratch reg was
+<em>added</em> on the 8250A; the Wikibook says the 8250A scratch is broken — irrelevant since
+we don't branch on it.)</li>
+<li><strong>(Optional) enhanced parts</strong> — 16650 via EFR (LCR=<code>0xBF</code>, write/read EFR); 16C950 via
+ICR ID bytes <code>16 C9 54</code>. Not needed for correctness.</li>
+<li><strong>Loopback self-test (fail-closed)</strong> — set <code>MCR</code> LOOP (bit4); send <code>0xAE</code>→THR, poll DR,
+read RBR == <code>0xAE</code>; and confirm <code>MCR</code>→<code>MSR</code> (LOOP|OUT2|RTS gives <code>MSR &amp; (DCD|CTS)</code>).
+A dead/clone chip that decodes registers but doesn't truly loop fails here (the
+documented Rockwell-modem guard). Restore MCR after.</li>
+</ol>
+<h2 id="robust-polled-driving"><a class="header" href="#robust-polled-driving">Robust polled driving</a></h2>
+<ul>
+<li><strong>TX:</strong> poll <strong>LSR THRE (<code>0x20</code>)</strong> before writing. Write <strong>1 byte</strong> on 8250/16450; up to
+<strong>16 bytes</strong> in a burst <strong>only on a positively-detected genuine 16550A</strong> (THRE then means
+"FIFO empty"). Use <strong>TEMT (<code>0x40</code>)</strong> <em>only</em> for a final drain before close/baud-change —
+never as the feed gate (TEMT semantics differ across parts; AN-493).</li>
+<li><strong>RX:</strong> poll <strong>LSR DR (<code>0x01</code>)</strong>. <strong>Read LSR once, decode the error bits from that
+snapshot, <em>then</em> read RBR</strong> — reading LSR clears OE/PE/FE/BI, so the order is mandatory
+(the error bits associate with the byte at the FIFO head). Error handling: <strong>OE</strong> (bit1)
+= a byte was lost (count it; current byte still valid); <strong>PE/FE</strong> (bits2/3) = flag suspect
+(in 8N1 they signal a baud/line mismatch); <strong>BI</strong> (bit4) = break, discard the spurious
+<code>0x00</code>. Drain the FIFO while DR stays set; <strong>even on app-buffer-full, keep emptying the
+hardware FIFO</strong> so the chip can't wedge.</li>
+<li><strong>Bounded everything (never spin forever).</strong> Every poll loop has a hard bound: Linux
+<code>wait_for_lsr</code> uses ~2 character-times with a 10 ms floor; FreeBSD caps drains at 10240
+(TX) / 40960 (RX) iterations. On expiry → <strong>abort and surface an error</strong>, never retry
+indefinitely. (This is where our cooperative-yield design plugs in — see below.)</li>
+<li><strong>Clear stale state at open</strong> — read <strong>LSR, RBR, IIR, MSR</strong> (once or twice) so the first
+real poll sees true state. (Linux <code>serial8250_clear_interrupts</code>; FreeBSD <code>ns8250_clrint</code>.)</li>
+</ul>
+<h2 id="baud--divisor"><a class="header" href="#baud--divisor">Baud / divisor</a></h2>
+<p><code>divisor = 115200 / baud</code> (1.8432 MHz / 16). Program: <code>LCR=0x80</code> (DLAB) → <code>DLL</code>/<code>DLM</code> →
+<code>LCR=0x03</code> (8N1, DLAB clear). <strong>Read the divisor back</strong> (DLAB=1, compare, clear) to catch a
+clone that ignored the write. Table: 9600→12, 19200→6, 38400→3, 115200→1.
+<strong>Safe ceiling 9600/19200 for the 8250-era single-byte chips</strong> (one character-time is the
+whole window before overrun: ≈1.04 ms @9600, ≈0.52 ms @19200 — comfortable on a 386 doing
+other work; 38400+ is not).</p>
+<h2 id="line--modem-control-polled"><a class="header" href="#line--modem-control-polled">Line / modem control (polled)</a></h2>
+<p><code>LCR=0x03</code> (8N1). <code>IER=0x00</code> (all interrupts off — the foundation of polling). <code>FCR</code>: only
+on a confirmed 16550A (<code>0xC7</code> = enable+clear+14-byte trigger), else <code>0x00</code>. <code>MCR=0x03</code>
+(<strong>DTR|RTS, OUT2 <em>clear</em></strong>) — <strong>OUT2 is the IRQ gate to the 8259; leaving it 0 means a stray
+UART interrupt can never reach the PIC.</strong> No hardware flow control for the simplest robust
+link (assert DTR+RTS statically); if CTS is honoured, bound the wait (Linux caps at 1 s).</p>
+<h2 id="concrete-open--tx--rx-works-from-the-8250-up"><a class="header" href="#concrete-open--tx--rx-works-from-the-8250-up">Concrete OPEN / TX / RX (works from the 8250 up)</a></h2>
+<p><strong>OPEN:</strong> <code>IER=0</code> → clear-stale (read LSR,RBR,IIR,MSR ×1-2) → <code>LCR=0x80</code>, <code>DLL/DLM</code> →
+(verify divisor) → <code>LCR=0x03</code> → detect (FCR=<code>0xE7</code>/IIR; scratch) → FIFO conservatively
+(<code>FCR=0xC7</code>,<code>tx_chunk=16</code> iff 16550A, else <code>FCR=0</code>,<code>tx_chunk=1</code>) → <code>MCR=0x03</code> → (loopback
+self-test) → final read LSR,RBR.
+<strong>TX chunk:</strong> bounded-wait THRE → write ≤<code>tx_chunk</code> bytes to THR → repeat; drain on TEMT
+before close.
+<strong>RX:</strong> read LSR once; DR clear → return none; decode error bits; read RBR; loop (hard cap)
+re-reading LSR while DR set, draining the FIFO.</p>
+<h2 id="what-this-means-for-our-backend-the-design-decisions-for-37"><a class="header" href="#what-this-means-for-our-backend-the-design-decisions-for-37">What this means for OUR backend (the design decisions for #37)</a></h2>
+<ol>
+<li><strong>Polled + exclusive-owner is not a compromise — it <em>is</em> the security invariant.</strong> No
+IRQ hook, and with <strong>OUT2=0 we never even wire the UART's interrupt to the PIC</strong>. That
+directly satisfies the pinned boundary: <em>bare ring-3 port I/O only; no VxD/IOPL/call-gate/
+IRQ-hook; UART owned exclusively (COM1 never opened via the OS)</em>. The robustness research
+and the security posture point at the <strong>same</strong> design.</li>
+<li><strong>Bounded waits become bounded <em>yields</em>.</strong> Win 3.11 is cooperatively scheduled, so the
+serve loop cannot busy-spin on DR/THRE — it must pump messages. The driver-grade
+"bounded-timeout" pattern maps onto our cooperative loop directly: replace each
+<code>udelay(1); --tmout</code> with "yield to the message pump (PeekMessage/Yield), then re-poll,"
+keeping the same hard bound so a wedged/clone UART fails fast instead of freezing Windows.
+This is the concrete answer to the operator's "we're not cooperatively threading
+correctly" instinct.</li>
+<li><strong>Detection at open; single-byte 8250 is the always-correct floor.</strong> Ship the conservative
+path first; FIFO is a detected bonus. Never trust a FIFO not proven <code>IIR &amp; 0xC0 == 0xC0</code>.</li>
+<li><strong><code>/BAUD</code> (stashed spike) maps to the divisor table</strong> and is reusable; the
+SetCommState-tolerance from that spike is superseded (we don't touch the Win32 comm API).</li>
+<li><strong>A backing invariant is required</strong> (project rule for a power-granting capability): pin
+the boundary line above, plus "FIFO enabled ⇒ chip detected as 16550A" and "every poll
+loop is bounded." <code>weed</code>'s gate-bypass dimension audits these.</li>
+</ol>
+<h2 id="sources-primary--secondary"><a class="header" href="#sources-primary--secondary">Sources (primary → secondary)</a></h2>
+<p>Primary: NS <strong>AN-493</strong> (bitsavers AN-0493), <strong>AN-491</strong> (bitsavers AN-0491), <strong>PC16550D</strong>
+datasheet; <strong>Linux</strong> <code>8250_port.c</code> + <code>serial_reg.h</code>; <strong>FreeBSD</strong> <code>uart_dev_ns8250.c</code>;
+<strong>Compaq DeskPro 386 Technical Reference Guide</strong> (archive.org, 1986).
+Secondary (corroborated): <strong>OSDev Serial Ports</strong>; <strong>Serial Programming / 8250</strong> Wikibook;
+<strong>helppc</strong> <code>8250.html</code>; <strong>Lammert Bies</strong> serial-uart tutorial.</p>
+<p>Contested/cautionary: 16-byte TX burst + FIFO safe only on a <em>positively-detected genuine</em>
+16550A; PE/FE bits unreliable on some clones (FreeBSD #237576); COM3/4 bases semistandard;
+exact DeskPro 386 UART part inferred from AT-compatibility (confirm vs the Tech Ref);
+divisor read-back + loopback self-test are recommended engineering practice, not datasheet
+mandates.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="phase-7-documentation--polish--not-started"><a class="header" href="#phase-7-documentation--polish--not-started">Phase 7: Documentation &amp; Polish — Not Started</a></h1>
 <ul>
 <li>Final README, usage examples, troubleshooting</li>
