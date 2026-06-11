@@ -11,4 +11,5 @@
   - [Phase 4: Command Execution](plan/PHASE4.md)
   - [Phase 5: MCP Integration](plan/PHASE5.md)
   - [Phase 6: Cross-Platform Testing](plan/PHASE6.md)
+    - [UART backend design foundation](plan/uart-backend-design-foundation.md)
   - [Phase 7: Documentation & Polish](plan/PHASE7.md)
