@@ -132,6 +132,10 @@ encoding provenance.)
 - Old-machine file transfer logistics (USB on XP; CD/floppy/HyperTerminal-ZMODEM on
   98SE) — documented in the bundle README, user-executed.
 
+## Stage markers
+
+✅ 0 planning pause — 2026-06-11 (Q&A settled environments/tiers/DBCS/deliverable; PHASE6.md expanded from stub; status In progress; commit 18ddde9)
+
 ## Out of scope (recorded gaps)
 
 - cp932/DBCS live verification (deferred — Japanese Win98 hardware forthcoming).
