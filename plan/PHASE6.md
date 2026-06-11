@@ -407,6 +407,16 @@ encoding provenance.)
   own Win32s compatibility is unverified). The environment + Win32s are proven good
   (FreeCell ran); this is purely the device's runtime-link target. The baseline guest is
   pinned regardless so re-testing a fixed build is one deploy away.
+
+  **Baseline PINNED (2026-06-11).** Clean-shutdown image preserved at
+  `vendor/win311/build/baseline/win32s-125a-baseline.img` (gitignored), sha256
+  `edcd749716861157cc0c6aae12046c30fd04d6c5692e2ae0c7a8141d23016179` (in `SHA256SUMS`).
+  mtools-verified: `C:\WINDOWS\SYSTEM.INI` carries `device=C:\WINDOWS\SYSTEM\WIN32S\W32S.386`
+  (Win32s loaded), `C:\WIN32APP\FREECELL` present. **6.2 status: environment ✅ complete +
+  verified; device acceptance BLOCKED on Finding #1 (msvcrt.dll) pending a CRT-link
+  decision.** To resume after a fixed device build: `run-win.bat hdd`, insert the deploy
+  floppy, run the device, connect the wire harness at `127.0.0.1:31800` (the driving tooling
+  — `run-win.bat`/`mon-win.sh` — is committed and proven).
 - **6.3 Win98 SE (real hardware, serial)**: matrix assert (arena/threads/manual);
   threaded capture; **16-bit VDM child best-effort live test** (.COM/.EXE, timeout →
   no Terminate, orphan reap); file ops; codepage tier; on-target suite; SetErrorMode
