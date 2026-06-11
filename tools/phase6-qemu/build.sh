@@ -16,15 +16,25 @@ V="$HERE/../../vendor/win311"
 B="$V/build"; FLOP="$B/floppies"; STAGE="$B/stage"
 mkdir -p "$FLOP" "$STAGE"
 
-# 7z exits non-zero on the DOS ISO's El Torito header (reports the big-endian
-# boot-catalog as an error) yet still extracts the requested file. So ignore the
-# exit code entirely and verify the artifact afterwards — never trust the claim.
+# 7z exits non-zero on some archives (e.g. the El Torito header) yet still
+# extracts; ignore the exit code and verify the artifact afterwards.
 un7z() { 7z "$@" >/dev/null 2>&1 || true; }
 
-echo "[1/4] extract bootable DOS 6.22 floppy"
-un7z e -y "$V/dos622_bundle/MS-Dos 6.22.iso" "[BOOT]/Boot-1.44M.img" -o"$FLOP"
-mv -f "$FLOP/Boot-1.44M.img" "$FLOP/dos622-boot.img"
-[ -s "$FLOP/dos622-boot.img" ] || { echo "FAILED: dos622-boot.img not extracted" >&2; exit 1; }
+echo "[1/4] genuine MS-DOS 6.22 boot floppy (WinWorld Disk1 + a clean autoexec)"
+# Use the AUTHENTIC WinWorld MS-DOS 6.22 Disk 1 (genuine boot sector + IO.SYS/
+# MSDOS.SYS/COMMAND.COM + FORMAT.COM/FDISK.EXE; its COMMAND.COM is byte-identical
+# to the bundle's, confirming the bundle's DOS binaries were genuine — only the
+# bundle's "Looka" boot wrapper was unofficial, so that boot floppy is rejected).
+# Its stock AUTOEXEC.BAT auto-runs the 3-disk SETUP (busetup); replace it with a
+# trivial one so the floppy boots straight to A:\ where we run FORMAT C: /S.
+WWDOS="$V/dos622_winworld/Microsoft DOS 6.22 (Upgrade) (3.5)"
+[ -f "$WWDOS/Disk1.img" ] || { echo "FAILED: WinWorld DOS 6.22 Disk1 missing ($WWDOS)" >&2; exit 1; }
+cp -f "$WWDOS/Disk1.img" "$FLOP/dos622-boot.img"
+printf '@echo off\r\nprompt $p$g\r\n' > "$STAGE/AUTOEXEC.BAT"
+mcopy -o -i "$FLOP/dos622-boot.img" "$STAGE/AUTOEXEC.BAT" ::/AUTOEXEC.BAT
+cp -f "$WWDOS/Disk2.img" "$FLOP/dos622-disk2.img"
+cp -f "$WWDOS/Disk3.img" "$FLOP/dos622-disk3.img"
+[ -s "$FLOP/dos622-boot.img" ] || { echo "FAILED: dos622-boot.img" >&2; exit 1; }
 
 echo "[2/4] stage the 6 Windows 3.11 install floppies"
 for n in 1 2 3 4 5 6; do cp -f "$V/floppies/disk$n.img" "$FLOP/win311-disk$n.img"; done
