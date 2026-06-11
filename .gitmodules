@@ -4,3 +4,6 @@
 [submodule "mcp-win32s"]
 	path = mcp-win32s
 	url = git@github.com:connollydavid/MCP-Win32s.git
+[submodule "no-phase-skill"]
+	path = no-phase-skill
+	url = https://github.com/connollydavid/no-phase-skill.git

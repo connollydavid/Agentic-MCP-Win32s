@@ -36,20 +36,42 @@ SYNONYMS='phase|stage|step|part|pass|round|iteration|sprint|cycle|increment|wave
 NUMERAL='([0-9]+|[ivxlcdm]+)'
 
 # The core flag pattern: <synonym> <numeral>, case-insensitive, bounded.
+# Retained as the FALLBACK engine only - the primary engine is the vendored
+# no-phase binary (no-phase-skill submodule; rules in its VOCABULARY.md),
+# which covers a wider term list and two-word lookahead. Build per clone:
+#   cargo build --release --manifest-path no-phase-skill/Cargo.toml
 CORE="(^|[^a-z])($SYNONYMS)[[:space:]]+$NUMERAL([^a-z]|$)"
+
+LIB_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+NOPHASE="$LIB_DIR/../../../no-phase-skill/target/release/no-phase"
 
 usage() {
     echo "usage: phase-slop-lint.sh --subject \"<text>\" | --staged <repo-dir>" >&2
     exit 2
 }
 
-# lint_text TEXT LABEL : print a violation line if TEXT trips the core
-# pattern. Case-insensitive via tr (portable; no grep -P assumed).
+# line_trips TEXT : 0 if TEXT contains a phase-synonym tell. Engine order:
+# no-phase binary when built (exit 1 = tell, 0 = clean, >=2 = engine error
+# -> fall through), else the shell CORE pattern. Repo policy (the host
+# "Phase N" exemption, comment-line scoping) stays HERE in the wrapper;
+# the engine is policy-free.
+line_trips() {
+    _t="$1"
+    if [ -x "$NOPHASE" ]; then
+        printf '%s' "$_t" | "$NOPHASE" --stdin >/dev/null 2>&1
+        _rc=$?
+        [ "$_rc" -eq 1 ] && return 0
+        [ "$_rc" -eq 0 ] && return 1
+    fi
+    _low="$(printf '%s' "$_t" | tr 'A-Z' 'a-z')"
+    printf '%s' "$_low" | grep -Eq "$CORE"
+}
+
+# lint_text TEXT LABEL : print a violation line if TEXT trips the engine.
 lint_text() {
     _text="$1"
     _label="$2"
-    _low="$(printf '%s' "$_text" | tr 'A-Z' 'a-z')"
-    if printf '%s' "$_low" | grep -Eq "$CORE"; then
+    if line_trips "$_text"; then
         printf '%s: %s\n' "$_label" "$_text"
         return 0
     fi
@@ -97,8 +119,7 @@ case "${1:-}" in
         git -C "$repo" show ":$f" 2>/dev/null \
             | grep -nE '^[[:space:]]*(//|/\*|\*|#|--)' \
             | while IFS=: read -r lineno rest; do
-                low="$(printf '%s' "$rest" | tr 'A-Z' 'a-z')"
-                if printf '%s' "$low" | grep -Eq "$CORE"; then
+                if line_trips "$rest"; then
                     printf '%s:%s: %s\n' "$f" "$lineno" "$(printf '%s' "$rest" | sed 's/^[[:space:]]*//')"
                 fi
             done
