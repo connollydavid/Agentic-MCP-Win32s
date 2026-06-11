@@ -1865,11 +1865,29 @@ noise. The most likely reconciliation (operator hypothesis): MSDN Platform Archi
 <strong>quarterly</strong>, and discs <strong>unchanged</strong> since an earlier release were re-pressed <strong>as-is</strong>,
 keeping their <strong>original older part number and date</strong> — so the Jan-1998 set physically
 includes discs stamped 1996/97, and the gap discs' real numbers are not in the contiguous
-Jan-1998 block. This stays <strong>unresolved</strong>: confirm the gap discs' true part numbers <em>and</em>
+Jan-1998 block. Confirm the gap discs' true part numbers <em>and</em>
 contents from a primary source (the set's own index/disc-1 catalog, a redump.org set
 manifest, or the physical disc labels) — do not record extrapolated numbers as fact. (A
 small instance of the project's cornerstone: a rule that fits every visible data point is
 still a claim, not a verified artifact, the moment it is extended past its evidence.)</p>
+<p><strong>Primary-source evidence (2026-06-11 research — the hypothesis is confirmed).</strong> The
+Computer History Museum catalog record for an MSDN 1998 subscription
+(<a href="https://www.computerhistory.org/collections/catalog/102788150">CHM 102788150</a>) lists a
+single set's DDK discs with their actual part numbers <em>and</em> dates, and they are
+<strong>mixed-vintage</strong>: Win95 Far East DDK <strong>X03-54113 / July 1996</strong>, Windows NT DDK
+<strong>X03-54115 / January 1997</strong>, Windows NT 4.0 HCT <strong>X03-54121 / August 1996</strong>, NT WKS 4.0
+HCT (Japanese) <strong>X03-54123 / January 1998</strong> — i.e. one MSDN set <strong>bundles discs pressed
+across 1996–1998, each retaining its own original SKU and date</strong>. This is direct
+confirmation of the carried-over-disc hypothesis, and <strong>X03-54113 = a July-1996 disc</strong> in
+the same X03-541xx band proves an X03-54xxx number here can map to 1996 (mirroring the
+operator's X03-54212→1996 finding). Conclusion: the Platform-Archive SKUs are
+<strong>per-disc-when-pressed, not contiguous-by-position</strong>, so the <code>54206+N</code> extrapolation is
+definitively unsafe; the gap discs (likely the Win95/OSR2/Win95-DDK-era media carried
+over from 1996–97) keep their own older numbers. The <em>general practice</em> is now
+primary-sourced; the <strong>specific</strong> gap-disc identities still require the actual discs or a
+redump.org set entry (BetaArchive's MSDN wiki + the contemporaneous Usenet disc-list posts
+on <code>microsoft.public.win98</code>/<code>alt.windows98</code> corroborate but are Cloudflare/JS-walled to
+automated fetch — read them in a browser to finish the confirmation).</p>
 <p>The separate MSDN <strong>Library</strong> (docs, X03-53436) and <strong>NT Server 4.0</strong> disc are a different
 product line, out of scope unless wanted. Every fetched ISO is md5-checked against this
 table on download; local sha256 appended to <code>SHA256SUMS</code>.</p>
