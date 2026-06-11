@@ -162,7 +162,12 @@ device's baseline floor. Options: (a) test on **1.30c** (official, easy, include
 verifies the *upper* end); (b) **also** source **1.25a** to verify the named *floor*;
 (c) make 1.25a primary. The device only *uses* the 1.25a API subset, so 1.30c (a
 superset) is a valid run — but a strict floor check wants 1.25a. **Left open for a
-focused decision; not a blocker.**
+focused decision; not a blocker.** (Rejected source, 2026-06-11: a local
+`Microsoft Win32s Software Development Ki.rar` was offered — but it is a **scene/warez
+release** (`WIN32/SODOM/` dir + `SODOM.NFO` at the root) of the **1996 Win32 SDK**
+docs/samples, not an official Win32s 1.25a redist. Fails the "nothing unofficial" bar and
+is redundant with the official MSDN disc 2 (1.30c) / disc 5 (Win32 SDK); not used. A 1.25a
+floor, if wanted, must come from an official source.)
 
 ### Full-set acquisition manifest (replication record)
 
