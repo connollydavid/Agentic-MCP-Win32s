@@ -327,8 +327,15 @@ release"</em>) — i.e. the <strong>final, most-capable</strong> Win32s, <strong
 device's baseline floor. Options: (a) test on <strong>1.30c</strong> (official, easy, includes DBCS —
 verifies the <em>upper</em> end); (b) <strong>also</strong> source <strong>1.25a</strong> to verify the named <em>floor</em>;
 (c) make 1.25a primary. The device only <em>uses</em> the 1.25a API subset, so 1.30c (a
-superset) is a valid run — but a strict floor check wants 1.25a. <strong>Left open for a
-focused decision; not a blocker.</strong> (Rejected source, 2026-06-11: a local
+superset) is a valid run — but a strict floor check wants 1.25a. <strong>RESOLVED 2026-06-11 — both ends now in hand</strong>, so Phase 6 can verify the
+strict <strong>floor</strong> <em>and</em> the <strong>ceiling</strong>: Win32s <strong>1.25a</strong> (build <code>1.25.142.0</code>, Microsoft
+PSS Application Note <strong>PW1118</strong> "Win32s Upgrade", rev 5/95) sourced from <strong>WinWorld</strong>
+(<code>win32s-1.25a-1.25.142.0.7z</code>, 986,626 B, sha256
+<code>72b6f7a1f87e23c2d588da2b9a23eb9f99daadb4e858ec972835cd33b6ae8523</code>; real redist —
+<code>W32SKRNL/W32SYS/W32SCOMB/WIN32S16.DL_</code>, the <code>W32S.386</code> VxD, <code>32SINST.INF</code>, FreeCell;
+WinWorld preservation provenance, README is the genuine Microsoft PW1118 note); Win32s
+<strong>1.30c</strong> from the official MSDN disc 2. Plan: install on <strong>1.25a</strong> as the baseline floor
+pass and (optionally) <strong>1.30c</strong> as the superset pass. (Rejected source, 2026-06-11: a local
 <code>Microsoft Win32s Software Development Ki.rar</code> was offered — but it is a <strong>scene/warez
 release</strong> (<code>WIN32/SODOM/</code> dir + <code>SODOM.NFO</code> at the root) of the <strong>1996 Win32 SDK</strong>
 docs/samples, not an official Win32s 1.25a redist. Fails the "nothing unofficial" bar and
