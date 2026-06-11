@@ -201,8 +201,9 @@ manifest's presence), ConPTY <code>ptyExec</code> (skip-with-reason everywhere s
 </ul>
 <h2 id="settled-decisions-planning-pause-qa-2026-06-11"><a class="header" href="#settled-decisions-planning-pause-qa-2026-06-11">Settled decisions (planning-pause Q&amp;A, 2026-06-11)</a></h2>
 <ol>
-<li><strong>Environments — mixed.</strong> WfW 3.11 + Win32s 1.25a <strong>emulated</strong> (86Box or DOSBox-X;
-emulator serial→TCP redirect so host tooling drives the guest's real COM-port code
+<li><strong>Environments — mixed.</strong> Windows 3.11 + Win32s 1.25a <strong>emulated under QEMU</strong>
+(operator directive 2026-06-11, superseding the 86Box/DOSBox-X candidates; QEMU's
+<code>-serial tcp:…</code> redirect lets host tooling drive the guest's real COM-port code
 path). Win98 SE and Windows XP on the <strong>real dual-boot machine over the existing
 serial (null-modem) connection</strong> to the dev host. Windows 11 = the dev host itself,
 natively (not WSL-interop, so the interop skips assert fully).</li>
@@ -214,7 +215,34 @@ a Phase-6 blocker. The exhaustive per-codepage unit tests stand as current evide
 <li><strong>Deliverable = scripted harness</strong>: a committed per-tier acceptance harness
 (on-target runner + host-side wire/matrix checker) + committed per-tier
 verification reports with captured output. Human-triggered, repeatable.</li>
+<li><strong>Win 3.11 base image is vendored, never committed</strong> (operator directive
+2026-06-11): the guest images live in a <strong>gitignored <code>vendor/</code> directory</strong> at the
+host-repo root. Replication is documented <em>in this file</em> (provenance + hashes
+below; local sha256 recorded at vendor time); the binaries stay out of git.</li>
+<li><strong>The OVA's contents must be verified to contain nothing unofficial</strong> before use:
+it is a third-party prebuilt VM, so its guest filesystem is inventoried and
+diffed against the <strong>original-floppies baseline</strong> (item below). Anything not
+traceable to official Microsoft Windows 3.11 / Win32s 1.25a distribution files
+(or inert VM scaffolding) is removed or the image is rebuilt from the floppies.</li>
+<li><strong>Win32s 1.25a</strong> still has to be sourced/applied separately if the OVA does not
+already carry it — recorded during verification.</li>
 </ol>
+<h2 id="environment-provenance-62-base-images"><a class="header" href="#environment-provenance-62-base-images">Environment provenance (6.2 base images)</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Artifact</th><th>archive.org item</th><th>File</th><th>Size</th><th>md5 (archive)</th><th>sha1 (archive)</th></tr></thead><tbody>
+<tr><td>Prebuilt VM</td><td><code>CE55E93BC43C767067BD371EFB97259FE20BC97FB09055AF7BCFD3BA374B1824</code> ("Windows 3.11 Virtual Machine for Virtual Box", uploaded 2021-07-31)</td><td><code>Windows 3.11.ova</code></td><td>83,561,472</td><td><code>81c7335681347d16b42ffeaea4546a88</code></td><td><code>6c0e0ff277ee4b0e99922a6747195ba48b4d58f7</code></td></tr>
+<tr><td>Original floppies</td><td><code>win311_202602</code> ("Microsoft Windows 3.11", real-media dump, uploaded 2026-02-17)</td><td><code>disk1.img</code> … <code>disk6.img</code> (6 × 1,474,560)</td><td>see md5 list</td><td><code>fec70046…</code>, <code>807403c3…</code>, <code>0986d880…</code>, <code>f8e92a83…</code>, <code>b2846c30…</code>, <code>1281a806…</code></td><td>per-item metadata</td></tr>
+</tbody></table>
+</div>
+<p>Full per-disk hashes: disk1 <code>fec70046eaa9b774035fad6cfd7f7fa0</code>, disk2
+<code>807403c3bbb0c5b6d0c26f4cbdb6e239</code>, disk3 <code>0986d880b621d8f0cc895008c9880009</code>,
+disk4 <code>f8e92a836acfe2ea3313d3d4c55d19c1</code>, disk5 <code>b2846c309097edd7c5b2fa77cb957776</code>,
+disk6 <code>1281a806b8bd1fe43844ef501803b907</code> (md5; sha1 in the item metadata; local
+sha256 of every vendored file recorded here at vendor time).</p>
+<p>Notes: the six-disk set titles as plain <strong>Windows 3.11</strong>, not Windows <em>for
+Workgroups</em> 3.11 — to be confirmed from the disk contents during verification. If
+plain, the TCP/IP-32 Winsock <strong>stretch</strong> goal needs WfW media later; the serial
+baseline for the Win32s tier is unaffected. For QEMU the OVA's disk is extracted
+(an OVA is a tar of OVF + VMDK) and converted via <code>qemu-img convert</code> to qcow2.</p>
 <h2 id="per-tier-expected-capability-matrix-the-acceptance-spine"><a class="header" href="#per-tier-expected-capability-matrix-the-acceptance-spine">Per-tier expected capability matrix (the acceptance spine)</a></h2>
 <div class="table-wrapper"><table><thead><tr><th>Ready field</th><th>Win32s 1.25a</th><th>Win98 SE</th><th>XP</th><th>Win11</th></tr></thead><tbody>
 <tr><td><code>is_win32s/is_win9x/is_nt</code></td><td>T/F/F</td><td>F/T/F</td><td>F/F/T</td><td>F/F/T</td></tr>
@@ -254,11 +282,13 @@ propagate-stage obligations.</li>
 assert fully — live <code>GetACP()==65001</code> manifest effect, ConPTY <code>ptyExec</code> for real,
 full on-target suite, job/ctrl tests, bridge end-to-end (TCP loopback) + an MCP
 client. Folds in the 5.5 VS Code demo artifacts if convenient.</li>
-<li><strong>6.2 WfW 3.11 + Win32s 1.25a (emulated)</strong>: boot WfW 3.11 + Win32s 1.25a in
-86Box/DOSBox-X; deploy the 8.3 bundle; device on <code>/SERIAL:COM1</code> with the emulator's
-serial redirected to host TCP; matrix assert; <code>exec</code> <code>command.com /c dir</code> through
+<li><strong>6.2 Windows 3.11 + Win32s 1.25a (QEMU)</strong>: vendor + verify the base images (see
+Environment provenance), convert the OVA disk to qcow2, boot under QEMU with
+<code>-serial tcp:…</code> redirect; apply Win32s 1.25a if the image lacks it; deploy the 8.3
+bundle; device on <code>/SERIAL:COM1</code>; matrix assert; <code>exec</code> <code>command.com /c dir</code> through
 the <strong>polling/GetExitCodeProcess path</strong>; on-target tests where runnable. <strong>Stretch</strong>:
-TCP/IP-32 add-on for the Winsock transport on Win32s.</li>
+TCP/IP-32 add-on for the Winsock transport (needs WfW media if the image is plain
+3.11).</li>
 <li><strong>6.3 Win98 SE (real hardware, serial)</strong>: matrix assert (arena/threads/manual);
 threaded capture; <strong>16-bit VDM child best-effort live test</strong> (.COM/.EXE, timeout →
 no Terminate, orphan reap); file ops; codepage tier; on-target suite; SetErrorMode
