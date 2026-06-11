@@ -351,6 +351,24 @@ encoding provenance.)
   re-runnable script (the harness's "make the 6.2 guest" target). **Stretch**:
   TCP/IP-32 add-on for the Winsock transport (needs WfW 3.11 media — the Greek
   collection or another WfW source, verified).
+
+  **Build status (2026-06-11) — tooling done, install pending operator.** The build
+  tooling is committed under `tools/phase6-qemu/` (`build.sh`, `make-installdisk.sh`,
+  `run.sh`, `run-win.bat`, `mon.sh`, `README.md`). `build.sh` deterministically stages
+  (gitignored `vendor/win311/build/`): the bootable **DOS 6.22** floppy (El Torito from
+  the bundle ISO), a 500 MB **C:** with a pre-created bootable FAT16 primary (unformatted),
+  and a 33 MB **D:** install disk (`install-d.img` — `WIN311\` merged SETUP tree +
+  `W32S\` Win32s 1.25a), all verified with `mtools`. **Win32s = 1.25a floor** for this
+  build (1.30c ceiling pass is a later option). **Hard environment constraint discovered:
+  QEMU cannot run in the WSL2 agent sandbox** — it is reaped after a few seconds
+  (SIGUSR1 → exit 144; sub-5 s only, less than a DOS boot). So prep + verification run on
+  this side via `mtools` (no running VM), and the **interactive GUI install is driven by
+  the operator on the Windows host** (`run-win.bat`, native display) — the operator
+  offered to drive. Repeatability: drive once → `hdd.img` is the hash-pinned base; then
+  capture the installed `C:` tree (mtools) so rebuilds are scripted. Operator checklist is
+  in `tools/phase6-qemu/README.md`: `FORMAT C: /S` → `D:\WIN311\SETUP` (Express) →
+  `D:\W32S\SETUP.EXE` (FreeCell = Win32s smoke). After install, this side verifies the
+  `device=*w32s.386` line in `SYSTEM.INI` and pins the image.
 - **6.3 Win98 SE (real hardware, serial)**: matrix assert (arena/threads/manual);
   threaded capture; **16-bit VDM child best-effort live test** (.COM/.EXE, timeout →
   no Terminate, orphan reap); file ops; codepage tier; on-target suite; SetErrorMode
