@@ -226,9 +226,22 @@ redump.org set entry (BetaArchive's MSDN wiki + the contemporaneous Usenet disc-
 on `microsoft.public.win98`/`alt.windows98` corroborate but are Cloudflare/JS-walled to
 automated fetch — read them in a browser to finish the confirmation).
 
-The separate MSDN **Library** (docs, X03-53436) and **NT Server 4.0** disc are a different
-product line, out of scope unless wanted. Every fetched ISO is md5-checked against this
-table on download; local sha256 appended to `SHA256SUMS`.
+The separate MSDN **Library** (docs) and **NT Server 4.0** disc are a different
+product line, out of scope for the *run* tiers — but the **Library disc 1 carries the
+"MSDN CD Index"**, the authoritative set catalog that would resolve the gap discs (6/7/8/15)
+with certainty. **1998 MSDN Library (English) — official-hash manifest** (operator-supplied; the `SW_CD_…`
+names are Microsoft's official download-repository form, so these are clean primary-source
+hash anchors). The Library's **disc 1 carries the MSDN CD Index** — the authoritative set
+catalog that resolves the gap discs. Fetching these needs the source-catalog download URL
+(SW_CD EXEs live on the MS CDN); recorded here as the verification anchor regardless:
+
+| File | Part | Size (B) | md5 | sha256 |
+|---|---|---|---|---|
+| `…Library_98_English_1…X03-86022.EXE` | X03-86022 | 254,724,304 | `3645f702458e0e9de95257787c08a774` | `b5eb4983dd1d41c577655e21fee8367d8e0903fdfee3057b69de988fd65c5762` |
+| `…Library_98_English_2…X03-86026.EXE` | X03-86026 | 563,864,648 | `13da56d41d7a4b5441693723fe2b092e` | `b2379d624324938b945f3ae042ea3f2e474d06aa95e0d3ec6759be70ba4e1e94` |
+
+Every fetched Platform-Archive ISO is md5-checked against the disc table above on download;
+local sha256 appended to `SHA256SUMS`.
 
 **NT as a peer of Win32s (operator observation).** Correct — Win32 originated on
 **Windows NT** (NT 3.1, 1993); **Win32s is the *subset* back-ported onto 16-bit Windows
