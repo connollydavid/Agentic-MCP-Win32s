@@ -573,6 +573,23 @@ verified; device acceptance BLOCKED on Finding #1 (msvcrt.dll) pending a CRT-lin
 decision.</strong> To resume after a fixed device build: <code>run-win.bat hdd</code>, insert the deploy
 floppy, run the device, connect the wire harness at <code>127.0.0.1:31800</code> (the driving tooling
 — <code>run-win.bat</code>/<code>mon-win.sh</code> — is committed and proven).</p>
+<p><strong>🟢 FINDING #1 FIXED at the source (branch <code>claude/win32s-mini-crt</code>, 2026-06-11).</strong> Root
+cause: MinGW links the C runtime to <code>msvcrt.dll</code>; Win32s has none. Fix = a freestanding
+<strong>C89 minimal CRT</strong> (<code>src/mini_crt.c</code>): custom <code>mainCRTStartup</code> = <code>ExitProcess(main())</code>
+(main() is <code>int main(void)</code>, reads <code>GetCommandLineA()</code> itself), <code>__main</code> stub, and thin
+Win32-backed shims (<code>malloc/calloc/free</code>→HeapAlloc; <code>memset/memcpy/memmove/memcmp</code>;
+<code>strcmp/strncmp/strlen</code>; <code>exit/abort</code>→ExitProcess). MinGW build links <code>-nostdlib</code> + libgcc;
+<strong>imports collapse to <code>{kernel32,user32}</code></strong> (ImageBase 0x10000, .reloc kept, i386-clean).
+The device's whole CRT surface was tiny (no stdio — formatting is <code>wsprintfA</code>/<code>lstr*</code>).
+Tests + VC6 path untouched. Also added: the <strong>exhaustive import-allowlist CI assertion</strong>
+(catches this class statically on the Ubuntu runner, where Wine can't) and a <strong>real-Windows
+CI job</strong> (MSYS2; runs exec/Winsock/ConPTY without Wine — currently non-blocking, stuck on
+an MSYS2 windres quirk). <strong>Gates passed:</strong> observed CI green on the required jobs
+(build-and-test/bridge/conformance); independent adversarial <strong>review = APPROVE</strong> (the
+reviewer rebuilt + brute-tested every shim against libc semantics — no defect). Remaining
+to fully close: (1) on-Win32s re-deploy — confirm the fixed device <em>loads</em> on the pinned
+guest (needs the VM relaunched); (2) merge the branch (submodule bump) once the on-target
+confirmation is in hand; (3) stabilise or shelve the real-Windows CI job.</p>
 </li>
 <li>
 <p><strong>6.3 Win98 SE (real hardware, serial)</strong>: matrix assert (arena/threads/manual);
