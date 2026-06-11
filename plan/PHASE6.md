@@ -125,6 +125,42 @@ foreign-content scan of the USA trees we actually use).
 Local sha256 of every vendored file recorded at `vendor/win311/SHA256SUMS` at vendor
 time (gitignored with the binaries; the hashes are mirrored into the verification report).
 
+### MSDN January 1998 disc set — the authoritative source (survey)
+
+The "MSDN is our best hope" strategy resolved to the **MSDN January 1998** subscription
+disc set (official Microsoft CD-ROM media). Surveyed cheaply via ISO9660 path-table
+range-reads before downloading; the operator is acquiring the **full set locally (not
+git)**. Discs relevant to Phase 6:
+
+| Disc (part #) | Title | Holds | Relevance |
+|---|---|---|---|
+| 1 (the "Greek" item) | International 16-bit OS collection | MS-DOS 6.0/6.22/5, Win 3.1, **Win 3.11**, **WfW 3.11** across ~20 locales (incl. **Japanese/Korean/SimpChin DBCS**) | OS media + DBCS substrates; **vendored + md5 ✓** |
+| 2 (X03-54208) | 16-bit SDKs and Tools | **Win32s** (`/WIN32S`, 3-disk installer) + **Far East DBCS Win32s** (`/WIN32S/FAREAST`, JPN/KOR/CHN/TWN); OLE, ODBC, TAPI16, VFW; WfW311/Win31; NT 3.51 SP5 (Danish) | **the Win32s source**; **vendored + md5 ✓** |
+| 3 (X03-54209) | 16-bit DDKs | VISUALC (16-bit) + WIN31 driver kits | not needed (we don't build drivers) |
+| 4 (X03-54210) | Windows NT Workstation 3.51 (U.S.) + SP5 | NT 3.51 CHECKED/FREE builds, hotfixes | optional — NT 3.51 peer tier (earliest native Win32) |
+| 5 (X03-54211) | Win32 SDK (Win95 + NT 3.51) + NT 3.51 ResKit | the Win32 SDK; **another Win32s** (`…/WIN32S/DISKS/RETAIL/{WIN32S,OLE32S}`) | NT 3.51 dev refs; second Win32s copy |
+
+**Win32s version finding (decision needed).** The MSDN-set Win32s is **1.30c**
+(`WIN32S/README.TXT`: *"February '96 Win32s 1.30c … the last release of the Win32 SDK
+that will have Win32s … The DBCS versions (Japanese and Fareast) are part of this
+release"*) — i.e. the **final, most-capable** Win32s, **not** the **1.25a** named as the
+device's baseline floor. Options: (a) test on **1.30c** (official, easy, includes DBCS —
+verifies the *upper* end); (b) **also** source **1.25a** to verify the named *floor*;
+(c) make 1.25a primary. The device only *uses* the 1.25a API subset, so 1.30c (a
+superset) is a valid run — but a strict floor check wants 1.25a. **Left open for a
+focused decision; not a blocker.**
+
+**NT as a peer of Win32s (operator observation).** Correct — Win32 originated on
+**Windows NT** (NT 3.1, 1993); **Win32s is the *subset* back-ported onto 16-bit Windows
+3.1**, so "the first Win32" is NT's native Win32 and Win32s is the stand-in below it. The
+device already treats NT as a **first-class peer, not via Win32s**: the `is_nt` path uses
+native Win32 directly — the `process` memory tier (RPM/WPM), the `utf8_via_w` wide-API
+encoding tier, job objects, threads, ctrl-events. In the mandatory matrix **XP** is the
+NT-era representative. Discs 4+5 make an **NT 3.51** peer tier *available* (the earliest
+practical native-Win32 target — it would exercise the NT-3.x wide-API floor that 5.4
+flagged as "NT 3.1+ but compat unproven"); recorded as an **optional add**, not a
+mandatory tier.
+
 Full per-disk hashes: disk1 `fec70046eaa9b774035fad6cfd7f7fa0`, disk2
 `807403c3bbb0c5b6d0c26f4cbdb6e239`, disk3 `0986d880b621d8f0cc895008c9880009`,
 disk4 `f8e92a836acfe2ea3313d3d4c55d19c1`, disk5 `b2846c309097edd7c5b2fa77cb957776`,
