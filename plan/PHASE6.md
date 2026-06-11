@@ -96,7 +96,31 @@ above as already-verified fallbacks for the DOS+Windows substrate.
 | **Original floppies** (trust anchor) | `win311_202602` ("Microsoft Windows 3.11", real-media dump, 2026-02-17) | `disk1.img`…`disk6.img` (6 × 1,474,560) | see md5 list below | md5 ✓ all six |
 | **MS-DOS 6.22** (substrate) | `windows-3.11_Dos_6.22_ISO` ("Windows 3.11 and Dos 6.22 bootable CDROM", 2022-02-02) | `MS-Dos 6.22.iso` | 6,473,728 | `0b805cfca48fddfb6c1f106083df36f5` | md5 ✓; contents = standard MS-DOS 6.22 (1994-05-31), clean |
 | Windows 3.11 (alt, 8-disk) | same bundle | `Windows 3.11.iso` | 11,948,032 | `a9e5ebc8219ddf800ad427d644ac8cfc` | md5 ✓; classic Win 3.1x files (1993-11), clean; different build from the floppies |
-| Greek 16-bit collection (candidate, not yet pulled) | `1998-01-01-ms-doswindows3.1windows3.11andwfw3.11` (2019-09-25) | `16-BIT.ISO` | 547,946,496 | `d1aac83b8febbb8b80bf5ea41f0506b0` | metadata tags **Greek**; includes WfW 3.11; full language enumeration needs a 522 MB pull |
+| **MSDN-style international 16-bit collection** | `1998-01-01-ms-doswindows3.1windows3.11andwfw3.11` (2019-09-25) | `16-BIT.ISO` | 547,997,696 | `d1aac83b8febbb8b80bf5ea41f0506b0` | md5 pending full pull; **path-table enumerated** — NOT Greek-only (see below) |
+
+**`16-BIT.ISO` is mislabelled "Greek" — it is a multi-language MSDN-style OS disc**
+(enumerated cheaply from the ISO9660 path table via HTTP range reads, ~5 KB, before any
+full download; volume ID `16-BIT`). Four product trees, each with many localisations:
+- **MSDOS**/ — usa (6.0, 6.22), brazil, danish, dutch, finnish, french, german, hebrew,
+  italian, **japanese (MSDOS62V — the DBCS /V build)**, **korean**, norway, russian,
+  **simpchin (DOS 6.22 Simplified Chinese)**, spanish, swedish, arabic.
+- **WFW311**/ — **usa**, arabic, danish, dutch, eng_ara, finnish, france, french,
+  frn_ara, german, hebrew, hungary, italian, norwegn, polish, portugse, russian,
+  spanish, swedish, thailand.
+- **WIN31**/ — **greek**, arabic, catalan, centeur, czech, danish, finnish, frn_ara,
+  hebrew, hungary, **japanese (98 / V / WDL — PC-98 + DOS/V)**, **korean**, norwegn,
+  **persian (9 disks)**, polish, russian.
+- **WIN311**/ — **usa**, dutch, french, german, italian, portugse, spanish, swedish,
+  thailand, turkish.
+
+Why this matters here: it supplies **USA WfW 3.11** (the TCP/IP-32 Winsock **stretch**
+media) from a coherent MSDN-style source, and it carries the **Japanese (cp932) /
+Korean (cp949) / Simplified-Chinese (cp936) DBCS** environments — the exact substrates
+the 5.4 encoding tier's live DBCS-safe path-scan + strict-narrow verification was
+deferred for. Candidate to **un-defer** part of that DBCS gap on a Win 3.1 + Win32s
+DBCS guest (closer to the device's actual Win32s target than the forthcoming Win98).
+Contents to be inventoried + verified after the full pull (md5 against archive,
+foreign-content scan of the USA trees we actually use).
 
 Local sha256 of every vendored file recorded at `vendor/win311/SHA256SUMS` at vendor
 time (gitignored with the binaries; the hashes are mirrored into the verification report).
