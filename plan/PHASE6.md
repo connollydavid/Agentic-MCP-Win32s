@@ -387,6 +387,26 @@ encoding provenance.)
   device runtime test (Win32s file-locking). Next: clean-shutdown + pin `hdd.img` sha256 +
   capture the installed `C:` tree (repeatable rebuild), then deploy `mcp-w32s.exe` and run
   the wire harness against COM1 (`127.0.0.1:31800`).
+
+  **🔴 6.2 FINDING #1 — the device does not load on bare Win32s 1.25a (`MSVCRT.DLL`
+  missing).** Deployed `mcp-w32s.exe` (CI's MinGW-w64 build) to the verified guest and ran
+  it from Program Manager; Windows refused it with **"Cannot find MSVCRT.DLL"**. Confirmed
+  by `objdump -p`: the device imports `KERNEL32.dll`, `USER32.dll`, **`msvcrt.dll`** — but
+  **Win32s 1.25a ships `CRTDLL.DLL`, not `msvcrt.dll`** (it's in the Win32s redist as
+  `Setup/CRTDLL.DL_`). The MinGW toolchain links the C runtime to `msvcrt.dll` implicitly
+  (the device's own `target_link_libraries` is just `kernel32 user32`, but the CRT pulls
+  `msvcrt`). **This is a CI-parity blind spot of exactly the class Phase 6 exists to catch:**
+  CI runs the PEs under **Wine, which provides `msvcrt.dll`**, so every prior green run
+  masked it; real Win32s 1.25a does not. The device's "single .exe runs on bare Win32s
+  1.25a" premise is therefore **not yet met as built**. Resolution needs a decision
+  (deferred to instructions): (a) build the device against **`CRTDLL.DLL`** (the Win32-SDK
+  CRT that Win32s provides — a `vc6-nmake` toolchain already exists in `toolchains/` but VC6
+  also links `msvcrt`, so this needs the older Win32 SDK CRT or an `-lcrtdll`-style MinGW
+  variant); (b) **statically link** the CRT so no external runtime is needed; (c) **bundle**
+  a Win32s-compatible (period ~1995) `MSVCRT.DLL` redistributable (2-file deploy, and its
+  own Win32s compatibility is unverified). The environment + Win32s are proven good
+  (FreeCell ran); this is purely the device's runtime-link target. The baseline guest is
+  pinned regardless so re-testing a fixed build is one deploy away.
 - **6.3 Win98 SE (real hardware, serial)**: matrix assert (arena/threads/manual);
   threaded capture; **16-bit VDM child best-effort live test** (.COM/.EXE, timeout →
   no Terminate, orphan reap); file ops; codepage tier; on-target suite; SetErrorMode
