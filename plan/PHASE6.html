@@ -293,6 +293,38 @@ Contents to be inventoried + verified after the full pull (md5 against archive,
 foreign-content scan of the USA trees we actually use).</p>
 <p>Local sha256 of every vendored file recorded at <code>vendor/win311/SHA256SUMS</code> at vendor
 time (gitignored with the binaries; the hashes are mirrored into the verification report).</p>
+<h3 id="msdn-january-1998-disc-set--the-authoritative-source-survey"><a class="header" href="#msdn-january-1998-disc-set--the-authoritative-source-survey">MSDN January 1998 disc set — the authoritative source (survey)</a></h3>
+<p>The "MSDN is our best hope" strategy resolved to the <strong>MSDN January 1998</strong> subscription
+disc set (official Microsoft CD-ROM media). Surveyed cheaply via ISO9660 path-table
+range-reads before downloading; the operator is acquiring the <strong>full set locally (not
+git)</strong>. Discs relevant to Phase 6:</p>
+<div class="table-wrapper"><table><thead><tr><th>Disc (part #)</th><th>Title</th><th>Holds</th><th>Relevance</th></tr></thead><tbody>
+<tr><td>1 (the "Greek" item)</td><td>International 16-bit OS collection</td><td>MS-DOS 6.0/6.22/5, Win 3.1, <strong>Win 3.11</strong>, <strong>WfW 3.11</strong> across ~20 locales (incl. <strong>Japanese/Korean/SimpChin DBCS</strong>)</td><td>OS media + DBCS substrates; <strong>vendored + md5 ✓</strong></td></tr>
+<tr><td>2 (X03-54208)</td><td>16-bit SDKs and Tools</td><td><strong>Win32s</strong> (<code>/WIN32S</code>, 3-disk installer) + <strong>Far East DBCS Win32s</strong> (<code>/WIN32S/FAREAST</code>, JPN/KOR/CHN/TWN); OLE, ODBC, TAPI16, VFW; WfW311/Win31; NT 3.51 SP5 (Danish)</td><td><strong>the Win32s source</strong>; <strong>vendored + md5 ✓</strong></td></tr>
+<tr><td>3 (X03-54209)</td><td>16-bit DDKs</td><td>VISUALC (16-bit) + WIN31 driver kits</td><td>not needed (we don't build drivers)</td></tr>
+<tr><td>4 (X03-54210)</td><td>Windows NT Workstation 3.51 (U.S.) + SP5</td><td>NT 3.51 CHECKED/FREE builds, hotfixes</td><td>optional — NT 3.51 peer tier (earliest native Win32)</td></tr>
+<tr><td>5 (X03-54211)</td><td>Win32 SDK (Win95 + NT 3.51) + NT 3.51 ResKit</td><td>the Win32 SDK; <strong>another Win32s</strong> (<code>…/WIN32S/DISKS/RETAIL/{WIN32S,OLE32S}</code>)</td><td>NT 3.51 dev refs; second Win32s copy</td></tr>
+</tbody></table>
+</div>
+<p><strong>Win32s version finding (decision needed).</strong> The MSDN-set Win32s is <strong>1.30c</strong>
+(<code>WIN32S/README.TXT</code>: <em>"February '96 Win32s 1.30c … the last release of the Win32 SDK
+that will have Win32s … The DBCS versions (Japanese and Fareast) are part of this
+release"</em>) — i.e. the <strong>final, most-capable</strong> Win32s, <strong>not</strong> the <strong>1.25a</strong> named as the
+device's baseline floor. Options: (a) test on <strong>1.30c</strong> (official, easy, includes DBCS —
+verifies the <em>upper</em> end); (b) <strong>also</strong> source <strong>1.25a</strong> to verify the named <em>floor</em>;
+(c) make 1.25a primary. The device only <em>uses</em> the 1.25a API subset, so 1.30c (a
+superset) is a valid run — but a strict floor check wants 1.25a. <strong>Left open for a
+focused decision; not a blocker.</strong></p>
+<p><strong>NT as a peer of Win32s (operator observation).</strong> Correct — Win32 originated on
+<strong>Windows NT</strong> (NT 3.1, 1993); <strong>Win32s is the <em>subset</em> back-ported onto 16-bit Windows
+3.1</strong>, so "the first Win32" is NT's native Win32 and Win32s is the stand-in below it. The
+device already treats NT as a <strong>first-class peer, not via Win32s</strong>: the <code>is_nt</code> path uses
+native Win32 directly — the <code>process</code> memory tier (RPM/WPM), the <code>utf8_via_w</code> wide-API
+encoding tier, job objects, threads, ctrl-events. In the mandatory matrix <strong>XP</strong> is the
+NT-era representative. Discs 4+5 make an <strong>NT 3.51</strong> peer tier <em>available</em> (the earliest
+practical native-Win32 target — it would exercise the NT-3.x wide-API floor that 5.4
+flagged as "NT 3.1+ but compat unproven"); recorded as an <strong>optional add</strong>, not a
+mandatory tier.</p>
 <p>Full per-disk hashes: disk1 <code>fec70046eaa9b774035fad6cfd7f7fa0</code>, disk2
 <code>807403c3bbb0c5b6d0c26f4cbdb6e239</code>, disk3 <code>0986d880b621d8f0cc895008c9880009</code>,
 disk4 <code>f8e92a836acfe2ea3313d3d4c55d19c1</code>, disk5 <code>b2846c309097edd7c5b2fa77cb957776</code>,
