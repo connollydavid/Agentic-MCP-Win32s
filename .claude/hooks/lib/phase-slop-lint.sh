@@ -42,6 +42,18 @@ NUMERAL='([0-9]+|[ivxlcdm]+)'
 #   cargo build --release --manifest-path no-phase-skill/Cargo.toml
 CORE="(^|[^a-z])($SYNONYMS)[[:space:]]+$NUMERAL([^a-z]|$)"
 
+# Internal review/finding CODES used as names (a sibling tell to the phase
+# numeral: an internal tracking label leaking into a commit subject or comment
+# instead of describing the change - VOCABULARY.md's "M2 delivered ..." class).
+# Flag review|finding|blocker IMMEDIATELY followed by a "#N" or a letter+digit
+# code ("review B1", "finding #7", "blocker B2"). The letter/`#` gate is what
+# separates the code-as-name tell from ordinary use: "review 3 files" / "finding
+# 0 results" do NOT trip (a bare numeral after the gerund), and GitHub refs
+# ("closes #35", "fixes #18") never match (closes/fixes are not in the noun set).
+# This is wrapper POLICY - always applied, even when the no-phase binary engine
+# (which today only knows phase-synonyms) reports clean.
+REVIEWCODE="(^|[^a-z])(review|finding|blocker)[[:space:]]+(#[0-9]+|[a-z][0-9]+)([^a-z0-9]|$)"
+
 LIB_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 NOPHASE="$LIB_DIR/../../../no-phase-skill/target/release/no-phase"
 
@@ -57,13 +69,18 @@ usage() {
 # the engine is policy-free.
 line_trips() {
     _t="$1"
+    _low="$(printf '%s' "$_t" | tr 'A-Z' 'a-z')"
+    # Wrapper policy first: the review/finding code-as-name tell (the binary
+    # engine does not yet know it), applied regardless of the phase-synonym verdict.
+    if printf '%s' "$_low" | grep -Eq "$REVIEWCODE"; then
+        return 0
+    fi
     if [ -x "$NOPHASE" ]; then
         printf '%s' "$_t" | "$NOPHASE" --stdin >/dev/null 2>&1
         _rc=$?
         [ "$_rc" -eq 1 ] && return 0
         [ "$_rc" -eq 0 ] && return 1
     fi
-    _low="$(printf '%s' "$_t" | tr 'A-Z' 'a-z')"
     printf '%s' "$_low" | grep -Eq "$CORE"
 }
 
