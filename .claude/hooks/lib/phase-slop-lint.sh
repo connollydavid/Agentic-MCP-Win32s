@@ -50,8 +50,10 @@ CORE="(^|[^a-z])($SYNONYMS)[[:space:]]+$NUMERAL([^a-z]|$)"
 # separates the code-as-name tell from ordinary use: "review 3 files" / "finding
 # 0 results" do NOT trip (a bare numeral after the gerund), and GitHub refs
 # ("closes #35", "fixes #18") never match (closes/fixes are not in the noun set).
-# This is wrapper POLICY - always applied, even when the no-phase binary engine
-# (which today only knows phase-synonyms) reports clean.
+# The no-phase binary engine OWNS this rule as of no-phase-skill 7740d66 (its
+# VOCABULARY + matcher), so this shell copy only supplements the CORE FALLBACK
+# used when the binary is unbuilt (a fresh clone). The binary is the single
+# source of truth when present - this avoids a duplicate that could drift from it.
 REVIEWCODE="(^|[^a-z])(review|finding|blocker)[[:space:]]+(#[0-9]+|[a-z][0-9]+)([^a-z0-9]|$)"
 
 LIB_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
@@ -69,19 +71,17 @@ usage() {
 # the engine is policy-free.
 line_trips() {
     _t="$1"
-    _low="$(printf '%s' "$_t" | tr 'A-Z' 'a-z')"
-    # Wrapper policy first: the review/finding code-as-name tell (the binary
-    # engine does not yet know it), applied regardless of the phase-synonym verdict.
-    if printf '%s' "$_low" | grep -Eq "$REVIEWCODE"; then
-        return 0
-    fi
     if [ -x "$NOPHASE" ]; then
         printf '%s' "$_t" | "$NOPHASE" --stdin >/dev/null 2>&1
         _rc=$?
         [ "$_rc" -eq 1 ] && return 0
         [ "$_rc" -eq 0 ] && return 1
     fi
-    printf '%s' "$_low" | grep -Eq "$CORE"
+    # Fallback (binary unbuilt): the shell phase-synonym pattern OR the review-
+    # code tell. The binary engine handles both itself when present.
+    _low="$(printf '%s' "$_t" | tr 'A-Z' 'a-z')"
+    printf '%s' "$_low" | grep -Eq "$CORE" && return 0
+    printf '%s' "$_low" | grep -Eq "$REVIEWCODE"
 }
 
 # lint_text TEXT LABEL : print a violation line if TEXT trips the engine.
