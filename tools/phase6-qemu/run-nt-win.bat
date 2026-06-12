@@ -51,7 +51,15 @@ if not exist "%BUILD%\hdd.img" (
 )
 if not exist "%BUILD%\shots" mkdir "%BUILD%\shots"
 
-set COMMON=-machine pc -cpu 486 -m 32 -vga cirrus -net none -rtc base=localtime ^
+REM Era-appropriate NIC: the Novell NE2000 ISA (~1990) at the settings NT 3.1's
+REM "Novell NE2000 Compatible" driver defaults to (I/O 0x300, IRQ 3). NT 3.1
+REM predates good PCI NIC support, so the ISA NE2000 is the period-correct pick
+REM (pcnet/ne2k_pci are NT-3.5-era). -netdev user gives a usermode NAT slirp so
+REM the guest has a working stack without host bridging; networking is not needed
+REM for the serial device test, but a real detected NIC avoids a blind/no-card
+REM install and the first-boot "couldn't start adapter" error.
+set COMMON=-machine pc -cpu 486 -m 32 -vga cirrus -rtc base=localtime ^
+ -netdev user,id=n0 -device ne2k_isa,netdev=n0,iobase=0x300,irq=3 ^
  -drive file="%BUILD%\hdd.img",format=raw,if=ide,index=0,media=disk ^
  -serial tcp:%BIND%:%SERIAL_PORT%,server,nowait ^
  -monitor tcp:%BIND%:%MON_PORT%,server,nowait ^

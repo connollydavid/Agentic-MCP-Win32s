@@ -38,8 +38,10 @@ cp -f "$W311FLOP/dos622-boot.img" "$FLOP/dos622-boot.img"
 
 echo "[2/4] C: system disk — 500M raw, one bootable FAT16 primary, UNFORMATTED"
 # 500M keeps the whole partition within the first 1024 cylinders (NT 3.1 must boot
-# from there). Left unformatted: the operator runs FORMAT C: /S once (canonical DOS
-# way to make C: a bootable DOS partition), exactly as the win311 lane does.
+# from there). Left unformatted: the operator runs FDISK /MBR then FORMAT C: /S once
+# (canonical DOS way to make C: bootable). FDISK /MBR is REQUIRED — sfdisk writes the
+# partition table but no MBR bootstrap, and FORMAT /S only writes the partition VBR, so
+# without it SeaBIOS hangs at "Booting from Hard Disk…". (See README run-book step 2.)
 if [ -f "$B/hdd.img" ] && [ "${FRESH:-0}" != "1" ]; then
   echo "    keeping existing hdd.img ($(du -h "$B/hdd.img" | cut -f1)); FRESH=1 to recreate"
 else

@@ -118,8 +118,11 @@ NT 3.1 is the **hardest NT to emulate** — the launcher pins `-cpu 486 -vga cir
 The monitor commands below run from WSL: `MON_PORT=55556 bash tools/phase6-qemu/mon-win.sh cmd "…"`.
 
 1. `tools\phase6-qemu\run-nt-win.bat install` → DOS `A:\>` (C: blank, D:=I386 source).
-2. **Make C: bootable:** `FORMAT C: /S` (answer `Y`). Then `eject floppy0` (monitor) so the
-   next reset boots DOS from C:, and `system_reset`.
+2. **Make C: bootable:** `FDISK /MBR` then `FORMAT C: /S` (answer `Y`). The `FDISK /MBR`
+   is **required**: `sfdisk` wrote the partition table but **no MBR bootstrap code**, and
+   `FORMAT /S` only writes the partition's VBR — without the MBR loader, SeaBIOS hangs at
+   "Booting from Hard Disk…". Then `eject floppy0` (monitor) so the next reset boots DOS
+   from C:, and `system_reset`.
 3. At `C:\>`, kick off NT setup: `D:\I386\WINNT /S:D:\I386`. It copies files to a C: temp dir.
 4. When WINNT asks for **a blank formatted floppy in A:**, swap it in (monitor):
    `change floppy0 <build>\floppies\ntsetup-boot.img` — let WINNT write the Setup boot floppy.
