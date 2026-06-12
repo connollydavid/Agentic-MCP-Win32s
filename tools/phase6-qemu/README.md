@@ -83,3 +83,56 @@ Prereq: QEMU for Windows (https://qemu.weilnetz.de/w64/), `qemu-system-i386.exe`
 - Record `hdd.img`'s sha256 in `vendor/win311/SHA256SUMS` as the pinned base image.
 - Then deploy the device (`mcp-w32s.exe`) onto C:, launch `run-win.bat run`, and point the
   host wire harness at `127.0.0.1:31800`.
+
+---
+
+# NT 3.1 lane — Windows NT 3.1 Advanced Server (native-Win32 floor, task #40)
+
+A **separate, isolated lane** that reuses the Win32s assets/patterns but never touches the
+win311 guest: own disk (`vendor/winnt31/build/hdd.img`), own ports (COM1→**31801**,
+monitor→**55556**, VNC **:1**), reusing the `dos622-boot.img` floppy + the mtools build
+pattern + `mon-win.sh`/`wire_accept.py`. Goal: the device **loads + runs** on NT 3.1 and
+**wire-responds over the OS-serial path** (`CreateFile`+`SetCommState`, which works on NT —
+unlike Win32s, where the #37 direct-UART tier was needed) — the NT counterpart to #35.
+
+**NT 3.1 install facts (verified from the disc):** the CD is **not bootable**; `WINNT.EXE`
+has **no `/B`** floppyless switch (NT 3.5+ only) — it copies the source to a temp dir on C:
+and **writes a Setup boot floppy**, then you reboot from it; **no ready floppy image** ships
+on the CD (the `DISK1/DISK2` entries are 2-byte volume tags). Hence: DOS boots, runs
+`WINNT /S:D:\I386`, writes the boot floppy, reboot → NT text setup.
+
+## Build (here)
+
+```sh
+tools/phase6-qemu/build.sh        # win311 lane first (provides dos622-boot.img)
+tools/phase6-qemu/build-nt31.sh   # NT lane; vendor the ISO at vendor/winnt31/WINNT_AS_511.ISO
+```
+
+Produces under `vendor/winnt31/build/` (gitignored): `hdd.img` (C:, 500 MB, bootable FAT16,
+**unformatted**), `install-i386.img` (D: = the `I386` setup tree, 64 MB FAT16),
+`floppies/dos622-boot.img` (reused), `floppies/ntsetup-boot.img` (blank, for WINNT to write).
+
+## Install (Windows host — operator checklist, monitor-driven)
+
+NT 3.1 is the **hardest NT to emulate** — the launcher pins `-cpu 486 -vga cirrus -net none`.
+The monitor commands below run from WSL: `MON_PORT=55556 bash tools/phase6-qemu/mon-win.sh cmd "…"`.
+
+1. `tools\phase6-qemu\run-nt-win.bat install` → DOS `A:\>` (C: blank, D:=I386 source).
+2. **Make C: bootable:** `FORMAT C: /S` (answer `Y`). Then `eject floppy0` (monitor) so the
+   next reset boots DOS from C:, and `system_reset`.
+3. At `C:\>`, kick off NT setup: `D:\I386\WINNT /S:D:\I386`. It copies files to a C: temp dir.
+4. When WINNT asks for **a blank formatted floppy in A:**, swap it in (monitor):
+   `change floppy0 <build>\floppies\ntsetup-boot.img` — let WINNT write the Setup boot floppy.
+5. On WINNT's reboot prompt, `system_reset` → boots the **NT Setup floppy** → NT text-mode
+   setup (express; let it detect the IDE disk + Cirrus video; FAT; install to `C:\WINNT`).
+   It reboots itself through text → GUI setup; skip networking (no NIC). Finishes in NT.
+6. Shut down. `hdd.img` is the installed NT 3.1 guest.
+
+## Acceptance (here — the #35-equivalent wire round-trip)
+
+- Deploy `mcp-w32s.exe` onto C: (mtools or via a deploy floppy), `run-nt-win.bat run`.
+- Launch it under NT with `/SERIAL:COM1 /BAUD:19200`; point the harness at `127.0.0.1:31801`
+  (`SERIAL_PORT=31801 python3 tools/phase6-qemu/wire_accept.py`) and confirm the ready line +
+  an echo round-trip (`status:ok`). On NT the OS-serial path serves it (no direct-UART).
+- **If NT 3.1 fights QEMU** (disk/CPU/video detection) after reasonable effort: **stop and
+  consult** before pivoting to NT 3.51 (per plan/PHASE6.md #40).
