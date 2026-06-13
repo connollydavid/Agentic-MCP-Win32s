@@ -346,6 +346,11 @@
 <li>Filed: <strong>https://github.com/connollydavid/no-phase-skill/issues/10</strong> (VOCABULARY.md citation + exit-code repro + the full 51-line corpus as a comment).</li>
 <li><strong>Decision: DEFER the source-file sweep until the updated plugin lands.</strong> Do NOT hand-sweep now — once the engine catches the bare-decimal form, sweep + verify in one pass with the fixed gate. The 51-line corpus is captured in the issue, so fixing the files no longer destroys the engine-fix regression evidence. Merged history (the <code>5.5:</code> subject) is left alone (non-destructive scope).</li>
 </ul>
+<h2 id="2026-06-13--no-phase-decimal-fix-landed-comment-sweep-now-unblocked"><a class="header" href="#2026-06-13--no-phase-decimal-fix-landed-comment-sweep-now-unblocked">2026-06-13 — no-phase decimal fix landed; comment sweep now unblocked</a></h2>
+<ul>
+<li>Follow-up to the prior entry: the engine gap (no-phase #10) was <strong>fixed upstream</strong> (PR #11, commit <code>84847f4</code>). Bumped <code>no-phase-skill</code> <code>d3c280c → 18c0329</code> and updated the wrapper (<code>da161b4</code>). New exit-code contract: <code>0</code> clean · <code>1</code> <strong>hard tell, blocks</strong> (now catches a <code>N.N:</code> subject prefix and a mid-line <code>(Phase 5.0)</code>) · <code>2</code> engine error · <code>3</code> <strong>bare-numeral advisory, non-blocking</strong> (<code>(5.5)</code>, <code>work-item 5.3</code>, <code>## 5.5</code> — deliberately advisory because it overlaps legitimate version numbers like NT 3.1). <code>phase-slop-lint.sh</code> <code>line_trips</code> now maps exit 3 → non-blocking.</li>
+<li>The 51-line in-source comment sweep is therefore <strong>unblocked</strong> but still deferred until explicitly requested. Note: those 51 lines are the <em>bare-numeral advisory</em> class (exit 3) — the fixed gate <strong>warns</strong> on them but does not block, so they are not a CI/commit blocker; the sweep is now cleanup-when-wanted, not a gate fix.</li>
+</ul>
 
                     </main>
 
