@@ -64,18 +64,21 @@ usage() {
     exit 2
 }
 
-# line_trips TEXT : 0 if TEXT contains a phase-synonym tell. Engine order:
-# no-phase binary when built (exit 1 = tell, 0 = clean, >=2 = engine error
-# -> fall through), else the shell CORE pattern. Repo policy (the host
-# "Phase N" exemption, comment-line scoping) stays HERE in the wrapper;
-# the engine is policy-free.
+# line_trips TEXT : 0 if TEXT contains a hard phase-synonym tell. Engine order:
+# no-phase binary when built (exit 1 = hard tell, 0 = clean, 3 = bare-numeral
+# advisory, 2 = engine error -> fall through), else the shell CORE pattern.
+# The bare-numeral form (exit 3) is advisory by design - "harder to tell from
+# ordinary use" (version numbers like NT 3.1), so it is NON-blocking: the gate
+# treats it as clean. Repo policy (the host "Phase N" exemption, comment-line
+# scoping) stays HERE in the wrapper; the engine is policy-free.
 line_trips() {
     _t="$1"
     if [ -x "$NOPHASE" ]; then
         printf '%s' "$_t" | "$NOPHASE" --stdin >/dev/null 2>&1
         _rc=$?
-        [ "$_rc" -eq 1 ] && return 0
-        [ "$_rc" -eq 0 ] && return 1
+        [ "$_rc" -eq 1 ] && return 0          # hard tell -> blocks
+        [ "$_rc" -eq 0 ] && return 1          # clean
+        [ "$_rc" -eq 3 ] && return 1          # bare-numeral advisory -> non-blocking
     fi
     # Fallback (binary unbuilt): the shell phase-synonym pattern OR the review-
     # code tell. The binary engine handles both itself when present.
