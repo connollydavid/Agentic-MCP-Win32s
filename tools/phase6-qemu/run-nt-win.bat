@@ -13,10 +13,11 @@ REM 256-colour GUI; std VGA is 16-colour only), -net none (no NT-3.1 NIC driver 
 REM QEMU's models; not needed for the serial-wire test), small 500M FAT C: (boot
 REM files within the first 1024 cylinders).
 REM
-REM Ports (distinct from the win311 lane's 31800/55555/:0 so both coexist):
+REM Ports (distinct from the win311 lane's 31800/55555 so both coexist):
 REM   guest COM1 -> host TCP 31801   (the device wire harness: wire_accept.py)
 REM   QEMU monitor -> host TCP 55556 (screendump/sendkey/change/eject: mon-win.sh)
-REM   VNC :1 (5901)                  (operator drives the interactive installer)
+REM A normal QEMU window opens on this desktop so the operator can watch the install
+REM (the agent still drives via the monitor; screendump works regardless of display).
 REM
 REM Usage:  run-nt-win.bat install   DOS boots (A:), C: blank, D:=I386 source
 REM         run-nt-win.bat run       boot installed NT off C: (device test-run)
@@ -34,7 +35,6 @@ set QEMU=%QEMU_DIR%\qemu-system-i386.exe
 if "%BIND%"=="" set BIND=127.0.0.1
 if "%MON_PORT%"=="" set MON_PORT=55556
 if "%SERIAL_PORT%"=="" set SERIAL_PORT=31801
-if "%VNC_DISP%"=="" set VNC_DISP=1
 set HERE=%~dp0
 set BUILD=%HERE%..\..\vendor\winnt31\build
 set PHASE=%1
@@ -62,10 +62,9 @@ set COMMON=-machine pc -cpu 486 -m 32 -vga cirrus -rtc base=localtime ^
  -netdev user,id=n0 -device ne2k_isa,netdev=n0,iobase=0x300,irq=3 ^
  -drive file="%BUILD%\hdd.img",format=raw,if=ide,index=0,media=disk ^
  -serial tcp:%BIND%:%SERIAL_PORT%,server,nowait ^
- -monitor tcp:%BIND%:%MON_PORT%,server,nowait ^
- -vnc %BIND%:%VNC_DISP%
+ -monitor tcp:%BIND%:%MON_PORT%,server,nowait
 
-echo Launching NT 3.1 %PHASE%  (monitor %BIND%:%MON_PORT%, COM1 %BIND%:%SERIAL_PORT%, VNC :%VNC_DISP%)
+echo Launching NT 3.1 %PHASE%  (QEMU window on this desktop; monitor %BIND%:%MON_PORT%, COM1 %BIND%:%SERIAL_PORT%)
 if /I "%PHASE%"=="install" (
   "%QEMU%" %COMMON% ^
     -drive file="%BUILD%\install-i386.img",format=raw,if=ide,index=1,media=disk ^
