@@ -1,6 +1,6 @@
-# Phase 6 / 6.2 — Windows 3.11 + Win32s 1.25a guest (QEMU)
+# Phase 6 — Windows 3.11 + Win32s 1.25a guest (QEMU)
 
-Builds and runs the **Win16/Win32s baseline tier** guest for Phase 6 cross-platform
+Builds and runs the **Win16/Win32s baseline tier** guest for cross-platform
 testing. The device target is Windows 3.x + Win32s 1.25a; this stands up exactly that
 under QEMU so the device's polling-exec / `shared_vm` / codepage-encoding / no-threads
 floor can be exercised on a real Win32s.

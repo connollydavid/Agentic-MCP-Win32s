@@ -36,7 +36,7 @@ cp -f "$WWDOS/Disk2.img" "$FLOP/dos622-disk2.img"
 cp -f "$WWDOS/Disk3.img" "$FLOP/dos622-disk3.img"
 [ -s "$FLOP/dos622-boot.img" ] || { echo "FAILED: dos622-boot.img" >&2; exit 1; }
 
-echo "[2/4] stage the 6 Windows 3.11 install floppies"
+echo "[2/4] stage the six Windows 3.11 install floppies"
 for n in 1 2 3 4 5 6; do cp -f "$V/floppies/disk$n.img" "$FLOP/win311-disk$n.img"; done
 
 echo "[3/4] extract Win32s 1.25a redist (staged to C: post-format, not a floppy)"

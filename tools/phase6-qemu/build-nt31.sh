@@ -41,7 +41,7 @@ echo "[2/4] C: system disk — 500M raw, one bootable FAT16 primary, UNFORMATTED
 # from there). Left unformatted: the operator runs FDISK /MBR then FORMAT C: /S once
 # (canonical DOS way to make C: bootable). FDISK /MBR is REQUIRED — sfdisk writes the
 # partition table but no MBR bootstrap, and FORMAT /S only writes the partition VBR, so
-# without it SeaBIOS hangs at "Booting from Hard Disk…". (See README run-book step 2.)
+# without it SeaBIOS hangs at "Booting from Hard Disk…". (See the README run-book.)
 if [ -f "$B/hdd.img" ] && [ "${FRESH:-0}" != "1" ]; then
   echo "    keeping existing hdd.img ($(du -h "$B/hdd.img" | cut -f1)); FRESH=1 to recreate"
 else
