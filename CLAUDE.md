@@ -26,14 +26,14 @@ Agentic host repository. Agentic software-development assets (skills, plans, mil
 
 Behaviour of the software under development is specified in [Allium](https://juxt.github.io/allium/) (`mcp-win32s/specs/*.allium`, language version 3) **before** it is implemented. The Allium plugin (`allium@juxt-plugins`, enabled via `.claude/settings.json`) provides six skills. Every milestone passes through this lifecycle:
 
-| Lane | Skill | When | Output |
+| Stage | Skill | When | Output |
 |-------|-------|------|--------|
-| Discover | `/allium:elicit` | Milestone planning — turn milestone goals and open questions into draft entities/rules through structured Q&A | Draft spec content |
-| Specify | `/allium:tend` | ALL spec writing and editing — new specs, refinements, syntax fixes, migrations. Never hand-edit `.allium` files outside tend | Valid `specs/*.allium` (`allium check` clean) |
-| Derive tests | `/allium:propagate` | Before implementation — generate the test obligations the specs imply | Obligation list: unit + property + state-machine tests |
-| Implement | (normal coding) | Code to the spec; every test traces to a propagated obligation | `src/*.c` + `tests/*.c` |
-| Audit | `/allium:weed` | Before marking a milestone Complete — find spec↔code drift | Drift report; zero drift is the completion gate |
-| Backfill | `/allium:distill` | Whenever code exists without a spec — reverse-engineer one | New `specs/*.allium` |
+| 1. Discover | `/allium:elicit` | Milestone planning — turn milestone goals and open questions into draft entities/rules through structured Q&A | Draft spec content |
+| 2. Specify | `/allium:tend` | ALL spec writing and editing — new specs, refinements, syntax fixes, migrations. Never hand-edit `.allium` files outside tend | Valid `specs/*.allium` (`allium check` clean) |
+| 3. Derive tests | `/allium:propagate` | Before implementation — generate the test obligations the specs imply | Obligation list: unit + property + state-machine tests |
+| 4. Implement | (normal coding) | Code to the spec; every test traces to a propagated obligation | `src/*.c` + `tests/*.c` |
+| 5. Audit | `/allium:weed` | Before marking a milestone Complete — find spec↔code drift | Drift report; zero drift is the completion gate |
+| 6. Backfill | `/allium:distill` | Whenever code exists without a spec — reverse-engineer one | New `specs/*.allium` |
 
 `/allium:allium` is the language reference for any syntax or semantics question.
 
