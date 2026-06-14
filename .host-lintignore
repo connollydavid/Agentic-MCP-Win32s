@@ -1,0 +1,3 @@
+# Append-only record — acknowledged history, excluded from the --all audit.
+MEMORY.md
+plan/*/README.md
