@@ -1,4 +1,4 @@
-# Phase 2: File Operations + Base64 — **Complete**
+# File Operations + Base64 — **Complete**
 - `src/base64.c/.h` — base64 encode/decode (integer-only)
 - `src/file_ops.c/.h` — file read/write/list/delete (ANSI APIs)
 - `src/mcp-w32s.c` — dispatch: echo, read, write, list, delete, exec (stub)

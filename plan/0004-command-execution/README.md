@@ -1,4 +1,4 @@
-# Phase 4: Command Execution — Complete
+# Command Execution — Complete
 
 > **Completed 2026-06-06.** Merged via MCP-Win32s PR #10 (squash `805cdc3`); host submodule pointer bumped (`bc8bfd0`). Full Allium lifecycle run (elicit → tend → propagate → implement → distill → weed, all recorded below); weed audit zero unrecorded drift; adversarial review gate caught and fixed a catalog-gate bypass (BLOCKER) before merge; CI green (13 ctest suites + host-pbt + wire smoke under Wine). Spec coverage is total across `src/`.
 
