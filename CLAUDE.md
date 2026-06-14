@@ -1,6 +1,6 @@
 # Agentic-MCP-Win32s
 
-Agentic host repository. Agentic software-development assets (skills, plans, phase audits, harness config) live here; the software under development is vendored as git submodules.
+Agentic host repository. Agentic software-development assets (skills, plans, milestone audits, harness config) live here; the software under development is vendored as git submodules.
 
 ## Layout
 
@@ -15,9 +15,9 @@ Agentic host repository. Agentic software-development assets (skills, plans, pha
 
 ## Working in this repository
 
-- All planning artifacts (phase plans, status changes) are committed here, in the host repo — never inside the software submodule.
+- All planning artifacts (milestone plans, status changes) are committed here, in the host repo — never inside the software submodule.
 - Code changes happen inside `mcp-win32s/` on a branch, are merged via PR in that repo, and the submodule pointer is then bumped here in a separate commit.
-- Follow the phase-file rules in `plan/PLAN.md` strictly: phases are append-only and closed phases are never revisited.
+- Follow the milestone rules in `plan/PLAN.md` strictly: closed milestone bodies are append-only and never revisited.
 
 ## Specification & Test Workflow (Allium + theft)
 
