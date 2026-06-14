@@ -16,7 +16,7 @@
 # the I386 tree on a FAT data disk (no MSCDEX needed), a blank C: to format, and a
 # blank formatted floppy for WINNT to write the Setup boot floppy onto.
 #
-# Inputs (gitignored, operator-vendored — see plan/PHASE6.md provenance):
+# Inputs (gitignored, operator-vendored — see plan/0006-cross-platform-testing/README.md provenance):
 #   vendor/winnt31/WINNT_AS_511.ISO   (NT 3.1 AS, sha256 940dcefd…; or set NT_ISO=)
 #   vendor/win311/build/floppies/dos622-boot.img   (reused DOS 6.22 boot floppy)
 #
@@ -41,7 +41,7 @@ echo "[2/4] C: system disk — 500M raw, one bootable FAT16 primary, UNFORMATTED
 # from there). Left unformatted: the operator runs FDISK /MBR then FORMAT C: /S once
 # (canonical DOS way to make C: bootable). FDISK /MBR is REQUIRED — sfdisk writes the
 # partition table but no MBR bootstrap, and FORMAT /S only writes the partition VBR, so
-# without it SeaBIOS hangs at "Booting from Hard Disk…". (See README run-book step 2.)
+# without it SeaBIOS hangs at "Booting from Hard Disk…". (See the README run-book.)
 if [ -f "$B/hdd.img" ] && [ "${FRESH:-0}" != "1" ]; then
   echo "    keeping existing hdd.img ($(du -h "$B/hdd.img" | cut -f1)); FRESH=1 to recreate"
 else

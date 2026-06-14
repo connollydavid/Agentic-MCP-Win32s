@@ -1,12 +1,12 @@
-# Phase 6 / 6.2 — Windows 3.11 + Win32s 1.25a guest (QEMU)
+# Cross-Platform Testing — Windows 3.11 + Win32s 1.25a guest (QEMU)
 
-Builds and runs the **Win16/Win32s baseline tier** guest for Phase 6 cross-platform
+Builds and runs the **Win16/Win32s baseline tier** guest for cross-platform
 testing. The device target is Windows 3.x + Win32s 1.25a; this stands up exactly that
 under QEMU so the device's polling-exec / `shared_vm` / codepage-encoding / no-threads
 floor can be exercised on a real Win32s.
 
 All guest media is the **hash-pinned, gitignored** vendored Microsoft media under
-`vendor/win311/` (provenance + hashes in `plan/PHASE6.md`, **status TBC** — integrity-
+`vendor/win311/` (provenance + hashes in `plan/0006-cross-platform-testing/README.md`, **status TBC** — integrity-
 confirmed, authenticity unverified). Nothing here fetches from the network or embeds a
 binary; the scripts only assemble what `build.sh` stages.
 
@@ -138,4 +138,4 @@ The monitor commands below run from WSL: `MON_PORT=55556 bash tools/phase6-qemu/
   (`SERIAL_PORT=31801 python3 tools/phase6-qemu/wire_accept.py`) and confirm the ready line +
   an echo round-trip (`status:ok`). On NT the OS-serial path serves it (no direct-UART).
 - **If NT 3.1 fights QEMU** (disk/CPU/video detection) after reasonable effort: **stop and
-  consult** before pivoting to NT 3.51 (per plan/PHASE6.md #40).
+  consult** before pivoting to NT 3.51 (per plan/0006-cross-platform-testing/README.md #40).

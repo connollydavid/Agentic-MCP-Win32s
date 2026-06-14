@@ -21,8 +21,8 @@ sub-agent, and observed CI.
 
 | # | Stage | Skill / action | Exit criterion | Enforced by |
 |---|-------|----------------|----------------|-------------|
-| 0 | Planning pause | `/phase open <N>` | PHASE<N>.md reviewed, open questions settled, status → In progress, committed+pushed | this skill (will not advance from an unreviewed plan) |
-| 1 | Discover | `/allium:elicit` | domain model settled, zero open questions; terminology grounded in research when naming matters | recorded in PHASE<N>.md |
+| 0 | Planning pause | `/phase open <N>` | <NNNN-slug>/README.md reviewed, open questions settled, status → In progress, committed+pushed | this skill (will not advance from an unreviewed plan) |
+| 1 | Discover | `/allium:elicit` | domain model settled, zero open questions; terminology grounded in research when naming matters | recorded in <NNNN-slug>/README.md |
 | 2 | Specify | `/allium:tend` | `allium check` clean; safety transforms pinned by an invariant (tend owns the final form; plan sketches are input) | `allium check` + the safety-transform rule |
 | 3 | Derive tests | `/allium:propagate` | obligations listed, mapped to tests (floor only grows) | OBLIGATIONS file traces |
 | 4 | Implement | **fan-out** (see below) | first all-green → **`/phase gate arm`** here | `/phase-gate` (continuous from here) + sub-agent verification |
@@ -37,29 +37,29 @@ hook. Judgment (review gate) → the sub-agent. Parity (CI ≠ local) → the
 observed run. None substitutes for another.
 
 **Stage cadence.** Each stage exit writes a `✅ <stage> — <date>` line into
-`plan/PHASE<N>.md` and is committed + pushed immediately (host repo, plan
+`plan/<NNNN-slug>/README.md` and is committed + pushed immediately (host repo, plan
 artifacts only — the PLAN/PHASE immediate-commit rule). These markers are
 the phase's state; `/phase status` reads them. Do not batch them.
 
 ## Implement and weed are fan-out jobs, not linear ones
 
-Phase 4 was an orchestration job, not a serial slog — encode that:
+Command Execution was an orchestration job, not a serial slog — encode that:
 
-**Stage 4 (implement) — fan-out.** Decompose the phase into independent
+**The implement stage — fan-out.** Decompose the phase into independent
 modules. **Freeze the interfaces first**: write and commit the `.h`
 (public types + signatures) for each module before delegating, so
-concurrent work cannot collide on a contract (Phase 4 froze `feat.h`
+concurrent work cannot collide on a contract (Command Execution froze `feat.h`
 before spawning eight module agents). Then spawn one sub-agent per module
 **in parallel** (a single message, multiple Agent calls), each with the
 hard constraints, the frozen headers, and its obligation IDs. Keep the
 interface-heavy seams (the dispatcher, integration glue) for the main
 session. **Independently verify** every returned module — re-build and
 re-run its tests yourself; never accept a sub-agent's self-report (a
-Phase 4 agent reported "done" with no test output and had real
+Command Execution agent reported "done" with no test output and had real
 failures). Integrate, then run the whole suite.
 
-**Stage 6 (weed) — parallel auditors.** Split the specs into clusters and
-run one read-only `Explore` auditor per cluster in parallel (Phase 4 ran
+**The weed stage — parallel auditors.** Split the specs into clusters and
+run one read-only `Explore` auditor per cluster in parallel (Command Execution ran
 four: process-ops, catalog, the distilled+wire specs, and
 protocol/transport/file-ops), each told to be adversarial and hunt the
 gate-bypass dimension. Synthesise the findings, then remediate in-branch
@@ -72,18 +72,18 @@ Read `$ARGUMENTS`; default to `status`.
 ### `open <N>`
 The planning pause (CLAUDE.md / PLAN.md rule 6). Do NOT start execution
 from an unreviewed plan.
-1. Enter plan mode. Read `plan/PHASE<N>.md` in full and `plan/PLAN.md`.
+1. Enter plan mode. Read `plan/<NNNN-slug>/README.md` in full and `plan/PLAN.md`.
 2. Surface every stale reference, carried-forward correction, and open
    question; settle them by Q&A with the user. A new phase is never just
    a preamble fixing the previous one — confirm the phase's own scope.
-3. On approval: flip the PLAN.md index and the PHASE<N>.md header to
+3. On approval: flip the PLAN.md index and the <NNNN-slug>/README.md header to
    **In progress**, commit + push (host repo; plan artifacts only).
-4. Hand off to stage 1 (`/allium:elicit`).
+4. Hand off to the Discover stage (`/allium:elicit`).
 
 ### `status` (default)
 1. Read `plan/PLAN.md` for the In-progress phase; if none, report "no
    phase in progress" and stop.
-2. Read that `plan/PHASE<N>.md`; from the `✅ <stage>` markers report the
+2. Read that `plan/<NNNN-slug>/README.md`; from the `✅ <stage>` markers report the
    lifecycle stage reached, the next stage, and its exit criterion.
 3. Report whether `/phase-gate` is armed (`.claude/phase-gate.active`).
 
@@ -100,7 +100,7 @@ Launch the independent adversarial review gate (CLAUDE.md "Review gate").
    `.claude/skills/phase/review-template.md`, filling in the diff,
    branch, base, and the PR's claims. The reviewer refutes the claims.
 3. Address every finding **within the same PR**; record them as numbered
-   findings in PHASE<N>.md. Re-run if a fix is non-trivial.
+   findings in <NNNN-slug>/README.md. Re-run if a fix is non-trivial.
 
 ### `complete <N>`
 The close-out (only after stages 7 + 8 are satisfied).
@@ -108,7 +108,7 @@ The close-out (only after stages 7 + 8 are satisfied).
    (`gh pr checks`), review verdict approve with findings fixed.
 2. Squash-merge the submodule PR; delete the branch.
 3. Bump the submodule pointer in the host repo as a **separate** commit.
-4. Mark Complete in `plan/PLAN.md` and the PHASE<N>.md header; append the
+4. Mark Complete in `plan/PLAN.md` and the <NNNN-slug>/README.md header; append the
    phase's lessons to `MEMORY.md` (separate commit).
 5. `/phase gate clear`.
 
@@ -128,5 +128,5 @@ The close-out (only after stages 7 + 8 are satisfied).
   pushing through degraded.
 - Anti-slop: commit subjects and code comments are linted by the
   phase-slop hook; keep numbered phase-synonyms out of submodule
-  code/commits — the sanctioned `Phase N` structure lives only here in
-  the host `plan/`.
+  code/commits and the host's own prose — milestones are content-named
+  (`plan/<NNNN-slug>/`); there is no ordinal carve-out.

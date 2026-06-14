@@ -1,4 +1,4 @@
-# Phase 6: Cross-Platform Testing — In progress
+# Cross-Platform Testing — In progress
 
 Verify the device on the real OS ladder. Phases 1–5 verified behaviour only under
 **Wine (an NT proxy) and WSL2-native modern Windows**; every OS-tier-dependent

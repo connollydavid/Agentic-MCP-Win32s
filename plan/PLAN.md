@@ -1,24 +1,46 @@
 # Implementation Plan: MCP-Win32s
 
-Phase plans for the software under development (`mcp-win32s/` submodule). Each phase lives in its own `PHASE<N>.md` file in this directory.
+Milestone plans for the software under development (`mcp-win32s/` submodule).
+Each milestone lives in its own content-named folder `plan/<NNNN-slug>/` carrying
+a `README.md`. Numbers are identity; slugs are content; ordering lives in this
+index, never in the names.
 
-## Phase Index
+## Milestone Index
 
-| Phase | File | Focus | Status |
-|-------|------|-------|--------|
-| 1 | [PHASE1.md](PHASE1.md) | Foundation: test framework, JSON parser, serial init, main loop, CI | **Complete** |
-| 2 | [PHASE2.md](PHASE2.md) | File operations + base64 + PBT | **Complete** |
-| 3 | [PHASE3.md](PHASE3.md) | Network & transport: vtable backends, serial refactor, TCP/Winsock | **Complete** |
-| 4 | [PHASE4.md](PHASE4.md) | Command execution + catalog + feature uplift + theft harness + spec backfill + weed remediation (4.0) + wire-contract smoke harness | **Complete** |
-| 5 | [PHASE5.md](PHASE5.md) | MCP integration: Rust bridge (rmcp) + API-first capability surface (files/build/exec) + memory peek/poke (tiered, user-mode) + UTF-8 floor | **Complete** |
-| 6 | [PHASE6.md](PHASE6.md) | Cross-platform testing | **In progress** |
-| 7 | [PHASE7.md](PHASE7.md) | Documentation & polish | Not started |
+| # | Milestone | Focus | Status |
+|------|-----------|-------|--------|
+| 0001 | [Foundation](0001-foundation/README.md) | test framework, JSON parser, serial init, main loop, CI | **Complete** |
+| 0002 | [File Operations + Base64](0002-file-operations-base64/README.md) | file operations + base64 + PBT | **Complete** |
+| 0003 | [Network & Transport](0003-network-transport/README.md) | vtable backends, serial refactor, TCP/Winsock | **Complete** |
+| 0004 | [Command Execution](0004-command-execution/README.md) | command execution + catalog + feature uplift + theft harness + spec backfill + weed remediation + wire-contract smoke harness | **Complete** |
+| 0005 | [MCP Integration](0005-mcp-integration/README.md) | Rust bridge (rmcp) + API-first capability surface (files/build/exec) + memory peek/poke (tiered, user-mode) + UTF-8 floor | **Complete** |
+| 0006 | [Cross-Platform Testing](0006-cross-platform-testing/README.md) | cross-platform testing | **In progress** |
+| 0007 | [Documentation & Polish](0007-documentation-polish/README.md) | documentation & polish | Not started |
 
-## Phase File Rules (strict)
+## Milestone Rules (strict)
 
-1. **Sequential naming.** Phase files are named `PHASE<N>.md` with `N` a positive integer, no gaps, no zero-padding. A new phase MUST be `PHASE<max+1>.md` — never insert, renumber, or reuse a number.
-2. **Closed phases are immutable.** Once a phase is marked **Complete** in its file and in the index above, its `PHASE<N>.md` MUST NOT be edited again — no rewording, no retroactive scope changes, no status flips. The git history of each phase file is the audit trail.
-3. **Corrections go forward.** If a completed phase turns out to be wrong or incomplete, do not reopen it. Record the correction as scope in the next (or a new) phase file, referencing the closed phase.
-4. **One status transition path.** `Not started → Spec'd → In progress → Complete`. Status changes are recorded in both the phase file heading and the index table, in the same commit.
-5. **Completion gate.** A phase may only be marked Complete after the Allium lifecycle gate passes (specs tended, obligations propagated, weed audit clean) in the `mcp-win32s/` submodule.
-6. **Opening a phase requires an explicit planning pause.** Before any code or spec work for a phase begins, the phase file is reviewed and amended to current reality — stale references fixed, corrections carried forward from closed phases scoped in, open decisions resolved via Q&A and recorded — its status moves to **In progress** in the same commit, and that commit is pushed. Execution may never start from an unreviewed plan.
+1. **Content-named, numbered for identity.** Each milestone is a folder
+   `plan/<NNNN-slug>/` — a four-digit zero-padded number, a hyphen, then a
+   lowercase slug naming its content — carrying a `README.md`. The number is
+   assigned when the milestone is accepted and never changes; read sequence from
+   this index, not from the names.
+2. **Closed milestone bodies are append-only.** Once a milestone is marked
+   **Complete** here and in its `README.md`, the body is the audit record: never
+   reworded or retroactively rescoped. The git history is the trail. (The
+   adoption migration de-ordinaled only the H1 titles; every body line is
+   verbatim.)
+3. **Corrections go forward.** If a completed milestone turns out wrong or
+   incomplete, do not reopen it — record the correction as scope in the next (or
+   a new) milestone, referencing the closed one.
+4. **One status transition path.** `Not started → Spec'd → In progress →
+   Complete`. Status changes are recorded in both the milestone `README.md`
+   heading and the index table, in the same commit.
+5. **Completion gate.** A milestone may only be marked Complete after the Allium
+   lifecycle gate passes (specs tended, obligations propagated, weed audit clean)
+   in the `mcp-win32s/` submodule.
+6. **Opening a milestone requires an explicit planning pause.** Before any code or
+   spec work begins, the milestone `README.md` is reviewed and amended to current
+   reality — stale references fixed, corrections carried forward from closed
+   milestones scoped in, open decisions resolved via Q&A and recorded — its status
+   moves to **In progress** in the same commit, and that commit is pushed.
+   Execution may never start from an unreviewed plan.

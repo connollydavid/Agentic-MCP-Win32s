@@ -4,7 +4,7 @@
 # same staged media. Does NOT clobber an existing hdd.img (an install in
 # progress) unless FRESH=1.
 #
-# Inputs (gitignored, hash-pinned — see plan/PHASE6.md, status TBC):
+# Inputs (gitignored, hash-pinned — see plan/0006-cross-platform-testing/README.md, status TBC):
 #   vendor/win311/dos622_bundle/MS-Dos 6.22.iso   (bootable DOS 6.22; El Torito floppy)
 #   vendor/win311/floppies/disk{1..6}.img         (Microsoft Windows 3.11 install floppies)
 #   vendor/win311/win32s_125/win32s-1.25a-1.25.142.0.7z  (WinWorld PW1118 redist)
@@ -36,7 +36,7 @@ cp -f "$WWDOS/Disk2.img" "$FLOP/dos622-disk2.img"
 cp -f "$WWDOS/Disk3.img" "$FLOP/dos622-disk3.img"
 [ -s "$FLOP/dos622-boot.img" ] || { echo "FAILED: dos622-boot.img" >&2; exit 1; }
 
-echo "[2/4] stage the 6 Windows 3.11 install floppies"
+echo "[2/4] stage the six Windows 3.11 install floppies"
 for n in 1 2 3 4 5 6; do cp -f "$V/floppies/disk$n.img" "$FLOP/win311-disk$n.img"; done
 
 echo "[3/4] extract Win32s 1.25a redist (staged to C: post-format, not a floppy)"

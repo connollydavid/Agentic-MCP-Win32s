@@ -1,6 +1,6 @@
 # Direct-UART backend — design foundation (research synthesis)
 
-Foundation for the Win32s direct-UART transport backend (work item **6.2 / task #37**),
+Foundation for the Win32s direct-UART transport backend (**task #37**),
 proven viable by the `tools/phase6-qemu/uart-probe.c` spike (ring-3 `IN`/`OUT` to the
 16550 works on real Win32s; full duplex confirmed). This note consolidates two
 primary-source research passes (2026-06-11) into the design spine the `tend`/spec stage
@@ -48,10 +48,10 @@ COM4 `0x2E8`/IRQ3 (COM3/4 "semistandard"). **IRQs are moot — we poll.**
 
 1. **Presence (IER store-test)** — save IER; write `0x00`→+1, read `&0x0F` expect `0x00`;
    write `0x0F`→+1, read `&0x0F` expect `0x0F`; mismatch → **no port** (a floating ISA
-   bus reads `0xFF`). (Linux `autoconfig` step 1.)
+   bus reads `0xFF`). (Linux `autoconfig` does this first.)
 2. **FIFO probe** — write `FCR = 0xE7` (enable+clear+64-byte bit), read `IIR & 0xC0`:
    `0xC0` → **16550A** (FIFO usable; `0xE0` with bit5 → 16750); `0x80` → **16550 non-A**
-   (FIFO **broken → treat as no-FIFO**); `0x00` → no FIFO → step 3.
+   (FIFO **broken → treat as no-FIFO**); `0x00` → no FIFO → use the scratch test.
 3. **Scratch test (8250 vs 16450)** — only to split the no-FIFO group; write **two**
    patterns (`0x55`, then `0xAA`) to +7 with an intervening read of a *different* register
    to defeat bus-float aliasing on clones. **Do not branch behaviour on the result** —

@@ -1,4 +1,4 @@
-# Phase 5: MCP Integration — Complete
+# MCP Integration — Complete
 
 > **Opened 2026-06-06** under PLAN.md rule 6 (planning pause): the two-line stub was replaced with a research-grounded plan, every open question was settled with the user in a product-design Q&A round, and the status flips to In progress here. Grounded in June-2026 web research (MCP spec/ecosystem, the Rust SDK landscape) and a user-supplied authoritative Windows memory-model breakdown.
 
