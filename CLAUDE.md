@@ -5,8 +5,11 @@ Agentic host repository. Agentic software-development assets (skills, plans, pha
 ## Layout
 
 - `mcp-win32s/` — submodule: the software under development (MCP server for Win32s). Its own `CLAUDE.md` carries the project-specific constraints (C89, i386, Win32s API subset) and build instructions.
-- `andrej-karpathy-skills/` — submodule: behavioral guidelines and skills for agentic development.
-- `plan/` — committed, auditable phase plans. `plan/PLAN.md` is the index and defines the strict phase-file rules (sequential `PHASE<N>.md` naming, closed phases immutable).
+- `template-agentic-host/` — submodule: the agentic-host methodology template (the five-room model, the working principles, and the `host-*` tooling). Adopted copy-at-version; see `.agentic-host` and `call/0001`.
+- `host-lint/` — submodule: the anti-slop naming linter that is the phase-slop hook's match engine. Build per clone: `cargo build --release --manifest-path host-lint/Cargo.toml`.
+- `plan/` — committed, auditable milestone plans. `plan/PLAN.md` is the index; each milestone is a content-named folder `plan/<NNNN-slug>/` carrying its `README.md`. Numbers are identity, slugs are content; closed milestone bodies are append-only.
+- `cast/` — personas (the Who): the operators and agents the software serves.
+- `call/` — decisions (the Why), in MADR format (`call/0000` bootstraps the format).
 - `AGENTS.md` — agent guide for this host: where each concern's source of truth lives. The submodule's own docs (`mcp-win32s/CLAUDE.md`, and `mcp-win32s/vendor/theft/CLAUDE.md` for theft's internal idioms) are referenced, never duplicated.
 - `MEMORY.md` — append-only record of decisions, constraints, and lessons learned.
 
@@ -62,7 +65,7 @@ CI green here means **the actual CI run on the pushed commit**, observed — not
 
 ### Review gate (independent sub-agent, before every merge)
 
-After the Allium lifecycle is clean and CI passes, every PR in the software submodule gets an **independent adversarial review by a fresh sub-agent** before merge. Established 2026-06-06 on PR #9, where this process caught a spec defect (`FileWriteResult.data` phantom field, finding #7) that `allium check`, the lifecycle pass, and CI all missed.
+After the Allium lifecycle is clean and CI passes, every PR in the software submodule gets an **independent adversarial review by a fresh sub-agent** before merge. Established 2026-06-06 on PR #9, where this process caught a spec defect (the `FileWriteResult.data` phantom field) that `allium check`, the lifecycle run, and CI all missed.
 
 Rules for the review:
 
@@ -79,19 +82,19 @@ When implementation work is delegated to sub-agents (parallel module builds, etc
 
 ### Vocabulary discipline (anti-slop)
 
-Numbered phase-synonyms — `Phase 1`, `Step 2`, `Stage II`, `Pass 1 of 3` — are a cross-model agentic tell (GPT, Gemini, Claude, Cursor, Copilot all stamp them). In the **software submodule** they are slop: keep them out of `src/`/`tests/` comments and out of commit subjects, which should read as idiomatic git / Conventional Commits. The sanctioned `Phase N` structure is *legitimate* and lives **only here in the host** (`plan/`, `PLAN.md`, `PHASE<N>.md`, and the host's `Phase N …` commit convention). This boundary is enforced mechanically by the phase-slop linter (`.claude/hooks/lib/phase-slop-lint.sh`), wired as a Claude Code PreToolUse hook (catches the agent) and as installable git hooks for the submodule (catch humans):
+A milestone-synonym noun followed by a numeral is a cross-model agentic tell (GPT, Gemini, Claude, Cursor, Copilot all stamp them). It is slop **everywhere** in this repository: keep it out of `src/`/`tests/` comments, out of commit subjects (which should read as idiomatic git / Conventional Commits), and out of the host's own governance and plan prose. Milestones are **content-named** (`plan/<NNNN-slug>/`); there is no ordinal carve-out. This is enforced mechanically by the phase-slop linter (`.claude/hooks/lib/phase-slop-lint.sh`), wired as a Claude Code PreToolUse hook (catches the agent) and as installable git hooks for the submodule (catch humans):
 
 ```
 git -C mcp-win32s config core.hooksPath ../.claude/hooks/git
 ```
 
-(`.git/hooks` is not tracked, so the git-hook install is a per-clone step. The PreToolUse hook needs no install — it ships in `.claude/settings.json`.) A subject that *starts with* `Phase N` is exempt (the host convention); a phase-synonym anywhere else flags. Idiomatic vocabulary — Conventional Commits types, Conventional Comments labels, code tags (`TODO/FIXME/XXX/HACK`), `WIP` — is never flagged.
+(`.git/hooks` is not tracked, so the git-hook install is a per-clone step. The PreToolUse hook needs no install — it ships in `.claude/settings.json`.) The numeral is the tell; the noun alone is not. Idiomatic vocabulary — Conventional Commits types, Conventional Comments labels, code tags (`TODO/FIXME/XXX/HACK`), `WIP` — is never flagged, and genuine version/quantity numbers (the guest-OS and library versions cited in the milestone bodies) are allow-listed in `.host-lint-allow`.
 
-The linter's **match engine** is the vendored [`no-phase`](https://github.com/connollydavid/no-phase-skill) tool (`no-phase-skill/` submodule; the rule spec is its `VOCABULARY.md` — wider term list and two-word lookahead than the original shell pattern). Build it per clone: `cargo build --release --manifest-path no-phase-skill/Cargo.toml`. Repo **policy** stays in the wrapper (`phase-slop-lint.sh`): the `Phase N` subject exemption and comment-line scoping are applied before/around the engine, and the original shell pattern remains as the fallback engine when the binary is absent (hooks never wedge a fresh clone).
+The linter's **match engine** is the vendored [`host-lint`](https://github.com/connollydavid/host-lint) tool (`host-lint/` submodule; the rule spec is its `VOCABULARY.md` — wider term list and two-word lookahead than the original shell pattern). Build it per clone: `cargo build --release --manifest-path host-lint/Cargo.toml`. Repo **policy** stays in the wrapper (`phase-slop-lint.sh`): comment-line scoping is applied around the engine, and the original shell pattern remains as the fallback engine when the binary is absent (hooks never wedge a fresh clone). The append-only record (`MEMORY.md` and the closed milestone bodies) is excluded from the `--all` audit via `.host-lintignore`.
 
 ### Implement and weed are fan-out jobs (not linear)
 
-A phase's implement and weed stages are **parallel orchestration**, not serial work — this is how Phase 4 was actually done and what made it tractable. Implement: decompose into independent modules, **freeze each module's interface (`.h`) and commit it first** so concurrent work cannot collide on a contract, then spawn one sub-agent per module in parallel; keep the integration seams (dispatcher, glue) for the main session; **independently re-build and re-test every returned module** (sub-agent verification). Weed: split the specs into clusters and run one read-only auditor per cluster in parallel, each adversarial. Stage cadence: each lifecycle stage exit writes a `✅ <stage>` marker into the open `PHASE<N>.md` and is committed + pushed immediately (the same immediate-commit rule as PLAN edits) — those markers are the phase's state.
+A phase's implement and weed stages are **parallel orchestration**, not serial work — this is how Phase 4 was actually done and what made it tractable. Implement: decompose into independent modules, **freeze each module's interface (`.h`) and commit it first** so concurrent work cannot collide on a contract, then spawn one sub-agent per module in parallel; keep the integration seams (dispatcher, glue) for the main session; **independently re-build and re-test every returned module** (sub-agent verification). Weed: split the specs into clusters and run one read-only auditor per cluster in parallel, each adversarial. Stage cadence: each lifecycle stage exit writes a `✅ <stage>` marker into the open milestone's `README.md` and is committed + pushed immediately (the same immediate-commit rule as PLAN edits) — those markers are the milestone's state.
 
 ### The `/phase` orchestrator
 
@@ -99,4 +102,10 @@ These per-phase process rules (planning pause, lifecycle, safety-transform pinni
 
 ## Guidelines
 
-@andrej-karpathy-skills/CLAUDE.md
+This host adopts the agentic-host methodology. Its five-room model and the four
+working principles are defined in the template manual,
+`template-agentic-host/CLAUDE.md`, adopted **copy-at-version** at the revision
+pinned in `.agentic-host` — referenced at a fixed revision, not a live
+`@`-import, so the methodology cannot drift underfoot between submodule bumps
+(see `call/0001`). The project-specific rules above take precedence wherever they
+add detail.

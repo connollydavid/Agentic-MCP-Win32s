@@ -9,9 +9,13 @@ This is the agentic host repository. The software under development lives in the
 | Technical constraints (C89, i386, Win32s API subset), build commands, code conventions | `mcp-win32s/CLAUDE.md` |
 | Behavioural specs | `mcp-win32s/specs/*.allium` |
 | Vendored theft library internal idioms | `mcp-win32s/vendor/theft/CLAUDE.md` (third-party; referenced, not duplicated) |
-| Phase plans, phase index, per-phase status | `plan/PLAN.md` + `plan/PHASE<N>.md` (here) |
-| Agentic process: Allium lifecycle, merge gate, phase-file rules | `CLAUDE.md` (here) |
-| Decisions and lessons learned | `MEMORY.md` (here) |
+| Agentic-host methodology (the five rooms, working principles, `host-*` tooling) | `template-agentic-host/` (adopted copy-at-version; see `.agentic-host`) |
+| Anti-slop naming linter (the phase-slop match engine) | `host-lint/` |
+| Milestone plans, the index, per-milestone status | `plan/PLAN.md` + `plan/<NNNN-slug>/README.md` (here) |
+| Personas — the operators and agents served (the Who) | `cast/` (here) |
+| Decisions, in MADR format (the Why) | `call/` (here) |
+| Agentic process: Allium lifecycle, merge gate, milestone-file rules | `CLAUDE.md` (here) |
+| Lessons learned | `MEMORY.md` (here) |
 
 ## How agents work here
 
