@@ -1,9 +1,9 @@
-[submodule "andrej-karpathy-skills"]
-	path = andrej-karpathy-skills
-	url = https://github.com/connollydavid/andrej-karpathy-skills.git
 [submodule "mcp-win32s"]
 	path = mcp-win32s
 	url = git@github.com:connollydavid/MCP-Win32s.git
-[submodule "no-phase-skill"]
-	path = no-phase-skill
-	url = https://github.com/connollydavid/no-phase-skill.git
+[submodule "template-agentic-host"]
+	path = template-agentic-host
+	url = https://github.com/connollydavid/template-agentic-host.git
+[submodule "host-lint"]
+	path = host-lint
+	url = https://github.com/connollydavid/host-lint.git
