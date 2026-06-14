@@ -1,20 +1,22 @@
 # Agentic-MCP-Win32s
 
-Agentic host repository. Agentic software-development assets (skills, plans, phase audits, harness config) live here; the software under development is vendored as git submodules.
+Agentic host repository. Agentic software-development assets (skills, plans, milestone audits, harness config) live here; the software under development is vendored as git submodules.
 
 ## Layout
 
 - `mcp-win32s/` — submodule: the software under development (MCP server for Win32s). Its own `CLAUDE.md` carries the project-specific constraints (C89, i386, Win32s API subset) and build instructions.
-- `andrej-karpathy-skills/` — submodule: behavioral guidelines and skills for agentic development.
-- `plan/` — committed, auditable phase plans. `plan/PLAN.md` is the index and defines the strict phase-file rules (sequential `PHASE<N>.md` naming, closed phases immutable).
+- `template-agentic-host/` — submodule: the agentic-host methodology template this repo is sourced from (its `CLAUDE.md` is the canonical spine; its `tools/` host the verification lanes). Copied at a pinned revision — see the `.agentic-host` stamp and `call/0001`.
+- `host-lint/` — submodule: the anti-slop hygiene linter (Rust CLI; rules in its `VOCABULARY.md`), the match engine behind the slop hooks.
+- `plan/` — committed, auditable milestone plans. `plan/PLAN.md` is the index and defines the strict milestone-file rules (content-named `plan/<NNNN-slug>/` folders, closed milestones immutable).
+- `call/` — decision records (MADR; see `call/0000`). `cast/` — personas (the project's *who*).
 - `AGENTS.md` — agent guide for this host: where each concern's source of truth lives. The submodule's own docs (`mcp-win32s/CLAUDE.md`, and `mcp-win32s/vendor/theft/CLAUDE.md` for theft's internal idioms) are referenced, never duplicated.
 - `MEMORY.md` — append-only record of decisions, constraints, and lessons learned.
 
 ## Working in this repository
 
-- All planning artifacts (phase plans, status changes) are committed here, in the host repo — never inside the software submodule.
+- All planning artifacts (milestone plans, status changes) are committed here, in the host repo — never inside the software submodule.
 - Code changes happen inside `mcp-win32s/` on a branch, are merged via PR in that repo, and the submodule pointer is then bumped here in a separate commit.
-- Follow the phase-file rules in `plan/PLAN.md` strictly: phases are append-only and closed phases are never revisited.
+- Follow the milestone-file rules in `plan/PLAN.md` strictly: milestones are append-only and closed milestones are never revisited.
 
 ## Specification & Test Workflow (Allium + theft)
 
@@ -22,16 +24,16 @@ Agentic host repository. Agentic software-development assets (skills, plans, pha
 
 **Respect the machine — security boundaries are not optional.** This software grants an AI agent real power over a host: run commands, read and write files, and (later phases) inspect and modify process memory. That power is treated as **bounded, consented, and logged — never as a license.** Three rules govern it. (1) **We use what each OS grants ring-3; we never subvert its protections.** Broad access on a permissive system (Win9x/Win32s share an unprotected address space) is *what the OS already hands user mode* — it is never manufactured by escalating: no ring-0, no VxD, no call gate, no defeating a protection a system provides (on NT+, memory reach is limited to children we launched, via `ReadProcessMemory`/`WriteProcessMemory`). Respect the boundary that exists. (2) **Default-deny; opt in for danger.** The command catalog is an allow-list (and the argv/shell-escape hardening the review gate forced closes injection); memory writes, unsafe exec, and anything destructive are off by default, operator-opt-in, capability-gated, surfaced for human confirmation, and audit-logged — the OWASP MCP05 / least-privilege / consent posture. (3) **Verification covers restraint, not just function.** The review gate's adversarial gate-bypass dimension hunts boundary violations specifically — it is what caught the catalog-gate bypass — and it runs on every power-granting capability before it ships. Building a careful power tool is a commitment held in writing, so it binds every phase and every agent, not just the intent of one conversation.
 
-Behaviour of the software under development is specified in [Allium](https://juxt.github.io/allium/) (`mcp-win32s/specs/*.allium`, language version 3) **before** it is implemented. The Allium plugin (`allium@juxt-plugins`, enabled via `.claude/settings.json`) provides six skills. Every phase passes through this lifecycle:
+Behaviour of the software under development is specified in [Allium](https://juxt.github.io/allium/) (`mcp-win32s/specs/*.allium`, language version 3) **before** it is implemented. The Allium plugin (`allium@juxt-plugins`, enabled via `.claude/settings.json`) provides six skills. Every milestone passes through this lifecycle:
 
-| Stage | Skill | When | Output |
+| Lane | Skill | When | Output |
 |-------|-------|------|--------|
-| 1. Discover | `/allium:elicit` | Phase planning — turn phase goals and open questions into draft entities/rules through structured Q&A | Draft spec content |
-| 2. Specify | `/allium:tend` | ALL spec writing and editing — new specs, refinements, syntax fixes, migrations. Never hand-edit `.allium` files outside tend | Valid `specs/*.allium` (`allium check` clean) |
-| 3. Derive tests | `/allium:propagate` | Before implementation — generate the test obligations the specs imply | Obligation list: unit + property + state-machine tests |
-| 4. Implement | (normal coding) | Code to the spec; every test traces to a propagated obligation | `src/*.c` + `tests/*.c` |
-| 5. Audit | `/allium:weed` | Before marking a phase Complete — find spec↔code drift | Drift report; zero drift is the completion gate |
-| 6. Backfill | `/allium:distill` | Whenever code exists without a spec — reverse-engineer one | New `specs/*.allium` |
+| Discover | `/allium:elicit` | Milestone planning — turn milestone goals and open questions into draft entities/rules through structured Q&A | Draft spec content |
+| Specify | `/allium:tend` | ALL spec writing and editing — new specs, refinements, syntax fixes, migrations. Never hand-edit `.allium` files outside tend | Valid `specs/*.allium` (`allium check` clean) |
+| Derive tests | `/allium:propagate` | Before implementation — generate the test obligations the specs imply | Obligation list: unit + property + state-machine tests |
+| Implement | (normal coding) | Code to the spec; every test traces to a propagated obligation | `src/*.c` + `tests/*.c` |
+| Audit | `/allium:weed` | Before marking a milestone Complete — find spec↔code drift | Drift report; zero drift is the completion gate |
+| Backfill | `/allium:distill` | Whenever code exists without a spec — reverse-engineer one | New `specs/*.allium` |
 
 `/allium:allium` is the language reference for any syntax or semantics question.
 
@@ -56,13 +58,13 @@ This applies to *every* PR, not just phase-completion PRs. CI green is necessary
 The dev host runs the PEs **natively via WSL interop**; CI runs them under **Wine**. A locally-green suite is evidence, not proof. Before declaring a branch CI-ready:
 
 1. **The committed tree is what gets tested, not the working tree.** Test data and fixtures that match a `.gitignore` glob (e.g. `*.exe` binary fixtures) must be force-tracked (`git add -f`) and their presence asserted — a passing local run with an untracked fixture is a false green. (Added 2026-06-06: PR #10's binfmt fixtures were silently ignored; CI never had them.)
-2. **OS-behavioural tests must be host-tolerant or runner-verified.** Any test whose outcome depends on the host (capability presence, shell line-ending normalisation, job-limit enforcement, ConPTY support) must either skip-with-reason when the host diverges, or be verified under the CI runner before claiming green — never asserted only against native WSL behaviour. (Added 2026-06-06: three Phase 4 tests encoded native-only behaviour and failed twice on Wine.)
+2. **OS-behavioural tests must be host-tolerant or runner-verified.** Any test whose outcome depends on the host (capability presence, shell line-ending normalisation, job-limit enforcement, ConPTY support) must either skip-with-reason when the host diverges, or be verified under the CI runner before claiming green — never asserted only against native WSL behaviour. (Added 2026-06-06: three command-execution-milestone tests encoded native-only behaviour and failed twice on Wine.)
 
 CI green here means **the actual CI run on the pushed commit**, observed — not a local proxy.
 
 ### Review gate (independent sub-agent, before every merge)
 
-After the Allium lifecycle is clean and CI passes, every PR in the software submodule gets an **independent adversarial review by a fresh sub-agent** before merge. Established 2026-06-06 on PR #9, where this process caught a spec defect (`FileWriteResult.data` phantom field, finding #7) that `allium check`, the lifecycle pass, and CI all missed.
+After the Allium lifecycle is clean and CI passes, every PR in the software submodule gets an **independent adversarial review by a fresh sub-agent** before merge. Established 2026-06-06 on PR #9, where this process caught a spec defect (the `FileWriteResult.data` phantom field) that `allium check`, the lifecycle run, and CI all missed.
 
 Rules for the review:
 
@@ -70,33 +72,46 @@ Rules for the review:
 2. **Precise, per-dimension instructions.** The prompt enumerates review dimensions specific to the diff: code correctness against the project's hard constraints (C89/i386/Win32s), test quality (does the pinning test actually pin?), spec semantics checked against the *implementation read directly* (no double-fire rules, faithful modelling of the code paths), tool re-runs (`allium check`/`analyse`, build, test suite), and scope discipline (every changed line traces to a stated finding).
 3. **Adversarial framing.** The reviewer is told to refute the PR's claims and to look for adjacent defects of the same class as those being fixed — that is what catches what the tools cannot (the checker does not validate `.created()` args against entity fields; only a reader comparing spec to entity declarations finds that).
 4. **Structured output.** Findings ordered by severity (blocker / should-fix / nit / observation) with file:line and quoted evidence; explicit "none" per empty level; a merge verdict (approve / approve-with-nits / request-changes).
-5. **Findings are addressed within the same PR** — never deferred out of it — and recorded as numbered findings in the open phase file (host repo) in the same pass.
+5. **Findings are addressed within the same PR** — never deferred out of it — and recorded as findings in the open milestone file (host repo) in the same pass.
 6. **Read-only reviewer.** The sub-agent must not modify files or comment on the PR; the main session applies fixes and documents them.
 
 ### Sub-agent deliverables are verified, never trusted
 
-When implementation work is delegated to sub-agents (parallel module builds, etc.), the orchestrating session **independently re-runs the build and tests on the integrated result** before marking the work complete — it does not accept a sub-agent's self-report as evidence. A sub-agent can report "done" without having observed its own test output, or pass in isolation but break against a sibling's changes. (Added 2026-06-06: a Phase 4 module agent reported completion with a content-free final message; the orchestrator's own build+test run surfaced real failures the agent never saw.) This is the implementation-stage counterpart to the review gate: trust the artifact you verified, not the claim about it.
+When implementation work is delegated to sub-agents (parallel module builds, etc.), the orchestrating session **independently re-runs the build and tests on the integrated result** before marking the work complete — it does not accept a sub-agent's self-report as evidence. A sub-agent can report "done" without having observed its own test output, or pass in isolation but break against a sibling's changes. (Added 2026-06-06: a command-execution-milestone module agent reported completion with a content-free final message; the orchestrator's own build+test run surfaced real failures the agent never saw.) This is the implementation-stage counterpart to the review gate: trust the artifact you verified, not the claim about it.
 
 ### Vocabulary discipline (anti-slop)
 
-Numbered phase-synonyms — `Phase 1`, `Step 2`, `Stage II`, `Pass 1 of 3` — are a cross-model agentic tell (GPT, Gemini, Claude, Cursor, Copilot all stamp them). In the **software submodule** they are slop: keep them out of `src/`/`tests/` comments and out of commit subjects, which should read as idiomatic git / Conventional Commits. The sanctioned `Phase N` structure is *legitimate* and lives **only here in the host** (`plan/`, `PLAN.md`, `PHASE<N>.md`, and the host's `Phase N …` commit convention). This boundary is enforced mechanically by the phase-slop linter (`.claude/hooks/lib/phase-slop-lint.sh`), wired as a Claude Code PreToolUse hook (catches the agent) and as installable git hooks for the submodule (catch humans):
+Numbered milestone-synonyms — a `phase`/`step`/`stage`/`pass` noun glued to a numeral — are a cross-model agentic tell (GPT, Gemini, Claude, Cursor, Copilot all stamp them). They are slop **everywhere in this repository**: in the software submodule's `src/`/`tests/` comments and commit subjects, and in the host's own plan, decision, and memory artifacts alike. There is **no host carve-out** — milestones are content-named under `plan/<NNNN-slug>/` (the old numbered-name exemption was retired; see `call/0001`), so the host's files are bound as strictly as the software's. Commit subjects should read as idiomatic git / Conventional Commits. This boundary is enforced mechanically by the slop linter (`.claude/hooks/lib/phase-slop-lint.sh`), wired as a Claude Code PreToolUse hook (catches the agent) and as installable git hooks (catch humans):
 
 ```
 git -C mcp-win32s config core.hooksPath ../.claude/hooks/git
 ```
 
-(`.git/hooks` is not tracked, so the git-hook install is a per-clone step. The PreToolUse hook needs no install — it ships in `.claude/settings.json`.) A subject that *starts with* `Phase N` is exempt (the host convention); a phase-synonym anywhere else flags. Idiomatic vocabulary — Conventional Commits types, Conventional Comments labels, code tags (`TODO/FIXME/XXX/HACK`), `WIP` — is never flagged.
+(`.git/hooks` is not tracked, so the git-hook install is a per-clone step. The PreToolUse hook needs no install — it ships in `.claude/settings.json`.) There is no subject exemption: a milestone-synonym with a numeral flags anywhere. Idiomatic vocabulary — Conventional Commits types, Conventional Comments labels, code tags (`TODO/FIXME/XXX/HACK`), `WIP`, and genuine version strings and quantities — is never flagged.
 
-The linter's **match engine** is the vendored [`no-phase`](https://github.com/connollydavid/no-phase-skill) tool (`no-phase-skill/` submodule; the rule spec is its `VOCABULARY.md` — wider term list and two-word lookahead than the original shell pattern). Build it per clone: `cargo build --release --manifest-path no-phase-skill/Cargo.toml`. Repo **policy** stays in the wrapper (`phase-slop-lint.sh`): the `Phase N` subject exemption and comment-line scoping are applied before/around the engine, and the original shell pattern remains as the fallback engine when the binary is absent (hooks never wedge a fresh clone).
+The linter's **match engine** is the [`host-lint`](https://github.com/connollydavid/host-lint) tool (`host-lint/` submodule; the rule spec is its `VOCABULARY.md` — a wide term list with two-word lookahead). Build it per clone: `cargo build --release --manifest-path host-lint/Cargo.toml`. Comment-line scoping stays in the wrapper (`phase-slop-lint.sh`); the original shell pattern remains as the fallback engine when the binary is absent (hooks never wedge a fresh clone).
 
 ### Implement and weed are fan-out jobs (not linear)
 
-A phase's implement and weed stages are **parallel orchestration**, not serial work — this is how Phase 4 was actually done and what made it tractable. Implement: decompose into independent modules, **freeze each module's interface (`.h`) and commit it first** so concurrent work cannot collide on a contract, then spawn one sub-agent per module in parallel; keep the integration seams (dispatcher, glue) for the main session; **independently re-build and re-test every returned module** (sub-agent verification). Weed: split the specs into clusters and run one read-only auditor per cluster in parallel, each adversarial. Stage cadence: each lifecycle stage exit writes a `✅ <stage>` marker into the open `PHASE<N>.md` and is committed + pushed immediately (the same immediate-commit rule as PLAN edits) — those markers are the phase's state.
+A milestone's implement and weed stages are **parallel orchestration**, not serial work — this is how the command-execution milestone was actually done and what made it tractable. Implement: decompose into independent modules, **freeze each module's interface (`.h`) and commit it first** so concurrent work cannot collide on a contract, then spawn one sub-agent per module in parallel; keep the integration seams (dispatcher, glue) for the main session; **independently re-build and re-test every returned module** (sub-agent verification). Weed: split the specs into clusters and run one read-only auditor per cluster in parallel, each adversarial. Stage cadence: each lifecycle stage exit writes a `✅ <stage>` marker into the open milestone `README.md` and is committed + pushed immediately (the same immediate-commit rule as PLAN edits) — those markers are the milestone's state.
 
 ### The `/phase` orchestrator
 
-These per-phase process rules (planning pause, lifecycle, safety-transform pinning, merge gate + CI parity, review gate, sub-agent verification, fan-out) are sequenced by the **`/phase`** skill (`.claude/skills/phase/`) — the state-aware orchestrator that drives a phase open→complete and refuses to skip a gate. Its deterministic gates are enforced by the `/phase-gate` Stop hook, its judgment gate by the adversarial review sub-agent (`review-template.md`), and its parity gate by observed CI. (The skill is named `/phase`, not `/goal`: `/goal` is a built-in Claude Code command — a transcript-evaluated loop — which the orchestrator deliberately does not shadow and does not depend on, since it verifies its gates by running them.)
+These per-milestone process rules (planning pause, lifecycle, safety-transform pinning, merge gate + CI parity, review gate, sub-agent verification, fan-out) are sequenced by the **`/phase`** skill (`.claude/skills/phase/`) — the state-aware orchestrator that drives a milestone open→complete and refuses to skip a gate. Its deterministic gates are enforced by the `/phase-gate` Stop hook, its judgment gate by the adversarial review sub-agent (`review-template.md`), and its parity gate by observed CI. (The skill is named `/phase`, not `/goal`: `/goal` is a built-in Claude Code command — a transcript-evaluated loop — which the orchestrator deliberately does not shadow and does not depend on, since it verifies its gates by running them.)
+
+## Sourcing
+
+This repository is an **agentic host** sourced from the
+[`template-agentic-host`](https://github.com/connollydavid/template-agentic-host)
+methodology, **copied at a pinned revision** rather than tracked live: the
+`.agentic-host` stamp records the adopted `template`/`revision`/`adopted`, and a
+later upgrade diffs the template from that revision. The template's `CLAUDE.md`
+is the canonical spine (imported below); the project-specifics above — the
+Win32s constraints, the Allium lifecycle, the merge/review gates, the `/phase`
+orchestrator — are this host's own and take precedence where they are more
+specific. Tool *outputs* are project-owned. The adoption is recorded in
+`call/0001`.
 
 ## Guidelines
 
-@andrej-karpathy-skills/CLAUDE.md
+@template-agentic-host/CLAUDE.md

@@ -67,7 +67,7 @@ staged_v="$("$LINT" --staged "$SUB" 2>/dev/null)" || violations="$violations$sta
 # Trim and decide.
 violations="$(printf '%s' "$violations" | sed '/^[[:space:]]*$/d')"
 if [ -n "$violations" ]; then
-    reason="phase-slop linter blocked this submodule commit. Numbered phase-synonyms (Phase 1, Step 2, Pass 1 of 3, ...) are an agentic tell - rewrite to idiomatic git/Conventional-Commits vocabulary. The sanctioned 'Phase N' structure belongs only in the host plan/. Violations:
+    reason="host-lint blocked this submodule commit. Numbered milestone-synonyms are an agentic tell - rewrite to idiomatic git/Conventional-Commits vocabulary. Milestones are content-named under the host plan/. Violations:
 $violations"
     if command -v jq >/dev/null 2>&1; then
         jq -n --arg r "$reason" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'

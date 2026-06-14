@@ -148,7 +148,7 @@ if [ -f build/mingw/mcp-w32s.exe ] && [ -f build/mingw/wire_client.exe ]; then
     fi
 fi
 
-# --- Gate 7: Rust bridge (Phase 5) - cargo test (compiles lib+bin+tests). ---
+# --- Gate 7: Rust bridge (MCP-integration milestone) - cargo test (compiles lib+bin+tests). ---
 # `cargo test` builds and runs the bridge's integration + proptest suites; a
 # compile error or a failing test blocks. A missing cargo is infrastructure,
 # not drift (warn, do not block), matching the allium gate above. The Inspector

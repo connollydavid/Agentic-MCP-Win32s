@@ -1,5 +1,5 @@
 @echo off
-REM run-win.bat - launch the Phase 6 Windows 3.11 + Win32s 1.25a guest on the
+REM run-win.bat - launch the Windows 3.11 + Win32s 1.25a guest on the
 REM Windows host, where it can run (the WSL2 agent sandbox reaps QEMU after a
 REM few seconds, so the interactive install is driven here).
 REM

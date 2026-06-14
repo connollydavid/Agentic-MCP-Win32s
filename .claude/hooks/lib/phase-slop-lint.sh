@@ -4,16 +4,16 @@
 # Claude Code PreToolUse hook (catches the agent's commits) and the
 # installable git hooks (catch human commits).
 #
-# It flags the cross-model agentic TELL: a phase-synonym noun followed by
-# a numeral (Phase 1, Step 2, Stage II, Pass 1 of 3) in a commit subject
-# or a source-code comment. The numeral is the tell; the noun alone is
-# not. Idiomatic git/review/source vocabulary (Conventional Commits,
-# Conventional Comments, code tags, WIP) is never flagged.
+# It flags the cross-model agentic TELL: a milestone-synonym noun
+# followed by a numeral in a commit subject or a source-code comment.
+# The numeral is the tell; the noun alone is not. Idiomatic
+# git/review/source vocabulary (Conventional Commits, Conventional
+# Comments, code tags, WIP) is never flagged.
 #
-# Repo-specific exemption: this host uses "Phase N" as its LEGITIMATE
-# organising structure. A commit subject that STARTS with "Phase <N>" is
-# the sanctioned phase-work convention and is allowed; a phase-synonym
-# anywhere else is slop.
+# There is no host carve-out: milestones are content-named under plan/
+# (the numbered-name carve-out was retired), so a milestone-synonym with
+# a numeral is slop everywhere - in this host's own files as strictly as
+# in the software submodule.
 #
 # Modes:
 #   --subject "<text>"     lint one commit subject line
@@ -27,7 +27,7 @@
 
 set -u
 
-# Phase-synonym nouns (section 1 of the vocab spec). "section" included;
+# Phase-synonym nouns (from the vocab spec). "section" included;
 # "epoch/era/period/level/wave/batch" carry higher false-positive risk but
 # the numeral gate + scope exclusions handle them.
 SYNONYMS='phase|stage|step|part|pass|round|iteration|sprint|cycle|increment|wave|batch|section'
@@ -36,45 +36,45 @@ SYNONYMS='phase|stage|step|part|pass|round|iteration|sprint|cycle|increment|wave
 NUMERAL='([0-9]+|[ivxlcdm]+)'
 
 # The core flag pattern: <synonym> <numeral>, case-insensitive, bounded.
-# Retained as the FALLBACK engine only - the primary engine is the vendored
-# no-phase binary (no-phase-skill submodule; rules in its VOCABULARY.md),
+# Retained as the FALLBACK engine only - the primary engine is the
+# host-lint binary (host-lint submodule; rules in its VOCABULARY.md),
 # which covers a wider term list and two-word lookahead. Build per clone:
-#   cargo build --release --manifest-path no-phase-skill/Cargo.toml
+#   cargo build --release --manifest-path host-lint/Cargo.toml
 CORE="(^|[^a-z])($SYNONYMS)[[:space:]]+$NUMERAL([^a-z]|$)"
 
 # Internal review/finding CODES used as names (a sibling tell to the phase
 # numeral: an internal tracking label leaking into a commit subject or comment
 # instead of describing the change - VOCABULARY.md's "M2 delivered ..." class).
 # Flag review|finding|blocker IMMEDIATELY followed by a "#N" or a letter+digit
-# code ("review B1", "finding #7", "blocker B2"). The letter/`#` gate is what
+# code (a review/finding/blocker noun glued to a "#N" or letter+digit). The gate is what
 # separates the code-as-name tell from ordinary use: "review 3 files" / "finding
 # 0 results" do NOT trip (a bare numeral after the gerund), and GitHub refs
 # ("closes #35", "fixes #18") never match (closes/fixes are not in the noun set).
-# The no-phase binary engine OWNS this rule as of no-phase-skill 7740d66 (its
-# VOCABULARY + matcher), so this shell copy only supplements the CORE FALLBACK
-# used when the binary is unbuilt (a fresh clone). The binary is the single
-# source of truth when present - this avoids a duplicate that could drift from it.
+# The host-lint binary engine OWNS this rule (its VOCABULARY + matcher),
+# so this shell copy only supplements the CORE FALLBACK used when the
+# binary is unbuilt (a fresh clone). The binary is the single source of
+# truth when present - this avoids a duplicate that could drift from it.
 REVIEWCODE="(^|[^a-z])(review|finding|blocker)[[:space:]]+(#[0-9]+|[a-z][0-9]+)([^a-z0-9]|$)"
 
 LIB_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-NOPHASE="$LIB_DIR/../../../no-phase-skill/target/release/no-phase"
+HOSTLINT="$LIB_DIR/../../../host-lint/target/release/host-lint"
 
 usage() {
     echo "usage: phase-slop-lint.sh --subject \"<text>\" | --staged <repo-dir>" >&2
     exit 2
 }
 
-# line_trips TEXT : 0 if TEXT contains a hard phase-synonym tell. Engine order:
-# no-phase binary when built (exit 1 = hard tell, 0 = clean, 3 = bare-numeral
-# advisory, 2 = engine error -> fall through), else the shell CORE pattern.
-# The bare-numeral form (exit 3) is advisory by design - "harder to tell from
-# ordinary use" (version numbers like NT 3.1), so it is NON-blocking: the gate
-# treats it as clean. Repo policy (the host "Phase N" exemption, comment-line
-# scoping) stays HERE in the wrapper; the engine is policy-free.
+# line_trips TEXT : 0 if TEXT contains a hard milestone-synonym tell. Engine
+# order: host-lint binary when built (exit 1 = hard tell, 0 = clean, 3 =
+# bare-numeral advisory, 2 = engine error -> fall through), else the shell
+# CORE pattern. The bare-numeral form (exit 3) is advisory by design -
+# "harder to tell from ordinary use" (version numbers and quantities), so it
+# is NON-blocking: the gate treats it as clean. Comment-line scoping stays
+# HERE in the wrapper; the engine is policy-free.
 line_trips() {
     _t="$1"
-    if [ -x "$NOPHASE" ]; then
-        printf '%s' "$_t" | "$NOPHASE" --stdin >/dev/null 2>&1
+    if [ -x "$HOSTLINT" ]; then
+        printf '%s' "$_t" | "$HOSTLINT" --stdin >/dev/null 2>&1
         _rc=$?
         [ "$_rc" -eq 1 ] && return 0          # hard tell -> blocks
         [ "$_rc" -eq 0 ] && return 1          # clean
@@ -102,14 +102,6 @@ case "${1:-}" in
 --subject)
     [ $# -ge 2 ] || usage
     subject="$2"
-    low="$(printf '%s' "$subject" | tr 'A-Z' 'a-z')"
-
-    # Sanctioned convention: subject starts with "Phase <N>" (optionally
-    # after leading spaces). Allowed - this is the host's phase-work
-    # commit form ("Phase 4 implement: ...").
-    if printf '%s' "$low" | grep -Eq '^[[:space:]]*phase[[:space:]]+[0-9]+([^a-z]|$)'; then
-        exit 0
-    fi
 
     if lint_text "$subject" "commit-subject"; then
         exit 1

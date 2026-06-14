@@ -29,7 +29,7 @@ to prose. This hook is that mechanism.
 This is a guard on the **green invariant**, not a merge-time gate. Arm it
 the moment the implementation is **first all-green** — typically the end
 of the implement stage — and keep it armed through distill, weed, the
-review-gate fixes, and the merge itself. Every regression in Phase 4 was
+review-gate fixes, and the merge itself. Every regression in the command-execution milestone was
 introduced *after* first-green (the weed remediation, the security fix,
 the CI fixes all touched already-green code); a continuous guard catches
 each at the turn it lands, not at the end.
