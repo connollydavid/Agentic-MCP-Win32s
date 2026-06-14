@@ -1,13 +1,13 @@
-# Phase 3: Network & Transport (serial + TCP/Winsock) — **Complete**
+# Network & Transport (serial + TCP/Winsock) — **Complete**
 
-**Goal.** Make the network a first-class peer of the serial port. Replace the `HANDLE`-hardwired protocol I/O with a transport-agnostic byte-pipe interface backed by pluggable, runtime-registered backends; refactor serial onto it; add a TCP backend over Winsock 1.1; add a mock backend that makes response bytes assertable in tests. The same seam admits future backends — UDP / HTTP-3 (QUIC), then exotic message/RDMA transports (e.g. ibverbs-over-Thunderbolt) — without touching the protocol core. Phase 3 is fully self-contained: abstraction + registry + serial refactor + TCP backend + runtime detection + mock backend + specs + tests + CI, all in scope here.
+**Goal.** Make the network a first-class peer of the serial port. Replace the `HANDLE`-hardwired protocol I/O with a transport-agnostic byte-pipe interface backed by pluggable, runtime-registered backends; refactor serial onto it; add a TCP backend over Winsock 1.1; add a mock backend that makes response bytes assertable in tests. The same seam admits future backends — UDP / HTTP-3 (QUIC), then exotic message/RDMA transports (e.g. ibverbs-over-Thunderbolt) — without touching the protocol core. The network-and-transport milestone is fully self-contained: abstraction + registry + serial refactor + TCP backend + runtime detection + mock backend + specs + tests + CI, all in scope here.
 
-**Why this is its own phase, ahead of command execution.** Today the protocol I/O is hard-wired to a Win32 `HANDLE`: `MainLoop`, `SendReady`, `ProcessCommand`, and `ProcessBuffer`'s handler all call `ReadFile`/`WriteFile` directly (`src/mcp-w32s.c:84,197,213`; handler typedef at `:51`). That works for serial because a COM port *is* a file handle — but a Winsock `SOCKET` is **not** a Win32 file handle on Win32s/Win9x, so `ReadFile`/`WriteFile` cannot drive it (README §449 says exactly this). Phase 4 (command execution) emits the ready message and exec stdout/stderr over the transport, so this abstraction must exist first — otherwise exec ships serial-only and is rewritten later.
+**Why this is its own phase, ahead of command execution.** Today the protocol I/O is hard-wired to a Win32 `HANDLE`: `MainLoop`, `SendReady`, `ProcessCommand`, and `ProcessBuffer`'s handler all call `ReadFile`/`WriteFile` directly (`src/mcp-w32s.c:84,197,213`; handler typedef at `:51`). That works for serial because a COM port *is* a file handle — but a Winsock `SOCKET` is **not** a Win32 file handle on Win32s/Win9x, so `ReadFile`/`WriteFile` cannot drive it (README §449 says exactly this). The command-execution milestone emits the ready message and exec stdout/stderr over the transport, so this abstraction must exist first — otherwise exec ships serial-only and is rewritten later.
 
 ### Pre-decisions (non-negotiable)
 
 1. **vtable interface, not tagged dispatch.** A backend is a struct of function pointers; the core knows only the interface. This is what makes the layer agnostic and future-proof.
-2. **Network backends are runtime-probed (`LoadLibraryA`/`GetProcAddress`), never statically imported.** `wsock32.dll` is absent on bare Win32s; a static import would stop the binary loading there. Same philosophy as Phase 4's `feat.c`.
+2. **Network backends are runtime-probed (`LoadLibraryA`/`GetProcAddress`), never statically imported.** `wsock32.dll` is absent on bare Win32s; a static import would stop the binary loading there. Same philosophy as the command-execution milestone's `feat.c`.
 3. **TCP server is single-client-sequential.** `listen(s, 1)` → `accept` one client → serve until disconnect → accept the next. Matches the single-threaded, one-exec-at-a-time model. Blocking sockets; no `select` loop.
 4. **Framing stays above the transport.** Newline-JSON (`LineBuffer`) lives in the core; any reliable ordered byte backend works unchanged. A message-oriented backend sets a `flags` bit to bypass `LineBuffer`.
 5. **Transport config moves to the transport module.** `TransportConfig`, `TRANSPORT_*`, and `ParseCommandLine` move from `serial.{c,h}` to `transport.{c,h}` — they are transport-level, not serial-level.
@@ -36,7 +36,7 @@ Sources to cite in code comments: README §447–453 (Win32s socket vs handle, n
 
 ### Design: vtable interface + backend registry
 
-A backend is a small struct of function pointers (C89 indirect calls — fine on i386; Phase 4's `feat.c` uses the same pattern). The protocol core knows only the interface.
+A backend is a small struct of function pointers (C89 indirect calls — fine on i386; the command-execution milestone's `feat.c` uses the same pattern). The protocol core knows only the interface.
 
 ```c
 /* transport.h */
@@ -122,7 +122,7 @@ The **mock backend is a testability win**: today `ProcessCommand` tests pass `IN
 - `tests/test_serial.c` — update handler signature to `Transport *`; switch the `ProcessCommand` stub tests to the mock backend and assert real response bytes; fix `ParseCommandLine` include path.
 - `CMakeLists.txt` (the single source of truth; `build.sh`/`build.bat` are thin wrappers around the mingw/vc6 presets) — add `transport.c`, `tcp.c` to the link; add `test_transport`, `test_tcp` targets (link `-lwsock32` for the tcp test only). Link main with `-lwsock32` **only if** static-link is chosen; default is runtime-probe, so main does **not** statically import wsock32 (CI assertion below).
 - `.github/workflows/build-and-test.yml` — run `test_transport`, `test_tcp` (CI is Ubuntu+Wine; local dev runs the PEs natively on the Windows host via WSL2 interop — Wine is a convenience, not the source of truth). **Import-table assertion:** `objdump -p mcp-w32s.exe | grep -i wsock32` must be empty (TCP is runtime-loaded, so the binary still loads on bare Win32s). FPU/486 grep auto-applies to `transport.o`/`tcp.o`.
-- `README.md` — replace the "TCP is Phase 3+ / not yet implemented" notes (§1161, §1191–1194) with the implemented design; document the vtable interface and the backend-registry extension point for future UDP/QUIC/RDMA backends.
+- `README.md` — replace the "TCP is a later-milestone / not yet implemented" notes (§1161, §1191–1194) with the implemented design; document the vtable interface and the backend-registry extension point for future UDP/QUIC/RDMA backends.
 - `specs/mcp-protocol.allium` — tend the existing `entity Transport { ready: Boolean }` and `surface SerialPort` into a backend-agnostic model (see below).
 
 ### Public APIs
@@ -133,7 +133,7 @@ The **mock backend is a testability win**: today `ProcessCommand` tests pass `IN
 #define TRANSPORT_NONE   0
 #define TRANSPORT_SERIAL 1
 #define TRANSPORT_TCP    2
-#define TRANSPORT_PIPE   3        /* reserved — Phase 5+ */
+#define TRANSPORT_PIPE   3        /* reserved — MCP-integration milestone or later */
 #define TRANSPORT_MOCK   99       /* test-only */
 
 #define TRANSPORT_FLAG_MESSAGE 0x01   /* one message = one command; bypass LineBuffer */
@@ -291,13 +291,13 @@ The dev host is **WSL2 on Windows**, so MinGW-built PEs run **natively on the Wi
 ### Build/CI integration
 
 - `CMakeLists.txt` (single source of truth; `build.sh`/`build.bat` wrap the mingw/vc6 presets): add `src/transport.c` + `src/tcp.c` to the main link; add `test_transport` and `test_tcp` targets (link `-lwsock32` for `test_tcp` only). Main does **not** statically import `wsock32` (runtime-probed) — so do **not** add `-lwsock32` to the main link.
-- `build.sh test`: prefer **native Windows execution** of the test PEs on WSL2 (run `tests/*.exe` directly via interop); use Wine only as a fallback. `host-pbt` (Phase 4) stays native Linux.
+- `build.sh test`: prefer **native Windows execution** of the test PEs on WSL2 (run `tests/*.exe` directly via interop); use Wine only as a fallback. `host-pbt` (command-execution milestone) stays native Linux.
 - `.github/workflows/build-and-test.yml` (Ubuntu — no Windows host): runs `test_transport` + `test_tcp` under Wine; `test_tcp` self-skips with a printed reason only if Wine's Winsock is unusable. Existing FPU/486 grep auto-applies to `transport.o`/`tcp.o`. **Import-table assertion:** `objdump -p mcp-w32s.exe | grep -i 'wsock32\|ws2_32'` must be empty.
 - Stack-frame watch: `sockaddr_in`/`WSADATA` are small, but keep them off oversized frames; if `__chkstk` appears in `tcp.o`, move buffers to `static`.
 
-### Out of scope for Phase 3 (architectural reasons)
+### Out of scope for the network-and-transport milestone (architectural reasons)
 
-- **Named pipes backend.** Win95+ only, not Win32s; same vtable shape, deferred to Phase 5+ (cross-platform) where it adds value. The registry already reserves `TRANSPORT_PIPE`.
+- **Named pipes backend.** Win95+ only, not Win32s; same vtable shape, deferred to a later cross-platform milestone where it adds value. The registry already reserves `TRANSPORT_PIPE`.
 - **Multi-client / `select` concurrency.** Conflicts with the single-threaded, single-exec model. Single-client-sequential is the deliberate design.
 - **UDP / HTTP-3 / RDMA backends.** Design seam is provided (registry + `flags`), but implementations are modern-host uplift work, not part of the Win32s baseline. Future phases.
 - **TLS / authentication.** No crypto libraries compile on the Win32s target; out of the project's threat model (trusted serial/LAN link).
@@ -310,6 +310,6 @@ The dev host is **WSL2 on Windows**, so MinGW-built PEs run **natively on the Wi
 4. End-to-end serial path unchanged: existing behavior preserved (regression check).
 5. End-to-end TCP, run natively on the Windows host: start `mcp-w32s.exe /TCP:8932` as a Windows process; a Windows-side client (e.g. `powershell.exe` `System.Net.Sockets.TcpClient`, so both ends share Windows loopback) sends `{"cmd":"echo","id":"1","line":"hi"}\n` and receives the echo response; disconnect; the server then accepts a second client (sequential). The in-process loopback in `test_tcp.exe` is the primary automated proof.
 6. `specs/transport.allium` `allium check` clean; `/allium:weed` reports zero drift; all six Allium skills exercised per the lifecycle above.
-7. Phase 4 exec/ready code, when written, uses `Transport *` — no `HANDLE`-typed I/O in the protocol core.
+7. The command-execution milestone's exec/ready code, when written, uses `Transport *` — no `HANDLE`-typed I/O in the protocol core.
 8. Total tests: 87 + ≥10 (transport) + ≥6 (tcp) + mock-backed `test_serial` response-byte assertions = **≥103 tests**.
 

@@ -1,20 +1,20 @@
-# Phase 4: Command Execution — Complete
+# Command Execution — Complete
 
 > **Completed 2026-06-06.** Merged via MCP-Win32s PR #10 (squash `805cdc3`); host submodule pointer bumped (`bc8bfd0`). Full Allium lifecycle run (elicit → tend → propagate → implement → distill → weed, all recorded below); weed audit zero unrecorded drift; adversarial review gate caught and fixed a catalog-gate bypass (BLOCKER) before merge; CI green (13 ctest suites + host-pbt + wire smoke under Wine). Spec coverage is total across `src/`.
 
-> **Phase opened 2026-06-06** under PLAN.md rule 6 (explicit planning pause): weed remediation scoped in as item 4.0, wire-contract smoke harness added, MCP-facing decisions recorded, stale references corrected. Decisions: weed finding #1 = code bug; finding #6 in 4.0 scope; MCP SDK choice deferred to Phase 5; catalog schema aligns 1:1 with MCP tool definitions; no `/STDIO` backend.
+> **Milestone opened 2026-06-06** under PLAN.md rule 6 (explicit planning pause): the weed-remediation work scoped in, wire-contract smoke harness added, MCP-facing decisions recorded, stale references corrected. Decisions: the first weed finding = code bug; the surfaces/actors finding in the weed-remediation scope; MCP SDK choice deferred to the MCP-integration milestone; catalog schema aligns 1:1 with MCP tool definitions; no `/STDIO` backend.
 
 **Goal:** Replace the `exec` stub with a complete implementation: spawn child processes via `CreateProcessA`, capture stdout/stderr/exit code, return them base64-encoded in the JSON response. Ship a JSON command catalog so MCP clients can discover what's safe to run when `--help` is unavailable, and load it server-side as a whitelist (with bypass flag).
 
-Phase 4 is fully self-contained — argv quoting, timeouts, stdin pass-through, 16-bit detection, catalog enforcement, and the full Allium spec are all in scope here.
+The command-execution milestone is fully self-contained — argv quoting, timeouts, stdin pass-through, 16-bit detection, catalog enforcement, and the full Allium spec are all in scope here.
 
 **Hooks the existing stub at** `src/mcp-w32s.c:171–174`. Reuses `Base64Encode` (`src/base64.h`) and `BuildJsonResponse` (`src/json_parser.h`).
 
-### 4.0 — Weed remediation (corrections carried forward from Phases 2–3)
+### Weed remediation (corrections carried forward from the file-operations and network-and-transport milestones)
 
-**Status: ✅ Complete 2026-06-06** — MCP-Win32s PR #9 merged (`4bdff83`); findings 1–6 plus review-found #7 resolved/recorded; `allium check` zero-error, `transport.allium` analyse-clean; 116 tests green incl. the pinning test; adversarial review sub-agent verdict: approve.
+**Status: ✅ Complete 2026-06-06** — MCP-Win32s PR #9 merged (`4bdff83`); findings 1–6 plus the review-found phantom-field defect resolved/recorded; `allium check` zero-error, `transport.allium` analyse-clean; 116 tests green incl. the pinning test; adversarial review sub-agent verdict: approve.
 
-A `/allium:weed` audit on 2026-06-06 (allium CLI 3.2.4, specs at MCP-Win32s@e143fef) found 6 divergences in work from closed Phases 2–3 (a 7th was found in PR review). Per PLAN.md rule 3 they are corrected here, as Phase 4's first work item. **4.0 runs the full Allium lifecycle on its own branch and its weed re-run must report zero unrecorded drift before any 4.1+ (exec) work starts.**
+A `/allium:weed` audit on 2026-06-06 (allium CLI 3.2.4, specs at MCP-Win32s@e143fef) found 6 divergences in work from the closed file-operations and network-and-transport milestones (a 7th was found in PR review). Per PLAN.md rule 3 they are corrected here, as the command-execution milestone's first work item. **The weed-remediation work runs the full Allium lifecycle on its own branch and its weed re-run must report zero unrecorded drift before any exec work starts.**
 
 | # | Finding | Classification | Resolution |
 |---|---------|----------------|------------|
@@ -23,12 +23,12 @@ A `/allium:weed` audit on 2026-06-06 (allium CLI 3.2.4, specs at MCP-Win32s@e143
 | 3 | `ReadCommand` sets result data from `cmd.data`; response rules bind File/Directory where `Response.command: Command` is declared (`mcp-protocol.allium:85-90` ff.) | Spec bug | tend: drop `data:` from creation; correlate responses via `request_id` |
 | 4 | Code error vocabulary richer than spec ("read error", "invalid base64", "incomplete write", …) | Intentional gap | tend: recorded-gap note in `file-ops.allium` |
 | 5 | Pre-parse "invalid JSON" reject path unspecified (`src/mcp-w32s.c:93-101`) | Spec gap | tend: rule/prose note in `mcp-protocol.allium` |
-| 6 | No surfaces/actors in `transport.allium`; all 7 external triggers unprovided per `allium analyse` | Maturity gap — **in 4.0 scope** (decided 2026-06-06) | tend: add OS/Winsock/operator surfaces providing all 7 triggers |
+| 6 | No surfaces/actors in `transport.allium`; all 7 external triggers unprovided per `allium analyse` | Maturity gap — **in weed-remediation scope** (decided 2026-06-06) | tend: add OS/Winsock/operator surfaces providing all 7 triggers |
 | 7 | `WriteCommand` passes `data: cmd.data` into `FileWriteResult.created` but `FileWriteResult` declares no `data` field (`mcp-protocol.allium:118-122`) — same class as #3; found by PR #9 review sub-agent, not by `allium check` | Spec bug | tend: drop the phantom field (addressed within PR #9) |
 
-### 4.0b — Wire-contract smoke harness (C + PBT, Allium-specified)
+### Wire-contract smoke harness (C + PBT, Allium-specified)
 
-Phase 4 ships the server side of the MCP bridge contract; the bridge itself is Phase 5. To prove the contract without an SDK, Phase 4 adds a C smoke client under a fully worked Allium spec:
+The command-execution milestone ships the server side of the MCP bridge contract; the bridge itself is the MCP-integration milestone. To prove the contract without an SDK, the command-execution milestone adds a C smoke client under a fully worked Allium spec:
 
 - `specs/wire-contract.allium` (tend-written): the client-side view of the protocol — ready-message shape (incl. `features`), request/response id correlation, echo + exec round-trips over a connected transport.
 - `tests/smoke/wire_client.c` — C client: connects over TCP (and the mock backend for CI determinism), reads and validates ready, issues `echo` and `exec`, validates response shape. PBT properties (prop.h pattern; theft host-side for the OS-independent parts): correlation ids round-trip; unknown response keys are ignored; malformed responses never crash the client parser.
@@ -37,10 +37,10 @@ Phase 4 ships the server side of the MCP bridge contract; the bridge itself is P
 
 ### MCP alignment decisions (recorded 2026-06-06)
 
-- **Catalog ↔ MCP tools:** each catalog entry's `description` + `options`/`positional` typing MUST convert mechanically to an MCP tool definition (`name`, `description`, `inputSchema` with typed properties). The mapping is documented in `catalog/MCP-MAPPING.md` (documentation only — no mapping code in Phase 4). This is an acceptance criterion; it prevents a catalog v2 in Phase 5.
-- **Deferred to Phase 5:** MCP SDK choice (Python `mcp` vs TypeScript) and the bridge implementation itself. Accepted risk: the JSON schemas frozen here may need a vNext if the SDK choice pushes back.
+- **Catalog ↔ MCP tools:** each catalog entry's `description` + `options`/`positional` typing MUST convert mechanically to an MCP tool definition (`name`, `description`, `inputSchema` with typed properties). The mapping is documented in `catalog/MCP-MAPPING.md` (documentation only — no mapping code in the command-execution milestone). This is an acceptance criterion; it prevents a catalog v2 in the MCP-integration milestone.
+- **Deferred to the MCP-integration milestone:** MCP SDK choice (Python `mcp` vs TypeScript) and the bridge implementation itself. Accepted risk: the JSON schemas frozen here may need a vNext if the SDK choice pushes back.
 
-### 4.1 Elicit outcomes (2026-06-06) — domain-model decisions binding on tend
+### Elicit outcomes (2026-06-06) — domain-model decisions binding on tend
 
 Discovery session against the spec sketches below; these decisions **override** the sketches where they conflict:
 
@@ -57,22 +57,22 @@ Open questions — **settled 2026-06-06** (no open questions remain for tend):
 
 9. **Implicit reap with informative busy.** The server retains the `still_active` child's handle; every exec/ptyExec request first re-polls `GetExitCodeProcess`: exited → handle closed, request proceeds; still running → `"busy"`, and the busy error response carries detail — the still_active child's `cmd_line` and elapsed ms — so the client can see what is blocking. No new protocol command.
 10. **Shared busy domain.** Any `still_active` child blocks both `exec` and `ptyExec` (one rule; PTY exists only on Win10+ where 16-bit VDM children barely occur, but the spec stays uniform).
-11. **Catalog fixed per session.** Loaded once at startup (`/CATALOG:` path); changing it requires a server restart — matches the probe-once Capabilities model. Runtime reload is a Phase 5+ question if the bridge ever needs it.
+11. **Catalog fixed per session.** Loaded once at startup (`/CATALOG:` path); changing it requires a server restart — matches the probe-once Capabilities model. Runtime reload is an MCP-integration-milestone question if the bridge ever needs it.
 
 ### Required workflow (Allium lifecycle — order is mandatory)
 
-Phase 4 runs spec-first using the Allium plugin skills (see CLAUDE.md "Specification & Test Workflow"):
+The command-execution milestone runs spec-first using the Allium plugin skills (see CLAUDE.md "Specification & Test Workflow"):
 
-1. **`/allium:elicit`** ✅ 2026-06-06 — domain model confirmed; 11 binding decisions recorded in §4.1 (zero open questions). The mcp-protocol open question (ready metadata) answered: the extended ready message carries `codepage`, `version`, `features`.
+1. **`/allium:elicit`** ✅ 2026-06-06 — domain model confirmed; 11 binding decisions recorded in the elicit-outcomes section (zero open questions). The mcp-protocol open question (ready metadata) answered: the extended ready message carries `codepage`, `version`, `features`.
 2. **`/allium:tend`** ✅ 2026-06-06 — `specs/process-ops.allium`, `specs/catalog.allium`, `specs/wire-contract.allium` written; `specs/mcp-protocol.allium` exec path rewritten (`ptyExec` dispatch, catalog gate, result→Response mapping, deferred marker removed) on `claude/phase4-specs` (mcp-win32s `3e1e31e`). `allium check` 0 errors; all remaining warnings/findings pre-exist on main. Deliberate deviation: `spawn_failed` is not a `Process` state — a Process exists only once spawn succeeds; spawn failure rejects the request.
 3. **`/allium:propagate`** ✅ 2026-06-06 — `allium plan` yields 211 obligations; `tests/OBLIGATIONS-PHASE4.md` (mcp-win32s `faf4448`) maps every ID to its target test, references existing coverage, and adds 11 tests + 2 PBT properties beyond the floor (still_active lifecycle, config sentinels, admission exclusivity, builtin auto-route, `unsafe_used`, gate exclusivity). Floor rises ≥154 → **≥163**.
 4. **Implement** ✅ 2026-06-06 — all seven modules + dispatcher + wire_client + theft harness on `claude/phase4-specs` (mcp-win32s `7505831`): 13 ctest suites green natively (163+ tests, every test citing its obligation IDs), `./build.sh host-pbt` 11 properties × 50k trials ASan/UBSan-clean, wire smoke 10/10 against the live server over TCP, import-table and FPU/486 gates clean. Findings fixed in-branch: base64 signed-shift UB (theft/UBSan, client-controlled path); job memory caps fail allocations rather than kill (plan assumption corrected — only CPU-time caps kill); child hard-error dialogs suppressed via SetErrorMode (a starved hidden child popped a blocking 0xC000012D loader box); VDM-orphan capture always uses the polling path (blocked pipe readers cannot be cancelled).
 5. **`/allium:distill`** ✅ 2026-06-06 — `specs/base64.allium` (codec contract + strict decode), `specs/json-parser.allium` (line grammar + response envelope contract), `specs/serial.allium` (line discipline; idle = live session) backfilled on `claude/phase4-specs`. All three: `allium check` 0 errors/0 warnings, `allium analyse` 0 findings. Spec coverage is now total across `src/`.
 6. **`/allium:weed`** ✅ 2026-06-06 — four parallel auditors swept all 9 specs against `src/`+`tests/` (mcp-win32s `c9b6d93`). Findings: **2 code bugs** (unknown-key arrays rejected non-string scalars, breaking the forward-compat promise; a zero-command catalog loaded as a valid whitelist, violating `LoadedCatalogHasEntries`) — both fixed with pinning tests; **6 spec-precision fixes** (failed-load → unenforced gate; `cmd_line` = effective line via `effective_cmd_line` black box; line-only validation bypass recorded; Command + 4 job/pty fields; Response single-key abstraction + wire flattening formally recorded; transport flag list + ReadyHandshake cross-ref; sentinel `<= 0`; JobLimitKills attribution bounds; empty-command pre-spawn rejection recorded). **3 recorded intentional gaps** (stdin wire-vs-semantic form, validation-only smoke client, richer file-ops error vocabulary). Post-remediation: `allium check` 0 errors (5 pre-existing baseline warnings only), 13/13 ctest suites green, host-pbt green — **zero unrecorded drift; merge gate satisfied.**
 
-### theft host-side PBT harness (new in Phase 4)
+### theft host-side PBT harness (new in the command-execution milestone)
 
-`vendor/theft` is vendored but unwired. Phase 4 wires it as a **host-native** test layer (Linux `gcc -std=c99`, no MinGW, no Wine) for OS-independent modules. Shipped sources stay C89; only `tests/host/*.c` harness files are C99. Win32-API-dependent code is out of theft's scope.
+`vendor/theft` is vendored but unwired. The command-execution milestone wires it as a **host-native** test layer (Linux `gcc -std=c99`, no MinGW, no Wine) for OS-independent modules. Shipped sources stay C89; only `tests/host/*.c` harness files are C99. Win32-API-dependent code is out of theft's scope.
 
 | File | Properties (autoshrinking, ≥50k trials each) |
 |------|----------------------------------------------|
@@ -109,7 +109,7 @@ Sources to cite in code comments: KB Q125213 (Win32s synchronous spawn), KB 1318
 
 ### Feature detection & graceful uplift
 
-**Principle.** The binary's baseline target is Win32s 1.25a — every required path works there. But when running on NT 4.0+, Win 9x, XP, Win 10+, the binary detects available APIs at startup and *uplifts* to a better implementation. One binary, every Windows era from 1995 to 2026, best behavior the host can provide.
+**Principle.** The binary's baseline target is Win32s 1.25a — every required path works there. But when running on NT 4.0+, Win 9x, XP, Win 10+, the binary detects available APIs at startup and *uplifts* to a better implementation. One binary, every Windows version from 1995 to 2026, best behavior the host can provide.
 
 **Mechanism.** A new `src/feat.{c,h}` module probes APIs via `GetProcAddress(GetModuleHandleA("kernel32"))` (and `LoadLibraryA` for psapi/etc.) at startup. Results cached in a `Features` struct. **Function pointers for delay-loaded APIs are stored in the struct** so they're never linked at compile time — that would prevent the binary from loading on Win32s, where most of these symbols are absent from the import resolver.
 
@@ -184,7 +184,7 @@ int         FeatForceFallback(int flags);  /* test-only: zero out selected flags
 9. If has_is_wow64_process, call IsWow64Process(GetCurrentProcess(), &is_wow64).
 ```
 
-**Where uplifts apply** (cross-cuts the rest of Phase 4):
+**Where uplifts apply** (cross-cuts the rest of the command-execution milestone):
 
 1. **Capture loop in `exec_ops.c`** — branch on `g_features.has_threads`:
    - **Threaded path (Win 9x / NT+):** spawn one reader thread per stdout/stderr pipe. Threads loop `ReadFile` into a shared buffer guarded by a `CRITICAL_SECTION`; main thread `WaitForSingleObject(hProc, timeoutMs)` (which works correctly outside Win32s — Q1 only affects Win32s). Threads exit naturally when their pipe EOFs after child exit. Far lower latency for chatty children.
@@ -321,7 +321,7 @@ int         FeatForceFallback(int flags);  /* test-only: zero out selected flags
 
 `exec_method` ∈ {`direct`, `shell`, `vdm-best-effort`}. `binary_type` ∈ {`pe32`, `pe32-wow64`, `ne16`, `mz`, `unknown`, `shell-builtin`}. `killed_by` ∈ {`""`, `"timeout"`, `"ctrl_break"`, `"memory_cap"`, `"cpu_cap"`}.
 
-README §1554 (current protocol doc using `output` key) is updated to `stdout_b64`/`stderr_b64` as part of Phase 4, and a new section documents `ptyExec`.
+README §1554 (current protocol doc using `output` key) is updated to `stdout_b64`/`stderr_b64` as part of the command-execution milestone, and a new section documents `ptyExec`.
 
 ### Files to create
 
@@ -344,7 +344,7 @@ README §1554 (current protocol doc using `output` key) is updated to `stdout_b6
 | `tests/fixtures/{tiny_mz.exe,tiny_ne.exe}` | Minimal binary headers for `binfmt` classification tests |
 | `specs/process-ops.allium` | `Process` + `ExecResult` + `Capabilities` entities, 8+ rules (incl. capability-gated rules), 3+ invariants — written via `/allium:tend` |
 | `specs/catalog.allium` | `Catalog` + `CatalogEntry` entities, lookup/validate rules — written via `/allium:tend` |
-| `specs/base64.allium` | Distilled from `src/base64.c` via `/allium:distill` (Phase 1–2 spec debt) |
+| `specs/base64.allium` | Distilled from `src/base64.c` via `/allium:distill` (foundation/file-operations spec debt) |
 | `specs/json-parser.allium` | Distilled from `src/json_parser.c` via `/allium:distill` |
 | `specs/serial.allium` | Distilled from `src/serial.c` via `/allium:distill` |
 | `tests/host/theft_base64.c` | theft host-native PBT: base64 properties with autoshrinking |
@@ -354,8 +354,8 @@ README §1554 (current protocol doc using `output` key) is updated to `stdout_b6
 | `catalog/win32-commands.json` | ≥30 entries (built-ins + externals + build tools); schema converts 1:1 to MCP tool definitions (see "MCP alignment decisions") |
 | `catalog/README.md` | How to extend the catalog |
 | `catalog/MCP-MAPPING.md` | Documented 1:1 mapping catalog entry → MCP tool definition (`name`/`description`/`inputSchema`); documentation only, no code |
-| `specs/wire-contract.allium` | Client-side wire contract: ready shape, id correlation, echo/exec round-trips — written via `/allium:tend` (4.0b) |
-| `tests/smoke/wire_client.c` | C smoke client over TCP/mock + PBT properties (4.0b) |
+| `specs/wire-contract.allium` | Client-side wire contract: ready shape, id correlation, echo/exec round-trips — written via `/allium:tend` (wire-contract smoke harness) |
+| `tests/smoke/wire_client.c` | C smoke client over TCP/mock + PBT properties (wire-contract smoke harness) |
 
 ### Files to modify
 
@@ -364,7 +364,7 @@ README §1554 (current protocol doc using `output` key) is updated to `stdout_b6
 | `src/common.h` | `JsonCommand` adds `argv_count`, `argv[MCP_MAX_ARGV][MCP_MAX_ARG_LEN]`, `cwd`, `timeout_ms`, `shell_flag`, `stdin_b64`, `max_output`, `unsafe_flag`, `mem_cap_bytes`, `cpu_time_ms`, `cols`, `rows`. Constants: `MCP_MAX_ARGV=64`, `MCP_MAX_ARG_LEN=512`. Bump `MCP_MAX_RESPONSE` to `262144`. |
 | `src/json_parser.{c,h}` | Parse new fields. Array parsing for `argv`. Number parsing for ints. Boolean for `shell`/`unsafe`. |
 | `src/mcp-w32s.c` | Call `FeatInit()` first thing in `main` (before transport open). Replace stub at lines 171–174 with: catalog lookup → argv build → `ExecOpRun` → response. Add `ptyExec` dispatch (returns capability-error when absent). Track `g_exec_busy` flag. Load catalog at startup; honor `/UNSAFE` cmdline. Send extended ready message via `BuildReadyMessage` from `ready.c`. **Builds on the transport abstraction (foundational work above): all dispatch/response I/O is via `Transport *`, never `HANDLE`.** |
-| `src/transport.{c,h}` | Parse `/UNSAFE` and `/CATALOG:path` cmdline flags into `TransportConfig` (cmdline parsing moved here from serial.c in Phase 3). |
+| `src/transport.{c,h}` | Parse `/UNSAFE` and `/CATALOG:path` cmdline flags into `TransportConfig` (cmdline parsing moved here from serial.c in the network-and-transport milestone). |
 | `specs/mcp-protocol.allium` | Replace `rule ExecCommand` (lines 211–221) with rule that delegates to `process-ops.ExecResult` and gates on `CatalogLookup`. Add `rule PtyExecCommand` (gated on `Capabilities.has_pty`). Remove `deferred ExecCommand.implementation` (line 244). Add `Capabilities` reference. |
 | `CMakeLists.txt` (single source of truth; `build.sh`/`build.bat` wrap the mingw/vc6 presets) | Add seven new `.c` files (`feat`, `exec_ops`, `pty_exec`, `argv`, `binfmt`, `catalog`, `ready`). Add six test targets + `argv_echo` helper. Copy `catalog/win32-commands.json` next to test binaries. |
 | `.github/workflows/build-and-test.yml` | Run new test binaries under Wine: `test_feat`, `test_exec_ops`, `test_pty_exec`, `test_argv`, `test_binfmt`, `test_catalog`. Add catalog file to artifact upload. **Verify uplift on Wine:** Wine reports as NT — assert `is_nt=true` and `has_threads=true` in `test_feat.exe` output, but skip `test_pty_exec` if Wine version doesn't expose `CreatePseudoConsole` (probe-and-skip pattern). |
@@ -790,10 +790,10 @@ Integration (extending `tests/test_serial.c`):
 - The seven new `.c` files build under the `vc6` preset too (CMake's NMake Makefiles generator); the theft harness is NOT added — host-side only.
 - Artifact upload: `catalog/win32-commands.json` alongside `mcp-w32s.exe`.
 
-### Out of scope for Phase 4 (architectural reasons)
+### Out of scope for the command-execution milestone (architectural reasons)
 
-- **Streaming chunked output.** Current MCP-Win32s protocol is one JSON line in, one out. Streaming requires multi-frame response handling on the bridge side. Phase 5+.
-- **Async exec (job-id, poll-later).** Conflicts with single-threaded request/response. Phase 5+ if needed.
+- **Streaming chunked output.** Current MCP-Win32s protocol is one JSON line in, one out. Streaming requires multi-frame response handling on the bridge side. The MCP-integration milestone or later.
+- **Async exec (job-id, poll-later).** Conflicts with single-threaded request/response. The MCP-integration milestone or later if needed.
 
 (Items previously listed as out-of-scope — interactive stdin/TTY, process signals, resource limits — are now **in scope** via the feature-detection uplift. They function on Windows versions that support them and gracefully degrade on Win32s.)
 
@@ -804,7 +804,7 @@ After the lifecycle was clean and CI green, an independent fresh-context sub-age
 - **Catalog-gate bypass (fixed, mcp-win32s `dea4aee`).** The shell-builtin auto-route copied `command.com /c dir` + `ArgvJoin(args)` verbatim; `ArgvCmdEscape` (the Q15 caret escape) ran only on the external route. A no-whitespace cmd metacharacter in a positional — `argv:["dir","x&calc"]` — reached the shell as a separator and ran the uncatalogued `calc` against the **enforced** catalog with no unsafe flag. Fix: both shell routes now caret-escape the request-derived tail before the trusted `<shell> /c` prefix. Pinning test `exec_builtin_positional_metachar_neutralised` decodes `stdout_b64` and asserts the chained command's output is absent — verified to **fail on the pre-fix dispatcher, pass on the fix**. Spec gains the `ShellTailNeutralised` security invariant so a future weed pass catches a regression (the prior spec abstracted the escaping into `effective_cmd_line`, which is exactly why the lifecycle missed it).
 - Everything else verified and held: all 9 specs `allium check`-clean, 13/13 ctest + host-pbt green, C89/i386/no-FP/import-table all clean, orphan domain correct (no leaks, no second orphan by construction), prior findings stay fixed, scope clean. Verdict after the fix: **approve**.
 
-This is the third phase where the independent review caught a real defect the checker, lifecycle, and CI all passed (cf. PR #9 finding #7) — the gate continues to earn its place.
+This is the third milestone where the independent review caught a real defect the checker, lifecycle, and CI all passed (cf. PR #9's phantom-field defect) — the gate continues to earn its place.
 
 ### Verification (sub-agent acceptance criteria)
 
@@ -817,21 +817,21 @@ This is the third phase where the independent review caught a real defect the ch
 7. End-to-end (timeout, modern host with ctrl-events): `argv:["cmd","/c","ping","-n","30","127.0.0.1"]` with `timeout_ms:200` → `timed_out:true`, `killed_by:"ctrl_break"` or `"timeout"`.
 8. End-to-end (PTY, host with `has_create_pseudo_console`): `{"cmd":"ptyExec","argv":["cmd"],"stdin_b64":"<echo+exit>","cols":80,"rows":25}` → `output_kind:"ansi"`, output contains echoed text.
 9. End-to-end (PTY absent): same request with `FeatForceFallback(FORCE_NO_PTY)` (debug build) or on a Win 7 host → `error:"pty not available on this Windows"`.
-10. **Ready-message capability assertion** under Wine (there is no `/STDIO` transport — use TCP + the wire-contract smoke client from 4.0b):
+10. **Ready-message capability assertion** under Wine (there is no `/STDIO` transport — use TCP + the wire-contract smoke client from the wire-contract smoke harness):
     ```
     wine mcp-w32s.exe /TCP:31744 &   # or native via WSL interop
     ./wire_client 127.0.0.1 31744 --ready-only
     ```
     The first line received parses as JSON with `status:"ready"`, `version` non-empty, `features.is_nt:true`, `features.threads:true`. (Field set varies by Wine version — must always include the documented keys.)
 11. `specs/process-ops.allium` (with `Capabilities` entity) and `specs/catalog.allium` follow `specs/file-ops.allium` lexical conventions.
-12. README §1554 updated; new "Feature Detection & Graceful Uplift" + "PTY Execution" sections; submodule CLAUDE.md test count bumped to ≥154; Phase 4 marked Complete in the host repo's `plan/PLAN.md` index (separate host commit).
-13. Total tests: 87 + 1 (4.0 FileOpList pinning) + ≥1 (4.0b wire-contract smoke, plus its PBT properties) + ≥6 (feat) + ≥22 (exec_ops, incl. 4 capability fallbacks) + ≥4 (pty_exec) + ≥12 fixed + 1000 PBT trials (argv) + ≥6 (binfmt) + ≥8 (catalog) + ≥3 integration = **≥154 tests**.
+12. README §1554 updated; new "Feature Detection & Graceful Uplift" + "PTY Execution" sections; submodule CLAUDE.md test count bumped to ≥154; the command-execution milestone marked Complete in the host repo's `plan/PLAN.md` index (separate host commit).
+13. Total tests: 87 + 1 (weed-remediation FileOpList pinning) + ≥1 (wire-contract smoke, plus its PBT properties) + ≥6 (feat) + ≥22 (exec_ops, incl. 4 capability fallbacks) + ≥4 (pty_exec) + ≥12 fixed + 1000 PBT trials (argv) + ≥6 (binfmt) + ≥8 (catalog) + ≥3 integration = **≥154 tests**.
 14. Catalog file ships with binary in CI artifact; loads without warning on startup.
 15. **Manual smoke (optional, documented):** load `mcp-w32s.exe` on a real Windows 3.1 + Win32s 1.25a system; ready message advertises `is_win32s:true`, `threads:false`, `pty:false`, `job_objects:false`; `exec` with simple `command.com /c dir` returns expected output through the polling/Terminate fallback path.
 16. **Allium lifecycle complete:** all six skills exercised as per "Required workflow" — elicit notes recorded, all specs tend-written/`allium check` clean (including the three distilled backfill specs), test files reference their propagated obligations, and a final `/allium:weed` audit reports zero spec↔code drift.
 17. **theft harness green:** `./build.sh host-pbt` builds `vendor/theft` + `tests/host/*` natively and passes ≥50k trials per property; CI runs it before the Wine suite.
 18. Every theft property has a mirrored `prop.h` equivalent running on the target binary under Wine.
-19. **4.0 weed remediation closed first:** findings 1–6 resolved/recorded and that branch's weed re-run clean before any 4.1+ work began (see "4.0 — Weed remediation").
+19. **Weed remediation closed first:** findings 1–6 resolved/recorded and that branch's weed re-run clean before any exec work began (see "Weed remediation").
 20. **Catalog↔MCP mapping documented:** `catalog/MCP-MAPPING.md` exists and every `catalog/win32-commands.json` entry converts to a valid MCP tool definition under it (spot-check ≥3 entries in review).
 21. **Wire-contract smoke green:** `wire_client` passes against `mcp-w32s.exe /TCP:<port>` in CI; all its tests trace to `specs/wire-contract.allium` obligations.
 
