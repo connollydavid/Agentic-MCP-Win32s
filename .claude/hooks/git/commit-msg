@@ -21,7 +21,7 @@ subject="$(head -n 1 "$1")"
 if ! "$LINT" --subject "$subject" >/dev/null 2>&1; then
     echo "commit-msg: phase-slop in the subject line:" >&2
     "$LINT" --subject "$subject" >&2
-    echo "Numbered phase-synonyms are an agentic tell; rewrite to Conventional-Commits style. (The sanctioned 'Phase N' phase-work form is allowed.)" >&2
+    echo "Numbered milestone-synonyms are an agentic tell; rewrite to Conventional-Commits style. Milestones are content-named under plan/, with no carve-out." >&2
     exit 1
 fi
 exit 0
