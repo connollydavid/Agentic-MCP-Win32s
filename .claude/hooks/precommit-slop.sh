@@ -5,8 +5,9 @@
 # `git commit` targeting the software submodule (mcp-win32s), it lints the
 # -m subject and the submodule's staged source comments via the shared
 # phase-slop linter, and DENIES the tool call on a violation so the slop
-# never reaches a commit. Host-repo commits are not linted (the host uses
-# "Phase N" as legitimate structure; that scope decision is deliberate).
+# never reaches a commit. This hook targets the submodule, where the agent
+# writes the C sources whose staged comments need the scan; host commit
+# subjects are expected to be tell-free too (host-lint --all covers the tree).
 #
 # Deny contract: JSON on stdout with permissionDecision "deny" + exit 0.
 #
@@ -67,7 +68,7 @@ staged_v="$("$LINT" --staged "$SUB" 2>/dev/null)" || violations="$violations$sta
 # Trim and decide.
 violations="$(printf '%s' "$violations" | sed '/^[[:space:]]*$/d')"
 if [ -n "$violations" ]; then
-    reason="phase-slop linter blocked this submodule commit. Numbered phase-synonyms (Phase 1, Step 2, Pass 1 of 3, ...) are an agentic tell - rewrite to idiomatic git/Conventional-Commits vocabulary. The sanctioned 'Phase N' structure belongs only in the host plan/. Violations:
+    reason="phase-slop linter blocked this submodule commit. Numbered phase-synonyms are an agentic tell - rewrite to idiomatic git/Conventional-Commits vocabulary. Milestones are content-named; there is no ordinal carve-out. Violations:
 $violations"
     if command -v jq >/dev/null 2>&1; then
         jq -n --arg r "$reason" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'

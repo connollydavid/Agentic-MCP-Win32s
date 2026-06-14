@@ -1,0 +1,6 @@
+# Append-only record — acknowledged history, excluded from the --all audit.
+MEMORY.md
+plan/*/README.md
+
+# Generated build output (mdBook), not source — gitignored and rebuilt.
+book/

@@ -1,5 +1,5 @@
 /*
- * uart-probe.c - Phase 6.2 diagnostic SPIKE (throwaway, NOT shipped device code).
+ * uart-probe.c - direct-UART diagnostic SPIKE (throwaway, NOT shipped device code).
  *
  * Question it answers: under Win32s 1.25a on WfW 3.11 (386-enhanced mode), can a
  * ring-3 app reach the 8250/16550 UART by DIRECT port I/O (IN/OUT to 0x3F8..0x3FF),
@@ -11,7 +11,7 @@
  * VM's I/O privilege (does the bare OUT fault?) and VCD's virtualisation.
  *
  * Built CRT-FREE (no msvcrt import) so it actually LOADS on Win32s - same lesson as
- * Finding #1. Only kernel32 + user32 imports; all on the 6.2 allowlist.
+ * the earlier load-on-Win32s fix. Only kernel32 + user32 imports; all on the device allowlist.
  *   i686-w64-mingw32-gcc -O2 -ffreestanding -fno-builtin -nostdlib -nostartfiles \
  *     -e _probemain -Wl,--subsystem,windows -o uartprob.exe uart-probe.c \
  *     -lkernel32 -luser32

@@ -89,7 +89,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../CLAUDE.html">Agentic Host Guide</a></li><li class="chapter-item expanded "><a href="../AGENTS.html"><strong aria-hidden="true">1.</strong> Agent Guide</a></li><li class="chapter-item expanded "><a href="../MEMORY.html"><strong aria-hidden="true">2.</strong> Memory</a></li><li class="chapter-item expanded "><a href="../plan/PLAN.html" class="active"><strong aria-hidden="true">3.</strong> Plan</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../plan/PHASE1.html"><strong aria-hidden="true">3.1.</strong> Phase 1: Foundation</a></li><li class="chapter-item expanded "><a href="../plan/PHASE2.html"><strong aria-hidden="true">3.2.</strong> Phase 2: File Operations + Base64</a></li><li class="chapter-item expanded "><a href="../plan/PHASE3.html"><strong aria-hidden="true">3.3.</strong> Phase 3: Network & Transport</a></li><li class="chapter-item expanded "><a href="../plan/PHASE4.html"><strong aria-hidden="true">3.4.</strong> Phase 4: Command Execution</a></li><li class="chapter-item expanded "><a href="../plan/PHASE5.html"><strong aria-hidden="true">3.5.</strong> Phase 5: MCP Integration</a></li><li class="chapter-item expanded "><a href="../plan/PHASE6.html"><strong aria-hidden="true">3.6.</strong> Phase 6: Cross-Platform Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../plan/uart-backend-design-foundation.html"><strong aria-hidden="true">3.6.1.</strong> UART backend design foundation</a></li></ol></li><li class="chapter-item expanded "><a href="../plan/PHASE7.html"><strong aria-hidden="true">3.7.</strong> Phase 7: Documentation & Polish</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../CLAUDE.html">Agentic Host Guide</a></li><li class="chapter-item expanded "><a href="../AGENTS.html"><strong aria-hidden="true">1.</strong> Agent Guide</a></li><li class="chapter-item expanded "><a href="../MEMORY.html"><strong aria-hidden="true">2.</strong> Memory</a></li><li class="chapter-item expanded "><a href="../plan/PLAN.html" class="active"><strong aria-hidden="true">3.</strong> Plan</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../plan/0001-foundation/index.html"><strong aria-hidden="true">3.1.</strong> Foundation</a></li><li class="chapter-item expanded "><a href="../plan/0002-file-operations-base64/index.html"><strong aria-hidden="true">3.2.</strong> File Operations + Base64</a></li><li class="chapter-item expanded "><a href="../plan/0003-network-transport/index.html"><strong aria-hidden="true">3.3.</strong> Network & Transport</a></li><li class="chapter-item expanded "><a href="../plan/0004-command-execution/index.html"><strong aria-hidden="true">3.4.</strong> Command Execution</a></li><li class="chapter-item expanded "><a href="../plan/0005-mcp-integration/index.html"><strong aria-hidden="true">3.5.</strong> MCP Integration</a></li><li class="chapter-item expanded "><a href="../plan/0006-cross-platform-testing/index.html"><strong aria-hidden="true">3.6.</strong> Cross-Platform Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../plan/uart-backend-design-foundation.html"><strong aria-hidden="true">3.6.1.</strong> UART backend design foundation</a></li></ol></li><li class="chapter-item expanded "><a href="../plan/0007-documentation-polish/index.html"><strong aria-hidden="true">3.7.</strong> Documentation & Polish</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -175,26 +175,47 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="implementation-plan-mcp-win32s"><a class="header" href="#implementation-plan-mcp-win32s">Implementation Plan: MCP-Win32s</a></h1>
-<p>Phase plans for the software under development (<code>mcp-win32s/</code> submodule). Each phase lives in its own <code>PHASE&lt;N&gt;.md</code> file in this directory.</p>
-<h2 id="phase-index"><a class="header" href="#phase-index">Phase Index</a></h2>
-<div class="table-wrapper"><table><thead><tr><th>Phase</th><th>File</th><th>Focus</th><th>Status</th></tr></thead><tbody>
-<tr><td>1</td><td><a href="PHASE1.html">PHASE1.md</a></td><td>Foundation: test framework, JSON parser, serial init, main loop, CI</td><td><strong>Complete</strong></td></tr>
-<tr><td>2</td><td><a href="PHASE2.html">PHASE2.md</a></td><td>File operations + base64 + PBT</td><td><strong>Complete</strong></td></tr>
-<tr><td>3</td><td><a href="PHASE3.html">PHASE3.md</a></td><td>Network &amp; transport: vtable backends, serial refactor, TCP/Winsock</td><td><strong>Complete</strong></td></tr>
-<tr><td>4</td><td><a href="PHASE4.html">PHASE4.md</a></td><td>Command execution + catalog + feature uplift + theft harness + spec backfill + weed remediation (4.0) + wire-contract smoke harness</td><td><strong>Complete</strong></td></tr>
-<tr><td>5</td><td><a href="PHASE5.html">PHASE5.md</a></td><td>MCP integration: Rust bridge (rmcp) + API-first capability surface (files/build/exec) + memory peek/poke (tiered, user-mode) + UTF-8 floor</td><td><strong>Complete</strong></td></tr>
-<tr><td>6</td><td><a href="PHASE6.html">PHASE6.md</a></td><td>Cross-platform testing</td><td><strong>In progress</strong></td></tr>
-<tr><td>7</td><td><a href="PHASE7.html">PHASE7.md</a></td><td>Documentation &amp; polish</td><td>Not started</td></tr>
+<p>Milestone plans for the software under development (<code>mcp-win32s/</code> submodule).
+Each milestone lives in its own content-named folder <code>plan/&lt;NNNN-slug&gt;/</code> carrying
+a <code>README.md</code>. Numbers are identity; slugs are content; ordering lives in this
+index, never in the names.</p>
+<h2 id="milestone-index"><a class="header" href="#milestone-index">Milestone Index</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>#</th><th>Milestone</th><th>Focus</th><th>Status</th></tr></thead><tbody>
+<tr><td>0001</td><td><a href="0001-foundation/README.html">Foundation</a></td><td>test framework, JSON parser, serial init, main loop, CI</td><td><strong>Complete</strong></td></tr>
+<tr><td>0002</td><td><a href="0002-file-operations-base64/README.html">File Operations + Base64</a></td><td>file operations + base64 + PBT</td><td><strong>Complete</strong></td></tr>
+<tr><td>0003</td><td><a href="0003-network-transport/README.html">Network &amp; Transport</a></td><td>vtable backends, serial refactor, TCP/Winsock</td><td><strong>Complete</strong></td></tr>
+<tr><td>0004</td><td><a href="0004-command-execution/README.html">Command Execution</a></td><td>command execution + catalog + feature uplift + theft harness + spec backfill + weed remediation + wire-contract smoke harness</td><td><strong>Complete</strong></td></tr>
+<tr><td>0005</td><td><a href="0005-mcp-integration/README.html">MCP Integration</a></td><td>Rust bridge (rmcp) + API-first capability surface (files/build/exec) + memory peek/poke (tiered, user-mode) + UTF-8 floor</td><td><strong>Complete</strong></td></tr>
+<tr><td>0006</td><td><a href="0006-cross-platform-testing/README.html">Cross-Platform Testing</a></td><td>cross-platform testing</td><td><strong>In progress</strong></td></tr>
+<tr><td>0007</td><td><a href="0007-documentation-polish/README.html">Documentation &amp; Polish</a></td><td>documentation &amp; polish</td><td>Not started</td></tr>
 </tbody></table>
 </div>
-<h2 id="phase-file-rules-strict"><a class="header" href="#phase-file-rules-strict">Phase File Rules (strict)</a></h2>
+<h2 id="milestone-rules-strict"><a class="header" href="#milestone-rules-strict">Milestone Rules (strict)</a></h2>
 <ol>
-<li><strong>Sequential naming.</strong> Phase files are named <code>PHASE&lt;N&gt;.md</code> with <code>N</code> a positive integer, no gaps, no zero-padding. A new phase MUST be <code>PHASE&lt;max+1&gt;.md</code> — never insert, renumber, or reuse a number.</li>
-<li><strong>Closed phases are immutable.</strong> Once a phase is marked <strong>Complete</strong> in its file and in the index above, its <code>PHASE&lt;N&gt;.md</code> MUST NOT be edited again — no rewording, no retroactive scope changes, no status flips. The git history of each phase file is the audit trail.</li>
-<li><strong>Corrections go forward.</strong> If a completed phase turns out to be wrong or incomplete, do not reopen it. Record the correction as scope in the next (or a new) phase file, referencing the closed phase.</li>
-<li><strong>One status transition path.</strong> <code>Not started → Spec'd → In progress → Complete</code>. Status changes are recorded in both the phase file heading and the index table, in the same commit.</li>
-<li><strong>Completion gate.</strong> A phase may only be marked Complete after the Allium lifecycle gate passes (specs tended, obligations propagated, weed audit clean) in the <code>mcp-win32s/</code> submodule.</li>
-<li><strong>Opening a phase requires an explicit planning pause.</strong> Before any code or spec work for a phase begins, the phase file is reviewed and amended to current reality — stale references fixed, corrections carried forward from closed phases scoped in, open decisions resolved via Q&amp;A and recorded — its status moves to <strong>In progress</strong> in the same commit, and that commit is pushed. Execution may never start from an unreviewed plan.</li>
+<li><strong>Content-named, numbered for identity.</strong> Each milestone is a folder
+<code>plan/&lt;NNNN-slug&gt;/</code> — a four-digit zero-padded number, a hyphen, then a
+lowercase slug naming its content — carrying a <code>README.md</code>. The number is
+assigned when the milestone is accepted and never changes; read sequence from
+this index, not from the names.</li>
+<li><strong>Closed milestone bodies are append-only.</strong> Once a milestone is marked
+<strong>Complete</strong> here and in its <code>README.md</code>, the body is the audit record: never
+reworded or retroactively rescoped. The git history is the trail. (The
+adoption migration de-ordinaled only the H1 titles; every body line is
+verbatim.)</li>
+<li><strong>Corrections go forward.</strong> If a completed milestone turns out wrong or
+incomplete, do not reopen it — record the correction as scope in the next (or
+a new) milestone, referencing the closed one.</li>
+<li><strong>One status transition path.</strong> <code>Not started → Spec'd → In progress → Complete</code>. Status changes are recorded in both the milestone <code>README.md</code>
+heading and the index table, in the same commit.</li>
+<li><strong>Completion gate.</strong> A milestone may only be marked Complete after the Allium
+lifecycle gate passes (specs tended, obligations propagated, weed audit clean)
+in the <code>mcp-win32s/</code> submodule.</li>
+<li><strong>Opening a milestone requires an explicit planning pause.</strong> Before any code or
+spec work begins, the milestone <code>README.md</code> is reviewed and amended to current
+reality — stale references fixed, corrections carried forward from closed
+milestones scoped in, open decisions resolved via Q&amp;A and recorded — its status
+moves to <strong>In progress</strong> in the same commit, and that commit is pushed.
+Execution may never start from an unreviewed plan.</li>
 </ol>
 
                     </main>
@@ -205,7 +226,7 @@
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../plan/PHASE1.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../plan/0001-foundation/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -219,7 +240,7 @@
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../plan/PHASE1.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../plan/0001-foundation/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

@@ -21,7 +21,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 if ! "$LINT" --staged "$REPO_ROOT" >/dev/null 2>&1; then
     echo "pre-commit: phase-slop in staged source comments:" >&2
     "$LINT" --staged "$REPO_ROOT" >&2
-    echo "Numbered phase-synonyms (Step 1, Pass 2, ...) in code comments are an agentic tell; rewrite them." >&2
+    echo "Numbered phase-synonyms in code comments are an agentic tell; rewrite them." >&2
     exit 1
 fi
 exit 0
