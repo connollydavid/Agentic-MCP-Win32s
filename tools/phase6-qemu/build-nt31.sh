@@ -16,7 +16,7 @@
 # the I386 tree on a FAT data disk (no MSCDEX needed), a blank C: to format, and a
 # blank formatted floppy for WINNT to write the Setup boot floppy onto.
 #
-# Inputs (gitignored, operator-vendored — see plan/PHASE6.md provenance):
+# Inputs (gitignored, operator-vendored — see plan/0006-cross-platform-testing/README.md provenance):
 #   vendor/winnt31/WINNT_AS_511.ISO   (NT 3.1 AS, sha256 940dcefd…; or set NT_ISO=)
 #   vendor/win311/build/floppies/dos622-boot.img   (reused DOS 6.22 boot floppy)
 #

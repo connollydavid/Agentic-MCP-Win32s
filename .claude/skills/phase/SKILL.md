@@ -43,23 +43,23 @@ the phase's state; `/phase status` reads them. Do not batch them.
 
 ## Implement and weed are fan-out jobs, not linear ones
 
-Phase 4 was an orchestration job, not a serial slog — encode that:
+Command Execution was an orchestration job, not a serial slog — encode that:
 
 **The implement stage — fan-out.** Decompose the phase into independent
 modules. **Freeze the interfaces first**: write and commit the `.h`
 (public types + signatures) for each module before delegating, so
-concurrent work cannot collide on a contract (Phase 4 froze `feat.h`
+concurrent work cannot collide on a contract (Command Execution froze `feat.h`
 before spawning eight module agents). Then spawn one sub-agent per module
 **in parallel** (a single message, multiple Agent calls), each with the
 hard constraints, the frozen headers, and its obligation IDs. Keep the
 interface-heavy seams (the dispatcher, integration glue) for the main
 session. **Independently verify** every returned module — re-build and
 re-run its tests yourself; never accept a sub-agent's self-report (a
-Phase 4 agent reported "done" with no test output and had real
+Command Execution agent reported "done" with no test output and had real
 failures). Integrate, then run the whole suite.
 
 **The weed stage — parallel auditors.** Split the specs into clusters and
-run one read-only `Explore` auditor per cluster in parallel (Phase 4 ran
+run one read-only `Explore` auditor per cluster in parallel (Command Execution ran
 four: process-ops, catalog, the distilled+wire specs, and
 protocol/transport/file-ops), each told to be adversarial and hunt the
 gate-bypass dimension. Synthesise the findings, then remediate in-branch

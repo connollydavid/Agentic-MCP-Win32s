@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# run.sh — Phase 6 QEMU launcher for the
+# run.sh — Cross-Platform Testing QEMU launcher for the
 # Windows 3.11 + Win32s 1.25a guest (the Win16/Win32s baseline tier).
 #
 # Repeatable by construction: all guest media is the hash-pinned, gitignored
-# vendored Microsoft media under vendor/win311/ (see plan/PHASE6.md provenance,
+# vendored Microsoft media under vendor/win311/ (see plan/0006-cross-platform-testing/README.md provenance,
 # status TBC). This script only assembles + boots it; it makes no network
 # fetches and embeds no binaries.
 #

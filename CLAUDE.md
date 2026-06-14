@@ -59,7 +59,7 @@ This applies to *every* PR, not just phase-completion PRs. CI green is necessary
 The dev host runs the PEs **natively via WSL interop**; CI runs them under **Wine**. A locally-green suite is evidence, not proof. Before declaring a branch CI-ready:
 
 1. **The committed tree is what gets tested, not the working tree.** Test data and fixtures that match a `.gitignore` glob (e.g. `*.exe` binary fixtures) must be force-tracked (`git add -f`) and their presence asserted — a passing local run with an untracked fixture is a false green. (Added 2026-06-06: PR #10's binfmt fixtures were silently ignored; CI never had them.)
-2. **OS-behavioural tests must be host-tolerant or runner-verified.** Any test whose outcome depends on the host (capability presence, shell line-ending normalisation, job-limit enforcement, ConPTY support) must either skip-with-reason when the host diverges, or be verified under the CI runner before claiming green — never asserted only against native WSL behaviour. (Added 2026-06-06: three Phase 4 tests encoded native-only behaviour and failed twice on Wine.)
+2. **OS-behavioural tests must be host-tolerant or runner-verified.** Any test whose outcome depends on the host (capability presence, shell line-ending normalisation, job-limit enforcement, ConPTY support) must either skip-with-reason when the host diverges, or be verified under the CI runner before claiming green — never asserted only against native WSL behaviour. (Added 2026-06-06: three Command Execution tests encoded native-only behaviour and failed twice on Wine.)
 
 CI green here means **the actual CI run on the pushed commit**, observed — not a local proxy.
 
@@ -78,7 +78,7 @@ Rules for the review:
 
 ### Sub-agent deliverables are verified, never trusted
 
-When implementation work is delegated to sub-agents (parallel module builds, etc.), the orchestrating session **independently re-runs the build and tests on the integrated result** before marking the work complete — it does not accept a sub-agent's self-report as evidence. A sub-agent can report "done" without having observed its own test output, or pass in isolation but break against a sibling's changes. (Added 2026-06-06: a Phase 4 module agent reported completion with a content-free final message; the orchestrator's own build+test run surfaced real failures the agent never saw.) This is the implementation-stage counterpart to the review gate: trust the artifact you verified, not the claim about it.
+When implementation work is delegated to sub-agents (parallel module builds, etc.), the orchestrating session **independently re-runs the build and tests on the integrated result** before marking the work complete — it does not accept a sub-agent's self-report as evidence. A sub-agent can report "done" without having observed its own test output, or pass in isolation but break against a sibling's changes. (Added 2026-06-06: a Command Execution module agent reported completion with a content-free final message; the orchestrator's own build+test run surfaced real failures the agent never saw.) This is the implementation-stage counterpart to the review gate: trust the artifact you verified, not the claim about it.
 
 ### Vocabulary discipline (anti-slop)
 
@@ -94,7 +94,7 @@ The linter's **match engine** is the vendored [`host-lint`](https://github.com/c
 
 ### Implement and weed are fan-out jobs (not linear)
 
-A phase's implement and weed stages are **parallel orchestration**, not serial work — this is how Phase 4 was actually done and what made it tractable. Implement: decompose into independent modules, **freeze each module's interface (`.h`) and commit it first** so concurrent work cannot collide on a contract, then spawn one sub-agent per module in parallel; keep the integration seams (dispatcher, glue) for the main session; **independently re-build and re-test every returned module** (sub-agent verification). Weed: split the specs into clusters and run one read-only auditor per cluster in parallel, each adversarial. Stage cadence: each lifecycle stage exit writes a `✅ <stage>` marker into the open milestone's `README.md` and is committed + pushed immediately (the same immediate-commit rule as PLAN edits) — those markers are the milestone's state.
+A phase's implement and weed stages are **parallel orchestration**, not serial work — this is how Command Execution was actually done and what made it tractable. Implement: decompose into independent modules, **freeze each module's interface (`.h`) and commit it first** so concurrent work cannot collide on a contract, then spawn one sub-agent per module in parallel; keep the integration seams (dispatcher, glue) for the main session; **independently re-build and re-test every returned module** (sub-agent verification). Weed: split the specs into clusters and run one read-only auditor per cluster in parallel, each adversarial. Stage cadence: each lifecycle stage exit writes a `✅ <stage>` marker into the open milestone's `README.md` and is committed + pushed immediately (the same immediate-commit rule as PLAN edits) — those markers are the milestone's state.
 
 ### The `/phase` orchestrator
 
