@@ -1,6 +1,3 @@
-[submodule "mcp-win32s"]
-	path = mcp-win32s
-	url = git@github.com:connollydavid/MCP-Win32s.git
 [submodule "host-lint"]
 	path = host-lint
 	url = https://github.com/connollydavid/host-lint.git

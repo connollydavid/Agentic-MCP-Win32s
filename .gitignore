@@ -5,3 +5,9 @@ book/
 .claude/phase-gate.active
 .claude/.phase-gate.greenhash
 vendor/
+
+# Where room — software bare store + worktrees, materialized from .host-software
+# (call/0004); never tracked — the recipe + pin are the reproducibility anchor.
+/mcp-win32s/
+/mcp-win32s.git/
+/mcp-win32s.*/
