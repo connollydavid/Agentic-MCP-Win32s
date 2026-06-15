@@ -4,4 +4,4 @@
 # is created at `pin`; "bump the pointer" is now "update this pin".
 [software "mcp-win32s"]
 	url = git@github.com:connollydavid/MCP-Win32s.git
-	pin = 792da6152d27d38c660ff30078e921e349c7f4a5
+	pin = ec1529440374b0de89d1e79fd99b16c8e5be6d8a
