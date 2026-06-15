@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-# wire_accept.py - the #35 on-target acceptance wire harness. Connects to the
-# guest COM1 (QEMU -serial tcp server at 127.0.0.1:31800), captures the device's
-# ready line (proves direct-UART TX on open), then sends an echo command and
-# reads the response (proves direct-UART RX + dispatch + TX round-trip).
+# wire_accept.py - on-target acceptance wire harness (tier-neutral). Connects to
+# the guest COM1 (QEMU -serial tcp server), captures the device's ready line
+# (TX on open), then sends an echo command and reads the response (RX + dispatch
+# + TX round-trip). Port is the lane's COM1 TCP port: default 31800 (the Win32s
+# direct-UART lane); override via SERIAL_PORT env or argv[1] (e.g. 31801 = the
+# NT 3.1 lane, where the device serves over the OS comm API instead of bare UART).
 # Public domain (Unlicense).
-import socket, time, sys
+import socket, time, sys, os
 
-HOST, PORT = '127.0.0.1', 31800
+HOST = '127.0.0.1'
+PORT = int(os.environ.get('SERIAL_PORT') or (sys.argv[1] if len(sys.argv) > 1 else 31800))
 LOG = '/tmp/wire_log.txt'
 out = open(LOG, 'w')
 
@@ -66,7 +69,7 @@ while time.time() < rdl:
 line = resp.partition(b'\n')[0]
 log("RESP RX: %r" % (line,))
 ok = (b'"id":"acc1"' in line and b'"status":"ok"' in line and b'HELLO-WIN32S-UART' in line)
-log("VERDICT: %s" % ("PASS - full wire round-trip over the Win32s direct-UART tier"
+log("VERDICT: %s" % ("PASS - full wire round-trip over the serial transport (port %d)" % PORT
                      if ok else "INCOMPLETE - response did not match (see RESP RX)"))
 s.close()
 sys.exit(0 if ok else 4)

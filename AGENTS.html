@@ -175,7 +175,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="agentsmd--agentic-host-guide"><a class="header" href="#agentsmd--agentic-host-guide">AGENTS.md — Agentic host guide</a></h1>
-<p>This is the agentic host repository. The software under development lives in the <code>mcp-win32s/</code> submodule and is the <strong>single source of truth for everything about itself</strong> — do not duplicate its content here.</p>
+<p>This is the agentic host repository. The software under development lives in the <code>mcp-win32s/</code> worktree (embedded as a bare store with worktrees; <code>call/0004</code>) and is the <strong>single source of truth for everything about itself</strong> — do not duplicate its content here.</p>
 <h2 id="where-things-live"><a class="header" href="#where-things-live">Where things live</a></h2>
 <div class="table-wrapper"><table><thead><tr><th>Concern</th><th>Source of truth</th></tr></thead><tbody>
 <tr><td>Technical constraints (C89, i386, Win32s API subset), build commands, code conventions</td><td><code>mcp-win32s/CLAUDE.md</code></td></tr>
@@ -193,7 +193,7 @@
 <h2 id="how-agents-work-here"><a class="header" href="#how-agents-work-here">How agents work here</a></h2>
 <ol>
 <li>Read <code>CLAUDE.md</code> (here) for the process; read <code>mcp-win32s/CLAUDE.md</code> before touching any code.</li>
-<li>Plan in <code>plan/</code> (host commits, pushed immediately); code in <code>mcp-win32s/</code> on a branch, merged via PR in that repo behind the Allium merge gate; bump the submodule pointer here in a separate commit.</li>
+<li>Plan in <code>plan/</code> (host commits, pushed immediately); code in <code>mcp-win32s/</code> on a branch, merged via PR in that repo behind the Allium merge gate; update the recipe pin in <code>.host-software</code> here in a separate commit.</li>
 <li>Record non-obvious findings in <code>MEMORY.md</code> (here), in separate commits.</li>
 </ol>
 

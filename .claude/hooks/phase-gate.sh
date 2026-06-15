@@ -65,7 +65,7 @@ block() {
     exit 0
 }
 
-cd "$SUB" 2>/dev/null || block "phase-gate: software submodule not found at mcp-win32s/ - cannot verify the gates."
+cd "$SUB" 2>/dev/null || block "phase-gate: software worktree not found at mcp-win32s/ (run host-lifecycle software --materialize) - cannot verify the gates."
 
 OBJDUMP="$(command -v i686-w64-mingw32-objdump 2>/dev/null || command -v objdump 2>/dev/null || true)"
 
