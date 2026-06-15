@@ -1,6 +1,0 @@
-[submodule "host-lint"]
-	path = host-lint
-	url = https://github.com/connollydavid/host-lint.git
-[submodule "template-agentic-host"]
-	path = template-agentic-host
-	url = https://github.com/connollydavid/template-agentic-host.git

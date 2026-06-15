@@ -12,31 +12,31 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../../favicon.svg">
-        <link rel="shortcut icon" href="../../favicon.png">
-        <link rel="stylesheet" href="../../css/variables.css">
-        <link rel="stylesheet" href="../../css/general.css">
-        <link rel="stylesheet" href="../../css/chrome.css">
-        <link rel="stylesheet" href="../../css/print.css" media="print">
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../../fonts/fonts.css">
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="../../highlight.css">
-        <link rel="stylesheet" href="../../tomorrow-night.css">
-        <link rel="stylesheet" href="../../ayu-highlight.css">
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../../custom.css">
+        <link rel="stylesheet" href="../custom.css">
 
     </head>
     <body class="sidebar-visible no-js">
     <div id="body-container">
         <!-- Provide site root to javascript -->
         <script>
-            var path_to_root = "../../";
+            var path_to_root = "../";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
 
@@ -89,7 +89,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../CLAUDE.html">Agentic Host Guide</a></li><li class="chapter-item expanded "><a href="../../AGENTS.html"><strong aria-hidden="true">1.</strong> Agent Guide</a></li><li class="chapter-item expanded "><a href="../../MEMORY.html"><strong aria-hidden="true">2.</strong> Memory</a></li><li class="chapter-item expanded "><a href="../../plan/PLAN.html"><strong aria-hidden="true">3.</strong> Plan</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../plan/0001-foundation/index.html"><strong aria-hidden="true">3.1.</strong> Foundation</a></li><li class="chapter-item expanded "><a href="../../plan/0002-file-operations-base64/index.html"><strong aria-hidden="true">3.2.</strong> File Operations + Base64</a></li><li class="chapter-item expanded "><a href="../../plan/0003-network-transport/index.html"><strong aria-hidden="true">3.3.</strong> Network & Transport</a></li><li class="chapter-item expanded "><a href="../../plan/0004-command-execution/index.html"><strong aria-hidden="true">3.4.</strong> Command Execution</a></li><li class="chapter-item expanded "><a href="../../plan/0005-mcp-integration/index.html" class="active"><strong aria-hidden="true">3.5.</strong> MCP Integration</a></li><li class="chapter-item expanded "><a href="../../plan/0006-cross-platform-testing/index.html"><strong aria-hidden="true">3.6.</strong> Cross-Platform Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../plan/uart-backend-design-foundation.html"><strong aria-hidden="true">3.6.1.</strong> UART backend design foundation</a></li></ol></li><li class="chapter-item expanded "><a href="../../plan/0007-documentation-polish/index.html"><strong aria-hidden="true">3.7.</strong> Documentation & Polish</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../agentic-host-guide.html">Agentic Host Guide</a></li><li class="chapter-item expanded "><a href="../agent-guide.html"><strong aria-hidden="true">1.</strong> Agent Guide</a></li><li class="chapter-item expanded "><a href="../memory.html"><strong aria-hidden="true">2.</strong> Memory</a></li><li class="chapter-item expanded "><a href="../plan/index.html"><strong aria-hidden="true">3.</strong> Plan</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../plan/0001-foundation.html"><strong aria-hidden="true">3.1.</strong> Foundation</a></li><li class="chapter-item expanded "><a href="../plan/0002-file-operations-base64.html"><strong aria-hidden="true">3.2.</strong> File Operations + Base64</a></li><li class="chapter-item expanded "><a href="../plan/0003-network-transport.html"><strong aria-hidden="true">3.3.</strong> Network & Transport</a></li><li class="chapter-item expanded "><a href="../plan/0004-command-execution.html"><strong aria-hidden="true">3.4.</strong> Command Execution</a></li><li class="chapter-item expanded "><a href="../plan/0005-mcp-integration.html" class="active"><strong aria-hidden="true">3.5.</strong> MCP Integration</a></li><li class="chapter-item expanded "><a href="../plan/0006-cross-platform-testing.html"><strong aria-hidden="true">3.6.</strong> Cross-Platform Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../plan/uart.html"><strong aria-hidden="true">3.6.1.</strong> UART backend design foundation</a></li></ol></li><li class="chapter-item expanded "><a href="../plan/0007-documentation-polish.html"><strong aria-hidden="true">3.7.</strong> Documentation & Polish</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -145,7 +145,7 @@
                     <h1 class="menu-title">Agentic-MCP-Win32s</h1>
 
                     <div class="right-buttons">
-                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
 
@@ -372,11 +372,11 @@ Re-verified after fixes: <code>cargo fmt --check</code>/<code>clippy -D warnings
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../plan/0004-command-execution/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../plan/0004-command-execution.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../plan/0006-cross-platform-testing/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../plan/0006-cross-platform-testing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -386,11 +386,11 @@ Re-verified after fixes: <code>cargo fmt --check</code>/<code>clippy -D warnings
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../plan/0004-command-execution/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../plan/0004-command-execution.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../plan/0006-cross-platform-testing/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../plan/0006-cross-platform-testing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
@@ -405,13 +405,13 @@ Re-verified after fixes: <code>cargo fmt --check</code>/<code>clippy -D warnings
         </script>
 
 
-        <script src="../../elasticlunr.min.js"></script>
-        <script src="../../mark.min.js"></script>
-        <script src="../../searcher.js"></script>
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
 
-        <script src="../../clipboard.min.js"></script>
-        <script src="../../highlight.js"></script>
-        <script src="../../book.js"></script>
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
 
         <!-- Custom JS scripts -->
 
