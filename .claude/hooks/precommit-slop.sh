@@ -2,10 +2,10 @@
 # precommit-slop.sh - Claude Code PreToolUse hook (matcher: Bash).
 #
 # Catches the AGENT's commits: when the intercepted Bash command is a
-# `git commit` targeting the software submodule (mcp-win32s), it lints the
-# -m subject and the submodule's staged source comments via the shared
+# `git commit` targeting the software worktree (mcp-win32s), it lints the
+# -m subject and the worktree's staged source comments via the shared
 # phase-slop linter, and DENIES the tool call on a violation so the slop
-# never reaches a commit. This hook targets the submodule, where the agent
+# never reaches a commit. This hook targets the worktree, where the agent
 # writes the C sources whose staged comments need the scan; host commit
 # subjects are expected to be tell-free too (host-lint --all covers the tree).
 #
@@ -38,8 +38,8 @@ case "$CMD" in
     *) exit 0 ;;
 esac
 
-# Only act when the commit targets the submodule: a `-C mcp-win32s`, a
-# `cd mcp-win32s`, or the hook's cwd already inside the submodule.
+# Only act when the commit targets the worktree: a `-C mcp-win32s`, a
+# `cd mcp-win32s`, or the hook's cwd already inside the worktree.
 HOOK_CWD="$(printf '%s' "$INPUT" | sed -n 's/.*"cwd"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
 targets_sub=0
 case "$CMD" in
@@ -61,14 +61,14 @@ if [ -n "$subject" ]; then
 "
 fi
 
-# 2. Staged source comments in the submodule.
+# 2. Staged source comments in the worktree.
 staged_v="$("$LINT" --staged "$SUB" 2>/dev/null)" || violations="$violations$staged_v
 "
 
 # Trim and decide.
 violations="$(printf '%s' "$violations" | sed '/^[[:space:]]*$/d')"
 if [ -n "$violations" ]; then
-    reason="phase-slop linter blocked this submodule commit. Numbered phase-synonyms are an agentic tell - rewrite to idiomatic git/Conventional-Commits vocabulary. Milestones are content-named; there is no ordinal carve-out. Violations:
+    reason="phase-slop linter blocked this worktree commit. Numbered phase-synonyms are an agentic tell - rewrite to idiomatic git/Conventional-Commits vocabulary. Milestones are content-named; there is no ordinal carve-out. Violations:
 $violations"
     if command -v jq >/dev/null 2>&1; then
         jq -n --arg r "$reason" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'

@@ -1,6 +1,6 @@
 ---
 name: phase-gate
-description: Arm or clear the deterministic green-invariant Stop hook for the MCP-Win32s software submodule, so a turn cannot end while a local gate (allium check, build, ctest, import-table, FPU/486) is red. Arm as soon as the implementation is first all-green and keep it armed through distill, weed, review fixes and merge - it is a continuous guard, not a merge-time check. Clear after merge.
+description: Arm or clear the deterministic green-invariant Stop hook for the MCP-Win32s software worktree, so a turn cannot end while a local gate (allium check, build, ctest, import-table, FPU/486) is red. Arm as soon as the implementation is first all-green and keep it armed through distill, weed, review fixes and merge - it is a continuous guard, not a merge-time check. Clear after merge.
 disable-model-invocation: true
 arguments:
   - name: action
@@ -11,7 +11,7 @@ arguments:
 
 This skill arms a **script-based Stop hook** (`.claude/hooks/phase-gate.sh`)
 that physically refuses to let a turn end while any deterministic local
-gate on the `mcp-win32s` submodule is red. It is the engine chosen over a
+gate on the `mcp-win32s` software worktree is red. It is the engine chosen over a
 prompt-based `/goal`: `/goal`'s evaluator judges the **transcript** (it
 cannot run commands), so it can pass on a *claim* of success; this hook
 runs the checks itself, so it passes only on **verified** success.

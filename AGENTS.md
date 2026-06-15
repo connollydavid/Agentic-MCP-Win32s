@@ -1,6 +1,6 @@
 # AGENTS.md — Agentic host guide
 
-This is the agentic host repository. The software under development lives in the `mcp-win32s/` submodule and is the **single source of truth for everything about itself** — do not duplicate its content here.
+This is the agentic host repository. The software under development lives in the `mcp-win32s/` worktree (embedded as a bare store with worktrees; `call/0004`) and is the **single source of truth for everything about itself** — do not duplicate its content here.
 
 ## Where things live
 
@@ -20,5 +20,5 @@ This is the agentic host repository. The software under development lives in the
 ## How agents work here
 
 1. Read `CLAUDE.md` (here) for the process; read `mcp-win32s/CLAUDE.md` before touching any code.
-2. Plan in `plan/` (host commits, pushed immediately); code in `mcp-win32s/` on a branch, merged via PR in that repo behind the Allium merge gate; bump the submodule pointer here in a separate commit.
+2. Plan in `plan/` (host commits, pushed immediately); code in `mcp-win32s/` on a branch, merged via PR in that repo behind the Allium merge gate; update the recipe pin in `.host-software` here in a separate commit.
 3. Record non-obvious findings in `MEMORY.md` (here), in separate commits.

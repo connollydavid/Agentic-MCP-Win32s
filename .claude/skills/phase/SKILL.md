@@ -30,7 +30,7 @@ sub-agent, and observed CI.
 | 6 | Audit | `/allium:weed` | **parallel auditors** (see below); zero unrecorded drift, incl. the adversarial gate-bypass dimension | weed report |
 | 7 | Merge gate | — | specs current + obligations + weed clean + **observed** CI green | `/phase-gate` (local) + `gh pr checks` (parity) |
 | 8 | Review gate | `/phase review` | fresh adversarial sub-agent: verdict approve, findings fixed in-PR | the sub-agent (see review-template.md) |
-| 9 | Close-out | `/phase complete <N>` | merged, submodule bumped, status Complete, lessons recorded, gate cleared | this skill |
+| 9 | Close-out | `/phase complete <N>` | merged, recipe pin updated, status Complete, lessons recorded, gate cleared | this skill |
 
 Deterministic truth (stages 2–7 local checks) → the `/phase-gate` Stop
 hook. Judgment (review gate) → the sub-agent. Parity (CI ≠ local) → the
@@ -106,8 +106,8 @@ Launch the independent adversarial review gate (CLAUDE.md "Review gate").
 The close-out (only after stages 7 + 8 are satisfied).
 1. Verify: weed clean, `/phase-gate` green, **observed** CI green
    (`gh pr checks`), review verdict approve with findings fixed.
-2. Squash-merge the submodule PR; delete the branch.
-3. Bump the submodule pointer in the host repo as a **separate** commit.
+2. Squash-merge the software PR; delete the branch.
+3. Update the recipe pin in `.host-software` in the host repo as a **separate** commit (pin-update replaces the old submodule-pointer bump; `call/0004`).
 4. Mark Complete in `plan/PLAN.md` and the <NNNN-slug>/README.md header; append the
    phase's lessons to `MEMORY.md` (separate commit).
 5. `/phase gate clear`.
@@ -115,7 +115,7 @@ The close-out (only after stages 7 + 8 are satisfied).
 ## Notes
 - This skill only orchestrates; it writes plan/status artifacts in the
   **host** repo and never edits software code (that happens in the
-  submodule on a branch, per the layout rules).
+  software repo on a branch, per the layout rules).
 - **Verify platform facts, don't reconstruct them.** For any question
   about Claude Code / the Agent SDK / the API (built-ins like `/goal`,
   hook contracts, skill authoring), consult the `claude-code-guide`
@@ -127,6 +127,6 @@ The close-out (only after stages 7 + 8 are satisfied).
   stage, push, and hand off with a copy-paste resume prompt rather than
   pushing through degraded.
 - Anti-slop: commit subjects and code comments are linted by the
-  phase-slop hook; keep numbered phase-synonyms out of submodule
+  phase-slop hook; keep numbered phase-synonyms out of the software's
   code/commits and the host's own prose — milestones are content-named
   (`plan/<NNNN-slug>/`); there is no ordinal carve-out.
