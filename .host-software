@@ -1,0 +1,7 @@
+# The Where room — the software under development, embedded as a bare store with
+# worktrees (call/0004). Materialize with `host-lifecycle software --materialize .`;
+# audit with `host-lifecycle software --check .`. The canonical worktree mcp-win32s/
+# is created at `pin`; "bump the pointer" is now "update this pin".
+[software "mcp-win32s"]
+	url = git@github.com:connollydavid/MCP-Win32s.git
+	pin = e52e66748852e2d7462cad38503df542f757f0af

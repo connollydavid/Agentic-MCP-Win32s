@@ -1,22 +1,22 @@
 # Agentic-MCP-Win32s
 
-Agentic host repository. Agentic software-development assets (skills, plans, milestone audits, harness config) live here; the software under development is vendored as git submodules.
+Agentic host repository. Agentic software-development assets (skills, plans, milestone audits, harness config) live here; the software under development is embedded beneath as a bare store with worktrees (`.host-software`; `call/0004`), and the verification tooling is vendored as git submodules.
 
 ## Layout
 
-- `mcp-win32s/` — submodule: the software under development (MCP server for Win32s). Its own `CLAUDE.md` carries the project-specific constraints (C89, i386, Win32s API subset) and build instructions.
+- `mcp-win32s/` — the software under development (MCP server for Win32s), embedded as a bare store with worktrees (recipe in `.host-software`, materialized by `host-lifecycle software --materialize`; `call/0004`). Its own `CLAUDE.md` carries the project-specific constraints (C89, i386, Win32s API subset) and build instructions.
 - `template-agentic-host/` — submodule: the agentic-host methodology template (the five-room model, the working principles, and the `host-*` tooling). Adopted copy-at-version; see `.agentic-host` and `call/0001`.
 - `host-lint/` — submodule: the anti-slop naming linter that is the phase-slop hook's match engine. Build per clone: `cargo build --release --manifest-path host-lint/Cargo.toml`.
 - `plan/` — committed, auditable milestone plans. `plan/PLAN.md` is the index; each milestone is a content-named folder `plan/<NNNN-slug>/` carrying its `README.md`. Numbers are identity, slugs are content; closed milestone bodies are append-only.
 - `cast/` — personas (the Who): the operators and agents the software serves.
 - `call/` — decisions (the Why), in MADR format (`call/0000` bootstraps the format).
-- `AGENTS.md` — agent guide for this host: where each concern's source of truth lives. The submodule's own docs (`mcp-win32s/CLAUDE.md`, and `mcp-win32s/vendor/theft/CLAUDE.md` for theft's internal idioms) are referenced, never duplicated.
+- `AGENTS.md` — agent guide for this host: where each concern's source of truth lives. The software's own docs (`mcp-win32s/CLAUDE.md`, and `mcp-win32s/vendor/theft/CLAUDE.md` for theft's internal idioms) are referenced, never duplicated.
 - `MEMORY.md` — append-only record of decisions, constraints, and lessons learned.
 
 ## Working in this repository
 
-- All planning artifacts (milestone plans, status changes) are committed here, in the host repo — never inside the software submodule.
-- Code changes happen inside `mcp-win32s/` on a branch, are merged via PR in that repo, and the submodule pointer is then bumped here in a separate commit.
+- All planning artifacts (milestone plans, status changes) are committed here, in the host repo — never inside the software repo.
+- Code changes happen inside `mcp-win32s/` on a branch, are merged via PR in that repo, and the recipe pin in `.host-software` is then updated here in a separate commit (pin-update replaces the old submodule-pointer bump; `call/0004`).
 - Follow the milestone rules in `plan/PLAN.md` strictly: closed milestone bodies are append-only and never revisited.
 
 ## Specification & Test Workflow (Allium + theft)
@@ -46,7 +46,7 @@ Established 2026-06-06 on PR #10: the catalog gate's shell-builtin route skipped
 
 ### Merge gate (non-negotiable)
 
-**Never merge a PR in the software submodule until the full Allium lifecycle has been run for the change.** Concretely, before merging any branch:
+**Never merge a PR in the software repo until the full Allium lifecycle has been run for the change.** Concretely, before merging any branch:
 
 1. **Specs current (`/allium:tend`)** — every behavioural change is reflected in `specs/*.allium`, `allium check` clean. Code without a spec is backfilled (`/allium:distill`).
 2. **Obligations propagated (`/allium:propagate`)** — the spec's implied unit/property/state-machine tests exist and trace to the implementation.
@@ -65,7 +65,7 @@ CI green here means **the actual CI run on the pushed commit**, observed — not
 
 ### Review gate (independent sub-agent, before every merge)
 
-After the Allium lifecycle is clean and CI passes, every PR in the software submodule gets an **independent adversarial review by a fresh sub-agent** before merge. Established 2026-06-06 on PR #9, where this process caught a spec defect (the `FileWriteResult.data` phantom field) that `allium check`, the lifecycle run, and CI all missed.
+After the Allium lifecycle is clean and CI passes, every PR in the software repo gets an **independent adversarial review by a fresh sub-agent** before merge. Established 2026-06-06 on PR #9, where this process caught a spec defect (the `FileWriteResult.data` phantom field) that `allium check`, the lifecycle run, and CI all missed.
 
 Rules for the review:
 
@@ -82,13 +82,14 @@ When implementation work is delegated to sub-agents (parallel module builds, etc
 
 ### Vocabulary discipline (anti-slop)
 
-A milestone-synonym noun followed by a numeral is a cross-model agentic tell (GPT, Gemini, Claude, Cursor, Copilot all stamp them). It is slop **everywhere** in this repository: keep it out of `src/`/`tests/` comments, out of commit subjects (which should read as idiomatic git / Conventional Commits), and out of the host's own governance and plan prose. Milestones are **content-named** (`plan/<NNNN-slug>/`); there is no ordinal carve-out. This is enforced mechanically by the phase-slop linter (`.claude/hooks/lib/phase-slop-lint.sh`), wired as a Claude Code PreToolUse hook (catches the agent) and as installable git hooks for the submodule (catch humans):
+A milestone-synonym noun followed by a numeral is a cross-model agentic tell (GPT, Gemini, Claude, Cursor, Copilot all stamp them). It is slop **everywhere** in this repository: keep it out of `src/`/`tests/` comments, out of commit subjects (which should read as idiomatic git / Conventional Commits), and out of the host's own governance and plan prose. Milestones are **content-named** (`plan/<NNNN-slug>/`); there is no ordinal carve-out. This is enforced mechanically by the phase-slop linter (`.claude/hooks/lib/phase-slop-lint.sh`), wired as a Claude Code PreToolUse hook (catches the agent) and as installable git hooks for **both** the host repo and the software worktree (catch humans):
 
 ```
-git -C mcp-win32s config core.hooksPath ../.claude/hooks/git
+git config core.hooksPath .claude/hooks/git                   # host repo — gate host commit subjects
+git -C mcp-win32s config core.hooksPath ../.claude/hooks/git  # software worktree — gate human software commits
 ```
 
-(`.git/hooks` is not tracked, so the git-hook install is a per-clone step. The PreToolUse hook needs no install — it ships in `.claude/settings.json`.) The numeral is the tell; the noun alone is not. Idiomatic vocabulary — Conventional Commits types, Conventional Comments labels, code tags (`TODO/FIXME/XXX/HACK`), `WIP` — is never flagged, and genuine version/quantity numbers (the guest-OS and library versions cited in the milestone bodies) are allow-listed in `.host-lint-allow`.
+(`.git/hooks` is not tracked, so the git-hook install is a per-clone step. The PreToolUse hook needs no install — it ships in `.claude/settings.json`. The `commit-msg` hook lints the subject in either repo; the `pre-commit` comment scan is a no-op in the host, which has no `src/`/`tests/`. The software install targets the `mcp-win32s/` worktree, and its relative `../.claude/hooks/git` resolves to the host's hooks — path continuity holds under the bare-store model, `call/0004`.) The numeral is the tell; the noun alone is not. Idiomatic vocabulary — Conventional Commits types, Conventional Comments labels, code tags (`TODO/FIXME/XXX/HACK`), `WIP` — is never flagged, and genuine version/quantity numbers (the guest-OS and library versions cited in the milestone bodies) are allow-listed in `.host-lint-allow`.
 
 The linter's **match engine** is the vendored [`host-lint`](https://github.com/connollydavid/host-lint) tool (`host-lint/` submodule; the rule spec is its `VOCABULARY.md` — wider term list and two-word lookahead than the original shell pattern). Build it per clone: `cargo build --release --manifest-path host-lint/Cargo.toml`. Repo **policy** stays in the wrapper (`phase-slop-lint.sh`): comment-line scoping is applied around the engine, and the original shell pattern remains as the fallback engine when the binary is absent (hooks never wedge a fresh clone). The append-only record (`MEMORY.md` and the closed milestone bodies) is excluded from the `--all` audit via `.host-lintignore`.
 
